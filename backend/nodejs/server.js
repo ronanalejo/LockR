@@ -24,21 +24,8 @@ const db = require("./config/database");
   }
 })();
 
-// API Routes (import route files when created)
-// const authRoutes = require("./routes/authRoutes");
-// const studentRoutes = require("./routes/studentRoutes");
-// const lockerRoutes = require("./routes/lockerRoutes");
-// const reservationRoutes = require("./routes/reservationRoutes");
-// const adminRoutes = require("./routes/adminRoutes");
-// const financeRoutes = require("./routes/financeRoutes");
-
-// Register routes
-// app.use("/api/auth", authRoutes);
-// app.use("/api/students", studentRoutes);
-// app.use("/api/lockers", lockerRoutes);
-// app.use("/api/reservations", reservationRoutes);
-// app.use("/api/admin", adminRoutes);
-// app.use("/api/finance", financeRoutes);
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
