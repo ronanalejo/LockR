@@ -11,21 +11,62 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Basic route to test server
+// Import database connection
+const db = require("./config/database");
+
+// Test database connection on startup
+(async () => {
+  try {
+    await db.query("SELECT 1");
+    console.log("Database connection verified");
+  } catch (err) {
+    console.error("Database connection test failed:", err.message);
+  }
+})();
+
+// API Routes (import route files when created)
+// const authRoutes = require("./routes/authRoutes");
+// const studentRoutes = require("./routes/studentRoutes");
+// const lockerRoutes = require("./routes/lockerRoutes");
+// const reservationRoutes = require("./routes/reservationRoutes");
+// const adminRoutes = require("./routes/adminRoutes");
+// const financeRoutes = require("./routes/financeRoutes");
+
+// Register routes
+// app.use("/api/auth", authRoutes);
+// app.use("/api/students", studentRoutes);
+// app.use("/api/lockers", lockerRoutes);
+// app.use("/api/reservations", reservationRoutes);
+// app.use("/api/admin", adminRoutes);
+// app.use("/api/finance", financeRoutes);
+
+// Root endpoint
 app.get("/", (req, res) => {
   res.json({
-    message: "LockR API Server is running!",
+    message: "LockR API Server is running",
     version: "1.0.0",
     environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
   });
 });
 
 // Health check endpoint
-app.get("/health", (req, res) => {
-  res.json({
-    status: "OK",
-    timestamp: new Date().toISOString(),
-  });
+app.get("/api/health", async (req, res) => {
+  try {
+    await db.query("SELECT 1");
+    res.json({
+      status: "OK",
+      database: "connected",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: "ERROR",
+      database: "disconnected",
+      error: err.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // 404 handler
