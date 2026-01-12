@@ -1,13 +1,13 @@
 import api from "./api";
-import tokenStorage from "./tokenStorage";
+import tokenStorage from "../utils/tokenStorage";
 
 const authService = {
   login: async (email, password) => {
     try {
       // Use axios instance instead of fetch
-      const response = await api.post('/auth/login', { 
-        email, 
-        password 
+      const response = await api.post("/auth/login", {
+        email,
+        password,
       });
 
       const data = response.data;
@@ -22,7 +22,8 @@ const authService = {
     } catch (error) {
       console.error("Login error:", error);
       // Extract error message from axios error response
-      const message = error.response?.data?.message || error.message || "Login failed";
+      const message =
+        error.response?.data?.message || error.message || "Login failed";
       throw new Error(message);
     }
   },
