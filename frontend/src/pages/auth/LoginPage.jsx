@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import "./auth.css";
+import iRESERVELOGO from "../../assets/images/logos/iRESERVELOGO.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -11,7 +13,6 @@ const LoginPage = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -37,55 +38,43 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h2>Login to LockR</h2>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role">Role</label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              disabled={loading}
-            >
-              <option value="student">Student</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+    <div className="login-form">
+      <div id="ireserve-logo">
+        <img src={iRESERVELOGO} alt="logo" />
       </div>
+
+      <form onSubmit={handleSubmit}>
+        <button id="google-btn" type="submit">
+          Login using Google
+        </button>
+        <p>OR</p>
+
+        <div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div style={{ marginTop: "10px" }}>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <button id="login-btn" type="submit">
+            Login
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
