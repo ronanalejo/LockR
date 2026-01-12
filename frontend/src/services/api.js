@@ -1,9 +1,6 @@
 import axios from 'axios';
 import tokenStorage from './tokenStorage';
 
-// backend API URL is 5000
-// frontend API URL is 3000
-
 // base configuration with axios
 const api = axios.create({
   baseURL: 'http://localhost:5000/api',
@@ -30,7 +27,7 @@ api.interceptors.request.use(
   }
 );
 
-// interceptor - handle token expiration and errors
+// response interceptor - handle token expiration and errors
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -39,6 +36,12 @@ api.interceptors.response.use(
     // handle 401 unauthorized - token expired or invalid
     if (error.response && error.response.status === 401) {
       tokenStorage.removeToken();
+      localStorage.removeItem("user");
+      
+      // Redirect to login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
       
       console.error('Authentication failed. Please login again.');
     }
