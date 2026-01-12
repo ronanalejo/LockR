@@ -1,36 +1,34 @@
-import { API_ENDPOINTS } from "../config/api";
+import api from "./api";
+import tokenStorage from "./tokenStorage";
 
 const authService = {
   login: async (email, password) => {
     try {
-      const response = await fetch(API_ENDPOINTS.auth.login, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+      // Use axios instance instead of fetch
+      const response = await api.post('/auth/login', { 
+        email, 
+        password 
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
+      const data = response.data;
 
       if (data.success && data.token) {
-        localStorage.setItem("token", data.token);
+        // Use tokenStorage for consistency
+        tokenStorage.setToken(data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
       }
 
       return data;
     } catch (error) {
       console.error("Login error:", error);
-      throw error;
+      // Extract error message from axios error response
+      const message = error.response?.data?.message || error.message || "Login failed";
+      throw new Error(message);
     }
   },
 
   logout: () => {
-    localStorage.removeItem("token");
+    tokenStorage.removeToken();
     localStorage.removeItem("user");
   },
 
@@ -40,11 +38,11 @@ const authService = {
   },
 
   getToken: () => {
-    return localStorage.getItem("token");
+    return tokenStorage.getToken();
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem("token");
+    return !!tokenStorage.getToken();
   },
 };
 
