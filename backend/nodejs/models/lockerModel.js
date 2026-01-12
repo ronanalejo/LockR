@@ -48,7 +48,7 @@ const LockerModel = {
       const result = await db.query(query, params);
       return result.rows;
     } catch (error) {
-      throw new Error(`Error fetching lockers: ${error.message}`);
+      throw new Error(`Error fetching lockers: ${error.message}.`);
     }
   },
 
@@ -84,7 +84,7 @@ const LockerModel = {
       const result = await db.query(query, params);
       return parseInt(result.rows[0].total);
     } catch (error) {
-      throw new Error(`Error counting lockers: ${error.message}`);
+      throw new Error(`Error counting lockers: ${error.message}.`);
     }
   },
 
@@ -106,7 +106,7 @@ const LockerModel = {
       const result = await db.query(query, [limit, offset]);
       return result.rows;
     } catch (error) {
-      throw new Error(`Error fetching available lockers: ${error.message}`);
+      throw new Error(`Error fetching available lockers: ${error.message}.`);
     }
   },
 
@@ -138,7 +138,7 @@ const LockerModel = {
       const result = await db.query(query, params);
       return result.rows;
     } catch (error) {
-      throw new Error(`Error fetching lockers by floor: ${error.message}`);
+      throw new Error(`Error fetching lockers by floor: ${error.message}.`);
     }
   },
 
@@ -157,7 +157,7 @@ const LockerModel = {
       const result = await db.query(query, [lockerID]);
       return result.rows[0] || null;
     } catch (error) {
-      throw new Error(`Error fetching locker by ID: ${error.message}`);
+      throw new Error(`Error fetching locker by ID: ${error.message}.`);
     }
   },
 
@@ -178,7 +178,7 @@ const LockerModel = {
       const result = await db.query(query, [status, lockerID]);
       return result.rows[0] || null;
     } catch (error) {
-      throw new Error(`Error updating locker status: ${error.message}`);
+      throw new Error(`Error updating locker status: ${error.message}.`);
     }
   },
 
@@ -198,7 +198,7 @@ const LockerModel = {
       const result = await db.query(query, [branchID, floorNumber, status]);
       return result.rows[0];
     } catch (error) {
-      throw new Error(`Error creating locker: ${error.message}`);
+      throw new Error(`Error creating locker: ${error.message}.`);
     }
   },
 
@@ -213,7 +213,7 @@ const LockerModel = {
       const result = await db.query(query, [lockerID]);
       return result.rowCount > 0;
     } catch (error) {
-      throw new Error(`Error deleting locker: ${error.message}`);
+      throw new Error(`Error deleting locker: ${error.message}.`);
     }
   },
 };

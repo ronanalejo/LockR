@@ -19,7 +19,7 @@ const LockerController = {
       if (page < 1 || limit < 1 || limit > 100) {
         return res.status(400).json({
           success: false,
-          error: "Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 100",
+          error: "Invalid pagination parameters. Page limit must be between 1 and 100.",
         });
       }
 
@@ -67,7 +67,7 @@ const LockerController = {
       if (isNaN(floorNumber)) {
         return res.status(400).json({
           success: false,
-          error: "Invalid floor number. Must be a valid integer",
+          error: "Invalid floor number. Must be a valid integer.",
         });
       }
 
@@ -76,7 +76,7 @@ const LockerController = {
       if (status && !validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
-          error: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+          error: `Invalid status. Must be one of: ${validStatuses.join(", ")}.`,
         });
       }
 
@@ -84,7 +84,7 @@ const LockerController = {
       if (page < 1 || limit < 1 || limit > 100) {
         return res.status(400).json({
           success: false,
-          error: "Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 100",
+          error: "Invalid pagination parameters. Page limit must be between 1 and 100.",
         });
       }
 
@@ -120,7 +120,7 @@ const LockerController = {
       console.error("Error in getLockersByFloor:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to fetch lockers by floor",
+        error: "Failed to fetch lockers by floor.",
         message: error.message,
       });
     }
@@ -138,7 +138,7 @@ const LockerController = {
       if (isNaN(lockerID)) {
         return res.status(400).json({
           success: false,
-          error: "Invalid locker ID. Must be a valid integer",
+          error: "Invalid locker ID. Must be a valid integer.",
         });
       }
 
@@ -147,8 +147,8 @@ const LockerController = {
       if (!locker) {
         return res.status(404).json({
           success: false,
-          error: "Locker not found",
-          message: `No locker found with ID: ${lockerID}`,
+          error: "Locker not found.",
+          message: `No locker found with ID: ${lockerID}.`,
         });
       }
 
@@ -162,7 +162,7 @@ const LockerController = {
       console.error("Error in getLockerById:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to fetch locker details",
+        error: "Failed to fetch locker details.",
         message: error.message,
       });
     }
@@ -185,7 +185,7 @@ const LockerController = {
         if (!validStatuses.includes(req.query.status)) {
           return res.status(400).json({
             success: false,
-            error: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+            error: `Invalid status. Must be one of: ${validStatuses.join(", ")}.`,
           });
         }
         filters.status = req.query.status;
@@ -196,7 +196,7 @@ const LockerController = {
         if (isNaN(branchID)) {
           return res.status(400).json({
             success: false,
-            error: "Invalid branchID. Must be a valid integer",
+            error: "Invalid branchID. Must be a valid integer.",
           });
         }
         filters.branchID = branchID;
@@ -207,7 +207,7 @@ const LockerController = {
         if (isNaN(floorNumber)) {
           return res.status(400).json({
             success: false,
-            error: "Invalid floorNumber. Must be a valid integer",
+            error: "Invalid floorNumber. Must be a valid integer.",
           });
         }
         filters.floorNumber = floorNumber;
@@ -217,7 +217,7 @@ const LockerController = {
       if (page < 1 || limit < 1 || limit > 100) {
         return res.status(400).json({
           success: false,
-          error: "Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 100",
+          error: "Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 100.",
         });
       }
 
@@ -244,7 +244,7 @@ const LockerController = {
       console.error("Error in getAllLockers:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to fetch lockers",
+        error: "Failed to fetch lockers.",
         message: error.message,
       });
     }
@@ -263,7 +263,7 @@ const LockerController = {
       if (isNaN(lockerID)) {
         return res.status(400).json({
           success: false,
-          error: "Invalid locker ID. Must be a valid integer",
+          error: "Invalid locker ID. Must be a valid integer.",
         });
       }
 
@@ -272,7 +272,7 @@ const LockerController = {
       if (!status || !validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
-          error: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+          error: `Invalid status. Must be one of: ${validStatuses.join(", ")}.`,
         });
       }
 
@@ -281,8 +281,8 @@ const LockerController = {
       if (!existingLocker) {
         return res.status(404).json({
           success: false,
-          error: "Locker not found",
-          message: `No locker found with ID: ${lockerID}`,
+          error: "Locker not found.",
+          message: `No locker found with ID: ${lockerID}.`,
         });
       }
 
@@ -290,7 +290,7 @@ const LockerController = {
 
       res.json({
         success: true,
-        message: "Locker status updated successfully",
+        message: "Locker status updated successfully.",
         data: {
           locker: updatedLocker,
         },
@@ -299,7 +299,7 @@ const LockerController = {
       console.error("Error in updateLockerStatus:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to update locker status",
+        error: "Failed to update locker status.",
         message: error.message,
       });
     }
@@ -317,7 +317,7 @@ const LockerController = {
       if (!branchID || floorNumber === undefined) {
         return res.status(400).json({
           success: false,
-          error: "Missing required fields: branchID and floorNumber are required",
+          error: "Missing required fields: branchID and floorNumber are required.",
         });
       }
 
@@ -327,7 +327,7 @@ const LockerController = {
         if (!validStatuses.includes(status)) {
           return res.status(400).json({
             success: false,
-            error: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+            error: `Invalid status. Must be one of: ${validStatuses.join(", ")}.`,
           });
         }
       }
@@ -340,7 +340,7 @@ const LockerController = {
 
       res.status(201).json({
         success: true,
-        message: "Locker created successfully",
+        message: "Locker created successfully.",
         data: {
           locker: newLocker,
         },
@@ -349,7 +349,7 @@ const LockerController = {
       console.error("Error in createLocker:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to create locker",
+        error: "Failed to create locker.",
         message: error.message,
       });
     }
@@ -367,7 +367,7 @@ const LockerController = {
       if (isNaN(lockerID)) {
         return res.status(400).json({
           success: false,
-          error: "Invalid locker ID. Must be a valid integer",
+          error: "Invalid locker ID. Must be a valid integer.",
         });
       }
 
@@ -376,8 +376,8 @@ const LockerController = {
       if (!existingLocker) {
         return res.status(404).json({
           success: false,
-          error: "Locker not found",
-          message: `No locker found with ID: ${lockerID}`,
+          error: "Locker not found.",
+          message: `No locker found with ID: ${lockerID}.`,
         });
       }
 
@@ -385,7 +385,7 @@ const LockerController = {
 
       res.json({
         success: true,
-        message: "Locker deleted successfully",
+        message: "Locker deleted successfully.",
         data: {
           lockerID,
         },
@@ -394,7 +394,7 @@ const LockerController = {
       console.error("Error in deleteLocker:", error);
       res.status(500).json({
         success: false,
-        error: "Failed to delete locker",
+        error: "Failed to delete locker.",
         message: error.message,
       });
     }
