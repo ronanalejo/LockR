@@ -14,6 +14,16 @@
       "key": "token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "referralSlipNo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentID",
+      "value": "2024-00001",
+      "type": "string"
     }
   ],
   "item": [
@@ -133,6 +143,23 @@
       "item": [
         {
           "name": "Create Reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.referralSlipNo) {",
+                  "        pm.collectionVariables.set('referralSlipNo', response.data.referralSlipNo);",
+                  "        console.log('Saved referralSlipNo: ' + response.data.referralSlipNo);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -147,7 +174,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"lockerID\": \"L6-001\",\n  \"agreement\": \"1 Semester/Term\",\n  \"floorNumber\": \"6\"\n}"
+              "raw": "{\n  \"lockerID\": \"L6-001\",\n  \"agreement\": \"1 Semester/Term\",\n  \"floorNumber\": \"6\",\n  \"collegeTerm\": \"1\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/reservations",
@@ -157,34 +184,61 @@
           }
         },
         {
-          "name": "Upload Receipt",
+          "name": "Get Reservation by ID",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}"
               }
             ],
+            "url": {
+              "raw": "{{base_url}}/reservations/{{referralSlipNo}}",
+              "host": ["{{base_url}}"],
+              "path": ["reservations", "{{referralSlipNo}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Reservation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "receipt",
-                  "type": "file",
-                  "src": ""
-                },
-                {
-                  "key": "referralSlipNo",
-                  "value": "1",
-                  "type": "text"
-                }
-              ]
+              "mode": "raw",
+              "raw": "{\n  \"dropboxReceipt\": \"/uploads/receipts/receipt-123.pdf\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/reservations/upload-receipt",
+              "raw": "{{base_url}}/reservations/{{referralSlipNo}}",
               "host": ["{{base_url}}"],
-              "path": ["reservations", "upload-receipt"]
+              "path": ["reservations", "{{referralSlipNo}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Student Reservations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{studentID}}/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{studentID}}", "reservations"]
             }
           }
         }
