@@ -5,18 +5,10 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import RoleRoute from "./components/common/RoleRoute";
 import LoginPage from "./pages/auth/LoginPage";
-
-const PrivateRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  return isAuthenticated ? children : <Navigate to="/login" />;
-};
 
 function AppRoutes() {
   return (
@@ -26,18 +18,18 @@ function AppRoutes() {
       <Route
         path="/student/dashboard"
         element={
-          <PrivateRoute>
+          <RoleRoute allowedRoles={["student"]}>
             <div>Student Dashboard Placeholder</div>
-          </PrivateRoute>
+          </RoleRoute>
         }
       />
 
       <Route
         path="/admin/dashboard"
         element={
-          <PrivateRoute>
+          <RoleRoute allowedRoles={["admin"]}>
             <div>Admin Dashboard Placeholder</div>
-          </PrivateRoute>
+          </RoleRoute>
         }
       />
 

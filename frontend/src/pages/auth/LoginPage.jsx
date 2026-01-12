@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./auth.css";
 import iRESERVELOGO from "../../assets/images/logos/iRESERVELOGO.png";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import useAuth from "../../hooks/useAuth";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
