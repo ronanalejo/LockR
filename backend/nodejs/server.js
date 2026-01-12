@@ -31,6 +31,8 @@ const db = require("./config/database");
 
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
+const reservationRoutes = require("./routes/reservationRoutes");
+app.use("/api/reservations", reservationRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
