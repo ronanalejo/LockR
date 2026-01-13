@@ -1,14 +1,11 @@
-# Disable directory listing
-
 Options -Indexes
-
-# Enable URL rewriting
+Options +FollowSymLinks
 
 RewriteEngine On
 
 # Block access to sensitive files
 
-<FilesMatch "\.(env|ini|log|sh|sql|bak|config)$">
+<FilesMatch "\.(env|ini|log|sh|sql|bak|config|md)$">
 Order allow,deny
 Deny from all
 </FilesMatch>
@@ -20,26 +17,29 @@ Order allow,deny
 Deny from all
 </FilesMatch>
 
-# Route API requests to appropriate handlers
+# API routing
 
-RewriteRule ^api/upload/?$ api/upload.php [L,QSA]
+RewriteRule ^api/upload-receipt/?$ api/upload-receipt.php [L,QSA]
 
 # Security headers
 
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
-    Header always set X-Frame-Options "DENY"
+    Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always unset X-Powered-By
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
-# PHP settings (if applicable)
+# PHP settings
 
 <IfModule mod_php.c>
     php_flag display_errors Off
     php_flag log_errors On
+    php_value error_log /path/to/backend/logs/php_errors.log
     php_value upload_max_filesize 5M
     php_value post_max_size 6M
     php_value max_execution_time 30
+    php_value memory_limit 128M
 </IfModule>
