@@ -1,7 +1,8 @@
 {
   "info": {
-    "name": "LockR API Collection",
-    "description": "Complete API endpoints for LockR Locker Reservation System",
+    "name": "LockR Locker API - QA Testing",
+    "_postman_id": "lockr-locker-qa-2026",
+    "description": "Comprehensive QA test suite for Locker API endpoints",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,34 +17,36 @@
       "type": "string"
     },
     {
-      "key": "referralSlipNo",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "studentID",
-      "value": "2024-00001",
+      "key": "test_locker_id",
+      "value": "L6-001",
       "type": "string"
     }
   ],
   "item": [
     {
-      "name": "Health Check",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/health",
-          "host": ["{{base_url}}"],
-          "path": ["health"]
-        }
-      }
-    },
-    {
-      "name": "Authentication",
+      "name": "Setup - Authentication",
       "item": [
         {
-          "name": "Login",
+          "name": "Login - Get Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('token', response.token);",
+                  "    console.log('Token saved successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -54,7 +57,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentID\": \"2021-00001\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"studentID\": \"2024-00001\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
@@ -62,48 +65,70 @@
               "path": ["auth", "login"]
             }
           }
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "logout"]
-            }
-          }
-        },
-        {
-          "name": "Refresh Token",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/auth/refresh",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "refresh"]
-            }
-          }
         }
       ]
     },
     {
-      "name": "Lockers",
+      "name": "Task Requirement 1 - GET /api/lockers/available",
       "item": [
         {
-          "name": "Get Available Lockers",
+          "name": "TC1.1 - Get Available Lockers (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains data object', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data).to.be.an('object');",
+                  "    pm.expect(response.data.lockers).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination metadata', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.pagination).to.be.an('object');",
+                  "    pm.expect(response.data.pagination).to.have.property('currentPage');",
+                  "    pm.expect(response.data.pagination).to.have.property('totalPages');",
+                  "    pm.expect(response.data.pagination).to.have.property('totalCount');",
+                  "});",
+                  "",
+                  "pm.test('Each locker has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data.lockers.length > 0) {",
+                  "        const locker = response.data.lockers[0];",
+                  "        pm.expect(locker).to.have.property('lockerID');",
+                  "        pm.expect(locker).to.have.property('branchID');",
+                  "        pm.expect(locker).to.have.property('floorNumber');",
+                  "        pm.expect(locker).to.have.property('status');",
+                  "        pm.expect(locker).to.have.property('createdAt');",
+                  "        pm.expect(locker).to.have.property('updatedAt');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('All lockers have status Available', function () {",
+                  "    const response = pm.response.json();",
+                  "    response.data.lockers.forEach(locker => {",
+                  "        pm.expect(locker.status).to.equal('Available');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -120,7 +145,162 @@
           }
         },
         {
-          "name": "Get Lockers by Floor",
+          "name": "TC1.2 - Get Available Lockers with Pagination",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Pagination parameters applied', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.pagination.currentPage).to.equal(1);",
+                  "    pm.expect(response.data.pagination.limit).to.equal(10);",
+                  "    pm.expect(response.data.lockers.length).to.be.at.most(10);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lockers/available?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["lockers", "available"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC1.3 - Unauthorized Access (No Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/lockers/available",
+              "host": ["{{base_url}}"],
+              "path": ["lockers", "available"]
+            }
+          }
+        },
+        {
+          "name": "TC1.4 - Invalid Pagination Parameters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.error).to.include('pagination');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lockers/available?page=0&limit=150",
+              "host": ["{{base_url}}"],
+              "path": ["lockers", "available"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "150"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Task Requirement 2 - GET /api/lockers/floor/:floorNumber",
+      "item": [
+        {
+          "name": "TC2.1 - Get Floor 6 Lockers (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('All lockers are from floor 6', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data.lockers.length > 0) {",
+                  "        response.data.lockers.forEach(locker => {",
+                  "            pm.expect(locker.floorNumber).to.equal('6');",
+                  "        });",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Floor number in response matches request', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.floorNumber).to.equal('6');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -135,56 +315,61 @@
               "path": ["lockers", "floor", "6"]
             }
           }
-        }
-      ]
-    },
-    {
-      "name": "Reservations",
-      "item": [
+        },
         {
-          "name": "Create Reservation",
+          "name": "TC2.2 - Get Floor 7 Lockers",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 201) {",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All lockers are from floor 7', function () {",
                   "    const response = pm.response.json();",
-                  "    if (response.data && response.data.referralSlipNo) {",
-                  "        pm.collectionVariables.set('referralSlipNo', response.data.referralSlipNo);",
-                  "        console.log('Saved referralSlipNo: ' + response.data.referralSlipNo);",
+                  "    if (response.data.lockers.length > 0) {",
+                  "        response.data.lockers.forEach(locker => {",
+                  "            pm.expect(locker.floorNumber).to.equal('7');",
+                  "        });",
                   "    }",
-                  "}"
+                  "});"
                 ],
                 "type": "text/javascript"
               }
             }
           ],
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"lockerID\": \"L6-001\",\n  \"agreement\": \"1 Semester/Term\",\n  \"floorNumber\": \"6\",\n  \"collegeTerm\": \"1\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/reservations",
+              "raw": "{{base_url}}/lockers/floor/7",
               "host": ["{{base_url}}"],
-              "path": ["reservations"]
+              "path": ["lockers", "floor", "7"]
             }
           }
         },
         {
-          "name": "Get Reservation by ID",
+          "name": "TC2.3 - Get Floor 9 Lockers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -194,39 +379,27 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/reservations/{{referralSlipNo}}",
+              "raw": "{{base_url}}/lockers/floor/9",
               "host": ["{{base_url}}"],
-              "path": ["reservations", "{{referralSlipNo}}"]
+              "path": ["lockers", "floor", "9"]
             }
           }
         },
         {
-          "name": "Update Reservation",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+          "name": "TC2.4 - Get Floor 10 Lockers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
               }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"dropboxReceipt\": \"/uploads/receipts/receipt-123.pdf\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/reservations/{{referralSlipNo}}",
-              "host": ["{{base_url}}"],
-              "path": ["reservations", "{{referralSlipNo}}"]
             }
-          }
-        },
-        {
-          "name": "Get Student Reservations",
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -236,19 +409,133 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{studentID}}/reservations",
+              "raw": "{{base_url}}/lockers/floor/10",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{studentID}}", "reservations"]
+              "path": ["lockers", "floor", "10"]
+            }
+          }
+        },
+        {
+          "name": "TC2.5 - Invalid Floor Number (99)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message mentions invalid floor', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.error).to.include('floor');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lockers/floor/99",
+              "host": ["{{base_url}}"],
+              "path": ["lockers", "floor", "99"]
+            }
+          }
+        },
+        {
+          "name": "TC2.6 - Floor with Status Filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All lockers match floor and status', function () {",
+                  "    const response = pm.response.json();",
+                  "    response.data.lockers.forEach(locker => {",
+                  "        pm.expect(locker.floorNumber).to.equal('6');",
+                  "        pm.expect(locker.status).to.equal('Available');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lockers/floor/6?status=Available",
+              "host": ["{{base_url}}"],
+              "path": ["lockers", "floor", "6"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Available"
+                }
+              ]
             }
           }
         }
       ]
     },
     {
-      "name": "Admin (OSAS)",
+      "name": "Task Requirement 3 - GET /api/lockers/:lockerID",
       "item": [
         {
-          "name": "Get Endorsement Queue",
+          "name": "TC3.1 - Get Locker by ID (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains single locker object', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "    pm.expect(response.data.locker).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('Locker has all required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    const locker = response.data.locker;",
+                  "    pm.expect(locker).to.have.property('lockerID');",
+                  "    pm.expect(locker).to.have.property('branchID');",
+                  "    pm.expect(locker).to.have.property('floorNumber');",
+                  "    pm.expect(locker).to.have.property('status');",
+                  "    pm.expect(locker).to.have.property('createdAt');",
+                  "    pm.expect(locker).to.have.property('updatedAt');",
+                  "});",
+                  "",
+                  "pm.test('Returned locker ID matches request', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.locker.lockerID).to.equal('L6-001');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -258,14 +545,33 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/reservations/endorsement",
+              "raw": "{{base_url}}/lockers/L6-001",
               "host": ["{{base_url}}"],
-              "path": ["admin", "reservations", "endorsement"]
+              "path": ["lockers", "L6-001"]
             }
           }
         },
         {
-          "name": "Get Approval Queue",
+          "name": "TC3.2 - Get Non-Existent Locker (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates not found', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.error).to.include('not found');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -275,61 +581,62 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/reservations/approval",
+              "raw": "{{base_url}}/lockers/INVALID-999",
               "host": ["{{base_url}}"],
-              "path": ["admin", "reservations", "approval"]
+              "path": ["lockers", "INVALID-999"]
             }
           }
         },
         {
-          "name": "Approve Reservation",
+          "name": "TC3.3 - Empty Locker ID (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 404', function () {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "PUT",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
                 "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"action\": \"approve\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/admin/reservations/1/approve",
+              "raw": "{{base_url}}/lockers/ ",
               "host": ["{{base_url}}"],
-              "path": ["admin", "reservations", "1", "approve"]
+              "path": ["lockers", " "]
             }
           }
         }
       ]
     },
     {
-      "name": "Finance",
+      "name": "Performance Tests",
       "item": [
         {
-          "name": "Get Pending Payments",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
+          "name": "PERF1 - Response Time Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response time under 500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
               }
-            ],
-            "url": {
-              "raw": "{{base_url}}/finance/payments/pending",
-              "host": ["{{base_url}}"],
-              "path": ["finance", "payments", "pending"]
             }
-          }
-        },
-        {
-          "name": "Get Payment History",
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -339,9 +646,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/finance/payments/history",
+              "raw": "{{base_url}}/lockers/available",
               "host": ["{{base_url}}"],
-              "path": ["finance", "payments", "history"]
+              "path": ["lockers", "available"]
             }
           }
         }

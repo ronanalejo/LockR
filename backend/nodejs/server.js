@@ -29,8 +29,13 @@ const db = require("./config/database");
   }
 })();
 
+// Import routes
 const authRoutes = require("./routes/authRoutes");
+const lockerRoutes = require("./routes/lockerRoutes");
+
+// Register routes
 app.use("/api/auth", authRoutes);
+app.use("/api/lockers", lockerRoutes);
 const reservationRoutes = require("./routes/reservationRoutes");
 app.use("/api/reservations", reservationRoutes);
 
