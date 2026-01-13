@@ -3,39 +3,52 @@ import "./auth.css";
 import iRESERVELOGO from "../../assets/images/logos/iRESERVELOGO.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { showLoading, showSuccess, showError, closeAlert } from "../../utils/notifications";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("student");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const { login } = useAuth();
   const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const response = await login(email, password);
+  showLoading(
+    "Logging in...",
+    "Please wait while we verify your credentials."
+  );
 
-      if (response.success) {
-        const userType = response.user.userType;
+  try {
+    const response = await login(email, password);
 
-        if (userType === "student") {
-          navigate("/student/dashboard");
-        } else if (userType === "admin") {
-          navigate("/admin/dashboard");
-        }
-      }
-    } catch (err) {
-      setError(err.message || "Login failed. Please check your credentials.");
-    } finally {
-      setLoading(false);
+    if (!response?.success) {
+      throw new Error("Invalid credentials");
     }
-  };
+
+    const userType = response.user.userType;
+
+    await showSuccess(
+      "Login Successful!",
+      "Redirecting to your dashboard..."
+    );
+
+    closeAlert();
+
+    if (userType === "student") {
+      navigate("/student/dashboard");
+    } else if (userType === "admin") {
+      navigate("/admin/dashboard");
+    }
+  } catch (err) {
+    closeAlert();
+    showError("Login Failed", err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="login-form">
@@ -44,7 +57,7 @@ const LoginPage = () => {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <button id="google-btn" type="submit">
+        <button id="google-btn" type="submit" disabled={loading}>
           Login using Google
         </button>
         <p>OR</p>
@@ -70,8 +83,8 @@ const LoginPage = () => {
         </div>
 
         <div>
-          <button id="login-btn" type="submit">
-            Login
+          <button id="login-btn" type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </button>
         </div>
       </form>

@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/auth/LoginPage";
+import notifications from "./utils/notifications.js";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -22,6 +23,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+
+      <Route path="/notifications" element={<notifications />} />
 
       <Route
         path="/student/dashboard"
