@@ -19,12 +19,15 @@ const LockerController = {
       if (page < 1 || limit < 1 || limit > 100) {
         return res.status(400).json({
           success: false,
-          error: "Invalid pagination parameters. Page limit must be between 1 and 100.",
+          error:
+            "Invalid pagination parameters. Page limit must be between 1 and 100.",
         });
       }
 
       const lockers = await LockerModel.getAvailableLockers(limit, offset);
-      const totalCount = await LockerModel.getLockerCount({ status: "available" });
+      const totalCount = await LockerModel.getLockerCount({
+        status: "available",
+      });
       const totalPages = Math.ceil(totalCount / limit);
 
       res.json({
@@ -57,11 +60,20 @@ const LockerController = {
    */
   async getLockersByFloor(req, res) {
     try {
-      const floorNumber = parseInt(req.params.floorNumber);
+      const floorNumber = req.params.floorNumber; // Keep as string
       const status = req.query.status; // Optional status filter
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 50;
       const offset = (page - 1) * limit;
+
+      // validate floor number (must be 6, 7, 9, or 10)
+      const validFloors = ["6", "7", "9", "10"];
+      if (!validFloors.includes(floorNumber)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid floor number. Must be one of: 6, 7, 9, 10.",
+        });
+      }
 
       // validate floor number
       if (isNaN(floorNumber)) {
@@ -72,7 +84,12 @@ const LockerController = {
       }
 
       // validate status if provided
-      const validStatuses = ["available", "occupied", "reserved", "unavailable"];
+      const validStatuses = [
+        "available",
+        "occupied",
+        "reserved",
+        "unavailable",
+      ];
       if (status && !validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
@@ -84,7 +101,8 @@ const LockerController = {
       if (page < 1 || limit < 1 || limit > 100) {
         return res.status(400).json({
           success: false,
-          error: "Invalid pagination parameters. Page limit must be between 1 and 100.",
+          error:
+            "Invalid pagination parameters. Page limit must be between 1 and 100.",
         });
       }
 
@@ -132,13 +150,13 @@ const LockerController = {
    */
   async getLockerById(req, res) {
     try {
-      const lockerID = parseInt(req.params.lockerID);
+      const lockerID = req.params.lockerID; // Keep as string, not parseInt
 
-      // validate locker ID
-      if (isNaN(lockerID)) {
+      // validate locker ID format (should be like L6-001)
+      if (!lockerID || lockerID.trim() === "") {
         return res.status(400).json({
           success: false,
-          error: "Invalid locker ID. Must be a valid integer.",
+          error: "Invalid locker ID. Locker ID is required.",
         });
       }
 
@@ -181,11 +199,18 @@ const LockerController = {
       // build filters object
       const filters = {};
       if (req.query.status) {
-        const validStatuses = ["available", "occupied", "reserved", "unavailable"];
+        const validStatuses = [
+          "Available",
+          "Occupied",
+          "Reserved",
+          "Unavailable",
+        ];
         if (!validStatuses.includes(req.query.status)) {
           return res.status(400).json({
             success: false,
-            error: `Invalid status. Must be one of: ${validStatuses.join(", ")}.`,
+            error: `Invalid status. Must be one of: ${validStatuses.join(
+              ", "
+            )}.`,
           });
         }
         filters.status = req.query.status;
@@ -217,7 +242,8 @@ const LockerController = {
       if (page < 1 || limit < 1 || limit > 100) {
         return res.status(400).json({
           success: false,
-          error: "Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 100.",
+          error:
+            "Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 100.",
         });
       }
 
@@ -256,19 +282,24 @@ const LockerController = {
    */
   async updateLockerStatus(req, res) {
     try {
-      const lockerID = parseInt(req.params.lockerID);
+      const lockerID = req.params.lockerID; // Keep as string
       const { status } = req.body;
 
       // validate locker ID
-      if (isNaN(lockerID)) {
+      if (!lockerID || lockerID.trim() === "") {
         return res.status(400).json({
           success: false,
-          error: "Invalid locker ID. Must be a valid integer.",
+          error: "Invalid locker ID. Locker ID is required.",
         });
       }
 
       // validate status
-      const validStatuses = ["available", "occupied", "reserved", "unavailable"];
+      const validStatuses = [
+        "Available",
+        "Occupied",
+        "Reserved",
+        "Unavailable",
+      ];
       if (!status || !validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
@@ -286,7 +317,10 @@ const LockerController = {
         });
       }
 
-      const updatedLocker = await LockerModel.updateLockerStatus(lockerID, status);
+      const updatedLocker = await LockerModel.updateLockerStatus(
+        lockerID,
+        status
+      );
 
       res.json({
         success: true,
@@ -317,17 +351,25 @@ const LockerController = {
       if (!branchID || floorNumber === undefined) {
         return res.status(400).json({
           success: false,
-          error: "Missing required fields: branchID and floorNumber are required.",
+          error:
+            "Missing required fields: branchID and floorNumber are required.",
         });
       }
 
       // validate status if provided
       if (status) {
-        const validStatuses = ["available", "occupied", "reserved", "unavailable"];
+        const validStatuses = [
+          "available",
+          "occupied",
+          "reserved",
+          "unavailable",
+        ];
         if (!validStatuses.includes(status)) {
           return res.status(400).json({
             success: false,
-            error: `Invalid status. Must be one of: ${validStatuses.join(", ")}.`,
+            error: `Invalid status. Must be one of: ${validStatuses.join(
+              ", "
+            )}.`,
           });
         }
       }

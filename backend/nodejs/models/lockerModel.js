@@ -16,37 +16,33 @@ const LockerModel = {
     try {
       let query = `
         SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
-        FROM lockers 
+        FROM locker 
         WHERE 1=1
       `;
       const params = [];
-      let paramIndex = 1;
 
       // apply filters
       if (filters.status) {
-        query += ` AND status = $${paramIndex}`;
+        query += ` AND status = ?`;
         params.push(filters.status);
-        paramIndex++;
       }
 
       if (filters.branchID) {
-        query += ` AND branchID = $${paramIndex}`;
+        query += ` AND branchID = ?`;
         params.push(filters.branchID);
-        paramIndex++;
       }
 
       if (filters.floorNumber !== undefined) {
-        query += ` AND floorNumber = $${paramIndex}`;
+        query += ` AND floorNumber = ?`;
         params.push(filters.floorNumber);
-        paramIndex++;
       }
 
       // add order by and pagination
-      query += ` ORDER BY floorNumber ASC, lockerID ASC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      query += ` ORDER BY floorNumber ASC, lockerID ASC LIMIT ? OFFSET ?`;
       params.push(limit, offset);
 
-      const result = await db.query(query, params);
-      return result.rows;
+      const [rows] = await db.query(query, params);
+      return rows;
     } catch (error) {
       throw new Error(`Error fetching lockers: ${error.message}.`);
     }
@@ -59,30 +55,26 @@ const LockerModel = {
    */
   async getLockerCount(filters = {}) {
     try {
-      let query = "SELECT COUNT(*) as total FROM lockers WHERE 1=1";
+      let query = "SELECT COUNT(*) as total FROM locker WHERE 1=1";
       const params = [];
-      let paramIndex = 1;
 
       if (filters.status) {
-        query += ` AND status = $${paramIndex}`;
+        query += ` AND status = ?`;
         params.push(filters.status);
-        paramIndex++;
       }
 
       if (filters.branchID) {
-        query += ` AND branchID = $${paramIndex}`;
+        query += ` AND branchID = ?`;
         params.push(filters.branchID);
-        paramIndex++;
       }
 
       if (filters.floorNumber !== undefined) {
-        query += ` AND floorNumber = $${paramIndex}`;
+        query += ` AND floorNumber = ?`;
         params.push(filters.floorNumber);
-        paramIndex++;
       }
 
-      const result = await db.query(query, params);
-      return parseInt(result.rows[0].total);
+      const [rows] = await db.query(query, params);
+      return parseInt(rows[0].total);
     } catch (error) {
       throw new Error(`Error counting lockers: ${error.message}.`);
     }
@@ -98,13 +90,13 @@ const LockerModel = {
     try {
       const query = `
         SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
-        FROM lockers 
-        WHERE status = 'available'
+        FROM locker 
+        WHERE status = 'Available'
         ORDER BY floorNumber ASC, lockerID ASC
-        LIMIT $1 OFFSET $2
+        LIMIT ? OFFSET ?
       `;
-      const result = await db.query(query, [limit, offset]);
-      return result.rows;
+      const [rows] = await db.query(query, [limit, offset]);
+      return rows;
     } catch (error) {
       throw new Error(`Error fetching available lockers: ${error.message}.`);
     }
@@ -112,7 +104,7 @@ const LockerModel = {
 
   /**
    * get lockers by floor number
-   * @param {Number} floorNumber - floor number to filter by
+   * @param {String} floorNumber - floor number to filter by
    * @param {String} status - optional status filter
    * @param {Number} limit - number of records
    * @param {Number} offset - starting point
@@ -122,21 +114,21 @@ const LockerModel = {
     try {
       let query = `
         SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
-        FROM lockers 
-        WHERE floorNumber = $1
+        FROM locker 
+        WHERE floorNumber = ?
       `;
       const params = [floorNumber];
 
       if (status) {
-        query += " AND status = $2 ORDER BY lockerID ASC LIMIT $3 OFFSET $4";
+        query += " AND status = ? ORDER BY lockerID ASC LIMIT ? OFFSET ?";
         params.push(status, limit, offset);
       } else {
-        query += " ORDER BY lockerID ASC LIMIT $2 OFFSET $3";
+        query += " ORDER BY lockerID ASC LIMIT ? OFFSET ?";
         params.push(limit, offset);
       }
 
-      const result = await db.query(query, params);
-      return result.rows;
+      const [rows] = await db.query(query, params);
+      return rows;
     } catch (error) {
       throw new Error(`Error fetching lockers by floor: ${error.message}.`);
     }
@@ -144,18 +136,18 @@ const LockerModel = {
 
   /**
    * get single locker by ID
-   * @param {Number} lockerID
+   * @param {String} lockerID - locker ID (e.g., 'L6-001')
    * @returns {Promise<Object|null>} - null if no locker is found
    */
   async getLockerById(lockerID) {
     try {
       const query = `
         SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
-        FROM lockers 
-        WHERE lockerID = $1
+        FROM locker 
+        WHERE lockerID = ?
       `;
-      const result = await db.query(query, [lockerID]);
-      return result.rows[0] || null;
+      const [rows] = await db.query(query, [lockerID]);
+      return rows[0] || null;
     } catch (error) {
       throw new Error(`Error fetching locker by ID: ${error.message}.`);
     }
@@ -163,20 +155,21 @@ const LockerModel = {
 
   /**
    * update locker status
-   * @param {Number} lockerID
+   * @param {String} lockerID
    * @param {String} status - New status
    * @returns {Promise<Object|null>} updated locker object
    */
   async updateLockerStatus(lockerID, status) {
     try {
       const query = `
-        UPDATE lockers 
-        SET status = $1, updatedAt = CURRENT_TIMESTAMP 
-        WHERE lockerID = $2 
-        RETURNING lockerID, branchID, floorNumber, status, createdAt, updatedAt
+        UPDATE locker 
+        SET status = ?, updatedAt = CURRENT_TIMESTAMP 
+        WHERE lockerID = ?
       `;
-      const result = await db.query(query, [status, lockerID]);
-      return result.rows[0] || null;
+      await db.query(query, [status, lockerID]);
+
+      // Return updated locker
+      return await this.getLockerById(lockerID);
     } catch (error) {
       throw new Error(`Error updating locker status: ${error.message}.`);
     }
@@ -189,14 +182,15 @@ const LockerModel = {
    */
   async createLocker(lockerData) {
     try {
-      const { branchID, floorNumber, status = "available" } = lockerData;
+      const { branchID, floorNumber, status = "Available" } = lockerData;
       const query = `
-        INSERT INTO lockers (branchID, floorNumber, status, createdAt, updatedAt)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        RETURNING lockerID, branchID, floorNumber, status, createdAt, updatedAt
+        INSERT INTO locker (branchID, floorNumber, status, createdAt, updatedAt)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `;
-      const result = await db.query(query, [branchID, floorNumber, status]);
-      return result.rows[0];
+      const [result] = await db.query(query, [branchID, floorNumber, status]);
+
+      // Return created locker
+      return await this.getLockerById(result.insertId);
     } catch (error) {
       throw new Error(`Error creating locker: ${error.message}.`);
     }
@@ -204,14 +198,14 @@ const LockerModel = {
 
   /**
    * delete a locker
-   * @param {Number} lockerID
+   * @param {String} lockerID
    * @returns {Promise<Boolean>} true if deleted successfully
    */
   async deleteLocker(lockerID) {
     try {
-      const query = "DELETE FROM lockers WHERE lockerID = $1 RETURNING lockerID";
-      const result = await db.query(query, [lockerID]);
-      return result.rowCount > 0;
+      const query = "DELETE FROM locker WHERE lockerID = ?";
+      const [result] = await db.query(query, [lockerID]);
+      return result.affectedRows > 0;
     } catch (error) {
       throw new Error(`Error deleting locker: ${error.message}.`);
     }
