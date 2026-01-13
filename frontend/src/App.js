@@ -9,11 +9,14 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleRoute from "./components/common/RoleRoute";
 import LoginPage from "./pages/auth/LoginPage";
+import notifications from "./utils/notifications.js";
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+
+      <Route path="/notifications" element={<notifications />} />
 
       <Route
         path="/student/dashboard"
