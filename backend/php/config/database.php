@@ -12,28 +12,44 @@ class Database
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {
-            self::loadEnv();
+            self::loadConfig();
             self::connect();
         }
         return self::$instance;
     }
 
-    private static function loadEnv(): void
+    private static function loadConfig(): void
     {
-        $envFile = __DIR__ . '/../../../config/environments/.env';
+        $envFile = __DIR__ . '/../../../config/environments/.env.development';
+        
+        if (!file_exists($envFile)) {
+            $envFile = __DIR__ . '/../../../.env.development';
+        }
         
         if (!file_exists($envFile)) {
             throw new RuntimeException('Environment file not found');
         }
 
         $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        
         foreach ($lines as $line) {
             $line = trim($line);
-            if ($line === '' || strpos($line, '#') === 0) continue;
-            if (strpos($line, '=') === false) continue;
+            
+            if (empty($line) || $line[0] === '#') {
+                continue;
+            }
+            
+            if (strpos($line, '=') === false) {
+                continue;
+            }
             
             [$key, $value] = explode('=', $line, 2);
-            self::$config[trim($key)] = trim($value);
+            $key = trim($key);
+            $value = trim($value);
+            
+            $value = trim($value, '"\'');
+            
+            self::$config[$key] = $value;
         }
     }
 
@@ -41,7 +57,7 @@ class Database
     {
         $host = self::$config['DB_HOST'] ?? 'localhost';
         $port = self::$config['DB_PORT'] ?? '3306';
-        $name = self::$config['DB_NAME'] ?? 'lockr_db_dev';
+        $name = self::$config['DB_NAME'] ?? 'lockr_db';
         $user = self::$config['DB_USER'] ?? 'root';
         $pass = self::$config['DB_PASSWORD'] ?? '';
 
@@ -52,6 +68,7 @@ class Database
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
             PDO::ATTR_STRINGIFY_FETCHES  => false,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
         ];
 
         try {
@@ -65,7 +82,7 @@ class Database
     public static function getConfig(string $key): ?string
     {
         if (empty(self::$config)) {
-            self::loadEnv();
+            self::loadConfig();
         }
         return self::$config[$key] ?? null;
     }

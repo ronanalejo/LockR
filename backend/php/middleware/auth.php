@@ -1,29 +1,32 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config/database.php';
-
 class JWTAuth
 {
     private static ?string $secretKey = null;
 
-    public static function init(): void
+    private static function getSecretKey(): string
     {
-        self::$secretKey = Database::getConfig('JWT_SECRET');
-        if (empty(self::$secretKey)) {
-            throw new RuntimeException('JWT secret not configured');
+        if (self::$secretKey === null) {
+            self::$secretKey = Database::getConfig('JWT_SECRET');
+            
+            if (empty(self::$secretKey)) {
+                throw new RuntimeException('JWT_SECRET not configured');
+            }
         }
+        
+        return self::$secretKey;
     }
 
     public static function validateToken(): ?array
     {
-        if (self::$secretKey === null) {
-            self::init();
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        
+        if (empty($authHeader)) {
+            return null;
         }
 
-        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        
-        if (empty($authHeader) || !preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
+        if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
             return null;
         }
 
@@ -36,20 +39,32 @@ class JWTAuth
 
         [$headerB64, $payloadB64, $signatureB64] = $parts;
 
-        $signature = self::base64UrlDecode($signatureB64);
-        $expectedSig = hash_hmac('sha256', "{$headerB64}.{$payloadB64}", self::$secretKey, true);
+        try {
+            $secretKey = self::getSecretKey();
+            
+            $signature = self::base64UrlDecode($signatureB64);
+            $expectedSignature = hash_hmac('sha256', "{$headerB64}.{$payloadB64}", $secretKey, true);
 
-        if (!hash_equals($expectedSig, $signature)) {
+            if (!hash_equals($expectedSignature, $signature)) {
+                return null;
+            }
+
+            $payload = json_decode(self::base64UrlDecode($payloadB64), true);
+
+            if (!$payload) {
+                return null;
+            }
+
+            if (!isset($payload['exp']) || $payload['exp'] < time()) {
+                return null;
+            }
+
+            return $payload;
+
+        } catch (Exception $e) {
+            error_log('JWT validation error: ' . $e->getMessage());
             return null;
         }
-
-        $payload = json_decode(self::base64UrlDecode($payloadB64), true);
-
-        if (!$payload || !isset($payload['exp']) || $payload['exp'] < time()) {
-            return null;
-        }
-
-        return $payload;
     }
 
     public static function requireAuth(): array
@@ -59,7 +74,10 @@ class JWTAuth
         if ($payload === null) {
             http_response_code(401);
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized. Please log in again.'
+            ]);
             exit;
         }
 
@@ -70,10 +88,15 @@ class JWTAuth
     {
         $payload = self::requireAuth();
         
-        if (!isset($payload['role']) || !in_array($payload['role'], $allowedRoles, true)) {
+        $userRole = $payload['role'] ?? null;
+        
+        if ($userRole === null || !in_array($userRole, $allowedRoles, true)) {
             http_response_code(403);
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Forbidden']);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Forbidden. You do not have permission to access this resource.'
+            ]);
             exit;
         }
 
@@ -82,7 +105,13 @@ class JWTAuth
 
     private static function base64UrlDecode(string $data): string
     {
-        $padded = str_pad($data, strlen($data) % 4, '=');
-        return base64_decode(strtr($padded, '-_', '+/'));
+        $remainder = strlen($data) % 4;
+        
+        if ($remainder) {
+            $padLength = 4 - $remainder;
+            $data .= str_repeat('=', $padLength);
+        }
+        
+        return base64_decode(strtr($data, '-_', '+/'));
     }
 }
