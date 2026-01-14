@@ -1,29 +1,35 @@
-import React, { useState } from 'react';
-import '../../assets/css/dashboard.css';
+import React, { useState, useEffect } from "react";
+import "../../assets/css/dashboard.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { showConfirm } from "../../utils/notifications";
 
 const StudentDashboard = () => {
-  const [selectedFloor, setSelectedFloor] = useState(7);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFloor, setSelectedFloor] = useState(() => {
+    const savedFloor = localStorage.getItem("selectedFloor");
+    return savedFloor ? parseInt(savedFloor, 10) : 7;
+  });
+  const [searchQuery, setSearchQuery] = useState("");
 
   const floors = [6, 7, 9, 10];
 
-  const { user, logout } = useAuth();   
-  const navigate = useNavigate(); 
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   console.log("User object:", user);
+
+  useEffect(() => {
+    localStorage.setItem("selectedFloor", selectedFloor);
+  }, [selectedFloor]);
 
   const handleLogout = async () => {
     const result = await showConfirm("You will be logged out. Continue?");
 
     if (result.isConfirmed) {
-        logout();
-        navigate("/login");
+      logout();
+      navigate("/login");
     }
-  }
-
+  };
 
   return (
     <div className="locker-dashboard">
@@ -51,7 +57,12 @@ const StudentDashboard = () => {
             />
             <div className="locker-search-icon">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
           </div>
@@ -63,7 +74,9 @@ const StudentDashboard = () => {
             <button
               key={floor}
               onClick={() => setSelectedFloor(floor)}
-              className={`locker-floor-button ${selectedFloor === floor ? 'active' : 'inactive'}`}
+              className={`locker-floor-button ${
+                selectedFloor === floor ? "active" : "inactive"
+              }`}
             >
               Floor {floor}
             </button>
@@ -82,7 +95,9 @@ const StudentDashboard = () => {
       <div className="locker-main-content">
         {/* Header */}
         <div className="locker-header">
-          <h1 className="locker-header-title">Welcome, {user?.firstName} {user?.lastName || "Student"}</h1>
+          <h1 className="locker-header-title">
+            Welcome, {user?.firstName} {user?.lastName || "Student"}
+          </h1>
         </div>
 
         {/* Content Area */}
