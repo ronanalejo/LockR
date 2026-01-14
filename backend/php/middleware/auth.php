@@ -20,13 +20,15 @@ class JWTAuth
 
     public static function validateToken(): ?array
     {
-        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        $authHeader = self::getAuthorizationHeader();
         
         if (empty($authHeader)) {
+            error_log('JWT: No authorization header found');
             return null;
         }
 
         if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
+            error_log('JWT: Invalid authorization header format');
             return null;
         }
 
@@ -34,6 +36,7 @@ class JWTAuth
         $parts = explode('.', $token);
 
         if (count($parts) !== 3) {
+            error_log('JWT: Invalid token structure');
             return null;
         }
 
@@ -46,25 +49,70 @@ class JWTAuth
             $expectedSignature = hash_hmac('sha256', "{$headerB64}.{$payloadB64}", $secretKey, true);
 
             if (!hash_equals($expectedSignature, $signature)) {
+                error_log('JWT: Invalid signature');
                 return null;
             }
 
             $payload = json_decode(self::base64UrlDecode($payloadB64), true);
 
             if (!$payload) {
+                error_log('JWT: Invalid payload');
                 return null;
             }
 
             if (!isset($payload['exp']) || $payload['exp'] < time()) {
+                error_log('JWT: Token expired');
                 return null;
             }
 
+            error_log('JWT: Token validated successfully for user: ' . ($payload['id'] ?? 'unknown'));
             return $payload;
 
         } catch (Exception $e) {
             error_log('JWT validation error: ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Get Authorization header from multiple possible sources
+     * Apache/Nginx may pass it differently
+     */
+    private static function getAuthorizationHeader(): ?string
+    {
+        // Direct from $_SERVER (most common)
+        if (isset($_SERVER['HTTP_AUTHORIZATION']) && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            return $_SERVER['HTTP_AUTHORIZATION'];
+        }
+        
+        // Redirect variable (when using CGI/FastCGI)
+        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+        
+        // getallheaders() function (if available)
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            if (isset($headers['Authorization']) && !empty($headers['Authorization'])) {
+                return $headers['Authorization'];
+            }
+            if (isset($headers['authorization']) && !empty($headers['authorization'])) {
+                return $headers['authorization'];
+            }
+        }
+        
+        // apache_request_headers() function (if available)
+        if (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            if (isset($headers['Authorization']) && !empty($headers['Authorization'])) {
+                return $headers['Authorization'];
+            }
+            if (isset($headers['authorization']) && !empty($headers['authorization'])) {
+                return $headers['authorization'];
+            }
+        }
+        
+        return null;
     }
 
     public static function requireAuth(): array
@@ -88,7 +136,7 @@ class JWTAuth
     {
         $payload = self::requireAuth();
         
-        $userRole = $payload['role'] ?? null;
+        $userRole = $payload['role'] ?? $payload['userType'] ?? null;
         
         if ($userRole === null || !in_array($userRole, $allowedRoles, true)) {
             http_response_code(403);

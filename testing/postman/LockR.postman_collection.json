@@ -40,7 +40,11 @@
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
                   "    pm.collectionVariables.set('token', response.token);",
+                  "    pm.collectionVariables.set('user', JSON.stringify(response.user));",
+                  "    pm.collectionVariables.set('current_student_id', response.user.studentID);",
                   "    console.log('Token saved successfully');",
+                  "    console.log('Token saved:', response.token);",
+                  "    console.log('Student ID:', response.user.studentID);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -69,10 +73,10 @@
       ]
     },
     {
-      "name": "Task Requirement 1 - GET /api/lockers/available",
+      "name": "GET /api/lockers/available",
       "item": [
         {
-          "name": "TC1.1 - Get Available Lockers (Success)",
+          "name": "Get Available Lockers (Success)",
           "event": [
             {
               "listen": "test",
@@ -145,7 +149,7 @@
           }
         },
         {
-          "name": "TC1.2 - Get Available Lockers with Pagination",
+          "name": "Get Available Lockers with Pagination",
           "event": [
             {
               "listen": "test",
@@ -192,7 +196,7 @@
           }
         },
         {
-          "name": "TC1.3 - Unauthorized Access (No Token)",
+          "name": "Unauthorized Access (No Token)",
           "event": [
             {
               "listen": "test",
@@ -265,10 +269,10 @@
       ]
     },
     {
-      "name": "Task Requirement 2 - GET /api/lockers/floor/:floorNumber",
+      "name": "GET /api/lockers/floor/:floorNumber",
       "item": [
         {
-          "name": "TC2.1 - Get Floor 6 Lockers (Success)",
+          "name": "Get Floor 6 Lockers (Success)",
           "event": [
             {
               "listen": "test",
@@ -317,7 +321,7 @@
           }
         },
         {
-          "name": "TC2.2 - Get Floor 7 Lockers",
+          "name": "Get Floor 7 Lockers",
           "event": [
             {
               "listen": "test",
@@ -356,7 +360,7 @@
           }
         },
         {
-          "name": "TC2.3 - Get Floor 9 Lockers",
+          "name": "Get Floor 9 Lockers",
           "event": [
             {
               "listen": "test",
@@ -386,7 +390,7 @@
           }
         },
         {
-          "name": "TC2.4 - Get Floor 10 Lockers",
+          "name": "Get Floor 10 Lockers",
           "event": [
             {
               "listen": "test",
@@ -416,7 +420,7 @@
           }
         },
         {
-          "name": "TC2.5 - Invalid Floor Number (99)",
+          "name": "Invalid Floor Number (99)",
           "event": [
             {
               "listen": "test",
@@ -451,7 +455,7 @@
           }
         },
         {
-          "name": "TC2.6 - Floor with Status Filter",
+          "name": "Floor with Status Filter",
           "event": [
             {
               "listen": "test",
@@ -497,10 +501,10 @@
       ]
     },
     {
-      "name": "Task Requirement 3 - GET /api/lockers/:lockerID",
+      "name": "GET /api/lockers/:lockerID",
       "item": [
         {
-          "name": "TC3.1 - Get Locker by ID (Success)",
+          "name": "Get Locker by ID (Success)",
           "event": [
             {
               "listen": "test",
@@ -552,7 +556,7 @@
           }
         },
         {
-          "name": "TC3.2 - Get Non-Existent Locker (404)",
+          "name": "Get Non-Existent Locker (404)",
           "event": [
             {
               "listen": "test",
@@ -588,7 +592,7 @@
           }
         },
         {
-          "name": "TC3.3 - Empty Locker ID (400)",
+          "name": "Empty Locker ID (400)",
           "event": [
             {
               "listen": "test",
@@ -614,6 +618,400 @@
               "raw": "{{base_url}}/lockers/ ",
               "host": ["{{base_url}}"],
               "path": ["lockers", " "]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservation Endpoints",
+      "item": [
+        {
+          "name": "Create Reservation (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Referral slip number returned', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data).to.have.property('referralSlipNo');",
+                  "    pm.collectionVariables.set('test_reservation_id', response.data.referralSlipNo);",
+                  "});",
+                  "",
+                  "pm.test('Reservation status is For Endorsement', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.reservation.reservationStatus).to.equal('For Endorsement');",
+                  "});",
+                  "",
+                  "pm.test('Agreement dates are set', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.reservation).to.have.property('agreementDateStart');",
+                  "    pm.expect(response.data.reservation).to.have.property('agreementDateEnd');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lockerID\": \"L6-001\",\n  \"agreement\": \"1 Semester/Term\",\n  \"floorNumber\": \"6\",\n  \"shsTerm\": \"1\",\n  \"collegeTerm\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["reservations"]
+            }
+          }
+        },
+        {
+          "name": "Create Reservation - Missing Fields (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.message).to.include('required');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lockerID\": \"L6-001\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["reservations"]
+            }
+          }
+        },
+        {
+          "name": "Create Reservation - Invalid Agreement (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message about invalid agreement', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('agreement');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lockerID\": \"L6-002\",\n  \"agreement\": \"3 Years\",\n  \"floorNumber\": \"6\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["reservations"]
+            }
+          }
+        },
+        {
+          "name": "Create Reservation - Invalid Floor (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message about invalid floor', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('floor');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lockerID\": \"L8-001\",\n  \"agreement\": \"1 Semester/Term\",\n  \"floorNumber\": \"8\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["reservations"]
+            }
+          }
+        },
+        {
+          "name": "Get Reservation by ID (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has reservation data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "    pm.expect(response.data).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('Reservation has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data).to.have.property('referralSlipNo');",
+                  "    pm.expect(response.data).to.have.property('lockerID');",
+                  "    pm.expect(response.data).to.have.property('studentID');",
+                  "    pm.expect(response.data).to.have.property('reservationStatus');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reservations/{{test_reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reservations", "{{test_reservation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Reservation - Invalid ID (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reservations/invalid",
+              "host": ["{{base_url}}"],
+              "path": ["reservations", "invalid"]
+            }
+          }
+        },
+        {
+          "name": "Update Reservation - Student Upload Receipt (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Reservation updated successfully', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "    pm.expect(response.message).to.include('updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dropboxReceipt\": \"receipts/test_receipt.pdf\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reservations/{{test_reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reservations", "{{test_reservation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Student Reservations (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has reservations array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "    pm.expect(response.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has count', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('count');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reservations/students/2024-00001/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["reservations", "students", "2024-00001", "reservations"]
+            }
+          }
+        },
+        {
+          "name": "Unauthorized Access to Other Student Reservation (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test('Access denied message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('Access denied');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reservations/students/2021-0001/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["reservations", "students", "2021-0001", "reservations"]
             }
           }
         }

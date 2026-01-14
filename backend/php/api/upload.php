@@ -8,6 +8,15 @@ require_once __DIR__ . '/../utils/FileValidator.php';
 
 setCorsHeaders();
 
+// Debug: Log authentication attempt
+error_log('Upload attempt - Headers: ' . json_encode(array_keys($_SERVER)));
+error_log('Auth header check: ' . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'NOT SET'));
+
+if (!isset($_SERVER['HTTP_AUTHORIZATION']) && function_exists('getallheaders')) {
+    $headers = getallheaders();
+    error_log('All headers: ' . json_encode($headers));
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     errorResponse('Method not allowed', 405);
 }
@@ -55,16 +64,22 @@ if (!move_uploaded_file($file['tmp_name'], $filepath)) {
 
 try {
     $pdo = Database::getInstance();
+    
+    // Use correct column names from your database
     $stmt = $pdo->prepare('
-        UPDATE Reservation 
-        SET receipt_path = :path, receipt_uploaded_at = NOW(), status = :status
-        WHERE id = :id AND student_id = :student_id
+        UPDATE reservation 
+        SET dropboxReceipt = :path, 
+            reservationStatus = :status,
+            updatedAt = NOW()
+        WHERE referralSlipNo = :referral_slip_no 
+        AND studentID = :student_id
     ');
+    
     $stmt->execute([
-        ':path'       => 'receipts/' . $filename,
-        ':status'     => 'pending_verification',
-        ':id'         => $reservationId,
-        ':student_id' => $user['id'],
+        ':path'              => 'receipts/' . $filename,
+        ':status'            => 'For Approval',
+        ':referral_slip_no'  => $reservationId,
+        ':student_id'        => $user['id'],
     ]);
 
     if ($stmt->rowCount() === 0) {
