@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
 import authService from "../services/authService";
 
 export const AuthContext = createContext(null);
@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
     const response = await authService.login(email, password);
     setUser(response.user);
     return response;
+    
   };
 
   const logout = () => {
@@ -34,3 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+}
