@@ -37,3 +37,15 @@ export function showError(title, text) {
     text,
   });
 }
+
+/* LOGOUT */
+export const showConfirm = (message) => {
+  return Swal.fire({
+    icon: "warning",
+    title: "Are you sure?",
+    text: message,
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+  });
+};

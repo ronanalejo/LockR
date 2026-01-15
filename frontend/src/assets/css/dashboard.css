@@ -1,0 +1,217 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Container Styles */
+.locker-dashboard {
+    display: flex;
+    height: 100vh;
+    background-color: #1f2937;
+    color: white;
+}
+
+/* Sidebar Styles */
+.locker-sidebar {
+    width: 200px;
+    background-color: #475569;
+    display: flex;
+    flex-direction: column;
+}
+
+.locker-sidebar-logo {
+    height: 56px;
+    background-color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #1e40af;
+}
+
+.locker-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* .locker-logo-icon {
+    width: 24px;
+    height: 24px;
+    background-color: white;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.locker-logo-icon-inner {
+    width: 16px;
+    height: 16px;
+    background-color: #1d4ed8;
+    border-radius: 5px;
+} */
+
+.locker-logo-text {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Search Bar Styles */
+.locker-search-container {
+    padding: 8px;
+}
+
+.locker-search-wrapper {
+    margin-top: 9px;
+    position: relative;
+}
+
+.locker-search-input {
+    width: 100%;
+    background-color: white;
+    color: #4b5563;
+    font-size: 12px;
+    padding: 10px 8px;
+    padding-right: 24px;
+    border-radius: 4px;
+    border: none;
+    outline: none;
+}
+
+.locker-search-input:focus {
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.locker-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.locker-search-icon {
+    position: absolute;
+    right: 10px;
+    top: 35%;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 10px;
+    color: #9ca3af;
+}
+
+/* Floor Navigation Styles */
+.locker-floor-nav {
+    flex: 1;
+    padding: 8px 0px;
+    display: flex;
+    flex-direction: column;
+}
+
+.locker-floor-button {
+    width: 100%;
+    padding: 20px 0;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.locker-floor-button:hover {
+    opacity: 0.9;
+}
+
+.locker-floor-button.active {
+   background-color: #2563eb;
+    color: white;
+}
+
+.locker-floor-button.inactive {
+    background-color: #475569;
+    color: #d1d5db;
+}
+
+.locker-floor-button.inactive:hover {
+    background-color: #6b7280;
+}
+
+/* Logout Button Styles */
+.locker-logout-container {
+    padding: 12px;
+}
+
+.locker-logout-button {
+    background-color: #dc2626;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 0;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    margin-bottom: px;
+}
+    
+.locker-logout-button:hover {
+    background-color: #b91c1c;
+}
+
+/* Main Content Styles */
+.locker-main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.locker-header {
+    background-color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid #1e40af;
+    height: 56px;
+}
+
+.locker-header-title {
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+}
+
+/* Content Area */
+.locker-content-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #374151;
+    flex: 1;
+}
+
+.locker-floor-display {
+    font-weight: 500;
+    color: #d1d5db;
+    font-size: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .locker-sidebar {
+    width: 80px;
+}
+
+.locker-logo-text {
+    font-size: 10px;
+}
+
+.locker-floor-button {
+    padding: 8px 0;
+    font-size: 12px;
+}
+
+
+}

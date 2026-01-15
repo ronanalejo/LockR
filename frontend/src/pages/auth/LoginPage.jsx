@@ -61,6 +61,8 @@ const LoginPage = () => {
         <img src={iRESERVELOGO} alt="logo" />
       </div>
 
+      <img id="logo-mobile" src={iRESERVELOGO} alt="logo"/>
+
       <form onSubmit={handleSubmit}>
         <button id="google-btn" type="submit" disabled={loading}>
           Login using Google

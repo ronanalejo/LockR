@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleRoute from "./components/common/RoleRoute";
 import LoginPage from "./pages/auth/LoginPage";
 import notifications from "./utils/notifications.js";
+import StudentDashboard from "./pages/student/StudentDashboard.jsx";
 
 function AppRoutes() {
   return (
@@ -22,7 +23,7 @@ function AppRoutes() {
         path="/student/dashboard"
         element={
           <RoleRoute allowedRoles={["student"]}>
-            <div>Student Dashboard Placeholder</div>
+            <StudentDashboard/>
           </RoleRoute>
         }
       />
