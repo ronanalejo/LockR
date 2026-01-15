@@ -26,7 +26,7 @@ const LockerController = {
 
       const lockers = await LockerModel.getAvailableLockers(limit, offset);
       const totalCount = await LockerModel.getLockerCount({
-        status: "available",
+        status: "Available",
       });
       const totalPages = Math.ceil(totalCount / limit);
 
@@ -85,10 +85,10 @@ const LockerController = {
 
       // validate status if provided
       const validStatuses = [
-        "available",
-        "occupied",
-        "reserved",
-        "unavailable",
+        "Available",
+        "Occupied",
+        "Reserved",
+        "Unavailable",
       ];
       if (status && !validStatuses.includes(status)) {
         return res.status(400).json({
@@ -359,10 +359,10 @@ const LockerController = {
       // validate status if provided
       if (status) {
         const validStatuses = [
-          "available",
-          "occupied",
-          "reserved",
-          "unavailable",
+          "Available",
+          "Occupied",
+          "Reserved",
+          "Unavailable",
         ];
         if (!validStatuses.includes(status)) {
           return res.status(400).json({

@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from '../config/api.js';
+import { API_ENDPOINTS } from "../config/api.js";
 
 /**
  * Handles all locker-related API calls
@@ -9,10 +9,10 @@ class LockerService {
    * @returns {Object} Headers object with Authorization
    */
   getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     return {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
     };
   }
 
@@ -25,7 +25,8 @@ class LockerService {
   async handleResponse(response) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || errorData.error || `HTTP error ${response.status}`;
+      const errorMessage =
+        errorData.message || errorData.error || `HTTP error ${response.status}`;
       throw new Error(errorMessage);
     }
     return response.json();
@@ -37,11 +38,13 @@ class LockerService {
    * @throws {Error} throws error message
    */
   handleError(error) {
-    if (error.message === 'Failed to fetch') {
-      throw new Error('Network error: Unable to connect to server. Please check your connection.');
+    if (error.message === "Failed to fetch") {
+      throw new Error(
+        "Network error: Unable to connect to server. Please check your connection."
+      );
     }
-    if (error.name === 'AbortError') {
-      throw new Error('Request timeout: The server took too long to respond.');
+    if (error.name === "AbortError") {
+      throw new Error("Request timeout: The server took too long to respond.");
     }
     throw error;
   }
@@ -55,17 +58,17 @@ class LockerService {
    */
   async getAvailableLockers() {
     try {
-      const response = await fetch(API_ENDPOINTS.LOCKERS.AVAILABLE, {
-        method: 'GET',
+      const response = await fetch(API_ENDPOINTS.lockers.available, {
+        method: "GET",
         headers: this.getAuthHeaders(),
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       });
 
       const data = await this.handleResponse(response);
       return {
         success: true,
         data: data.lockers || data,
-        message: data.message || 'Available lockers fetched successfully.'
+        message: data.message || "Available lockers fetched successfully.",
       };
     } catch (error) {
       this.handleError(error);
@@ -82,16 +85,16 @@ class LockerService {
    * // { success: true, data: [...], message: "Lockers for floor 2 fetched" }
    */
   async getLockersByFloor(floorNumber) {
-    if (!floorNumber || typeof floorNumber !== 'number') {
-      throw new Error('Invalid floor number: Must be a valid number.');
+    if (!floorNumber || typeof floorNumber !== "number") {
+      throw new Error("Invalid floor number: Must be a valid number.");
     }
 
     try {
-      const url = API_ENDPOINTS.LOCKERS.BY_FLOOR(floorNumber);
+      const url = API_ENDPOINTS.lockers.byFloor(floorNumber);
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: this.getAuthHeaders(),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(10000),
       });
 
       const data = await this.handleResponse(response);
@@ -99,7 +102,9 @@ class LockerService {
         success: true,
         data: data.lockers || data,
         floor: floorNumber,
-        message: data.message || `Lockers for floor ${floorNumber} fetched successfully.`
+        message:
+          data.message ||
+          `Lockers for floor ${floorNumber} fetched successfully.`,
       };
     } catch (error) {
       this.handleError(error);
@@ -117,15 +122,15 @@ class LockerService {
    */
   async getLockerById(lockerID) {
     if (!lockerID) {
-      throw new Error('Invalid locker ID: Locker ID is required.');
+      throw new Error("Invalid locker ID: Locker ID is required.");
     }
 
     try {
-      const url = API_ENDPOINTS.LOCKERS.BY_ID(lockerID);
+      const url = API_ENDPOINTS.lockers.byId(lockerID);
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: this.getAuthHeaders(),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(10000),
       });
 
       const data = await this.handleResponse(response);
@@ -133,7 +138,7 @@ class LockerService {
         success: true,
         data: data.locker || data,
         lockerID: lockerID,
-        message: data.message || 'Locker details fetched successfully.'
+        message: data.message || "Locker details fetched successfully.",
       };
     } catch (error) {
       this.handleError(error);
@@ -147,21 +152,21 @@ class LockerService {
    */
   async reserveLocker(lockerID) {
     if (!lockerID) {
-      throw new Error('Invalid locker ID: Locker ID is required.');
+      throw new Error("Invalid locker ID: Locker ID is required.");
     }
 
     try {
       const response = await fetch(API_ENDPOINTS.LOCKERS.RESERVE(lockerID), {
-        method: 'POST',
+        method: "POST",
         headers: this.getAuthHeaders(),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(10000),
       });
 
       const data = await this.handleResponse(response);
       return {
         success: true,
         data: data,
-        message: data.message || 'Locker reserved successfully.'
+        message: data.message || "Locker reserved successfully.",
       };
     } catch (error) {
       this.handleError(error);
@@ -175,21 +180,21 @@ class LockerService {
    */
   async releaseLocker(lockerID) {
     if (!lockerID) {
-      throw new Error('Invalid locker ID: Locker ID is required.');
+      throw new Error("Invalid locker ID: Locker ID is required.");
     }
 
     try {
       const response = await fetch(API_ENDPOINTS.LOCKERS.RELEASE(lockerID), {
-        method: 'POST',
+        method: "POST",
         headers: this.getAuthHeaders(),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(10000),
       });
 
       const data = await this.handleResponse(response);
       return {
         success: true,
         data: data,
-        message: data.message || 'Locker released successfully.'
+        message: data.message || "Locker released successfully.",
       };
     } catch (error) {
       this.handleError(error);
@@ -203,16 +208,16 @@ class LockerService {
   async getAllLockers() {
     try {
       const response = await fetch(API_ENDPOINTS.LOCKERS.ALL, {
-        method: 'GET',
+        method: "GET",
         headers: this.getAuthHeaders(),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(10000),
       });
 
       const data = await this.handleResponse(response);
       return {
         success: true,
         data: data.lockers || data,
-        message: data.message || 'All lockers fetched successfully.'
+        message: data.message || "All lockers fetched successfully.",
       };
     } catch (error) {
       this.handleError(error);

@@ -1,43 +1,56 @@
 # Disable directory listing
+
 Options -Indexes
 
 # Enable URL rewriting
+
 RewriteEngine On
 
-# CRITICAL FIX: Pass Authorization header to PHP
+# Pass Authorization header to PHP
+
+# This fixes the 401 Unauthorized issue
+
 RewriteCond %{HTTP:Authorization} .
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
 # Alternative method
+
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 
 # Block access to sensitive files
+
 <FilesMatch "\.(env|ini|log|sh|sql|bak|config)$">
-    Order allow,deny
-    Deny from all
+Order allow,deny
+Deny from all
 </FilesMatch>
 
 # Block access to hidden files
+
 <FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
+Order allow,deny
+Deny from all
 </FilesMatch>
 
 # Route API requests
+
 RewriteRule ^api/upload/?$ api/upload.php [L,QSA]
 RewriteRule ^api/test/?$ api/test.php [L,QSA]
 
 # Security headers
+
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "DENY"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always unset X-Powered-By
+    
+    # Allow Authorization header
     Header always set Access-Control-Allow-Headers "Authorization, Content-Type"
 </IfModule>
 
 # PHP settings
+
 <IfModule mod_php.c>
     php_flag display_errors Off
     php_flag log_errors On

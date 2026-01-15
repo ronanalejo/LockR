@@ -65,7 +65,6 @@ if (!move_uploaded_file($file['tmp_name'], $filepath)) {
 try {
     $pdo = Database::getInstance();
     
-    // Use correct column names from your database
     $stmt = $pdo->prepare('
         UPDATE reservation 
         SET dropboxReceipt = :path, 
