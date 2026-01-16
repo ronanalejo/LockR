@@ -36,3 +36,9 @@
   color: #4b5563;
   font-weight: 500;
 }
+
+.modal-overlay span {
+    color: black;
+    font-weight: 500;
+    height: 46px;
+}

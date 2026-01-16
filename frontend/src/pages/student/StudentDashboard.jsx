@@ -9,6 +9,7 @@ import LockerGrid from "../../components/student/LockerGrid";
 import LockerCard from "../../components/student/LockerCard";
 import ReservationForm from "../../components/student/ReservationForm";
 import RulesRegulations from "../../components/student/RulesRegulations";
+import EndorsementApproval from "../../components/student/EndorsementApproval";
 
 
 const StudentDashboard = () => {
@@ -22,6 +23,7 @@ const StudentDashboard = () => {
   const [showRules, setShowRules] = useState(false);
   const [reservationData, setReservationData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showEndorsement, setShowEndorsement] = useState(false);
 
   const floors = [6, 7, 9, 10];
 
@@ -69,6 +71,7 @@ const StudentDashboard = () => {
     showSuccess(`Locker ${reservationData.locker.number} reserved successfully!`);
     setShowRules(false);
     setReservationData(null);
+    setShowEndorsement(true);
   }
 
   const handleDeclineRules = () => {
@@ -80,6 +83,12 @@ const StudentDashboard = () => {
   const handleCancelReservation = () => {
     setSelectedLocker(null);
   };
+
+  const handleCloseEndorsement = () => {
+  showSuccess(`Locker ${reservationData.locker.number} reserved successfully!`);
+  setShowEndorsement(false);
+  setReservationData(null);
+}
 
 
   const handleLogout = async () => {
@@ -202,6 +211,10 @@ const StudentDashboard = () => {
           onAccept={handleAcceptRules}
           onDecline={handleDeclineRules}
         />
+      )}
+
+      {showEndorsement && (
+        <EndorsementApproval onClose={handleCloseEndorsement} />
       )}
 
       

@@ -7,7 +7,7 @@ const EndorsementApproval = ({ onClose }) => {
       <div className="endorsement-modal-content">
         <div className="endorsement-icon">
           <div className="info-circle">
-            <span>ℹ️</span>
+            <span>!</span>
           </div>
         </div>
         
