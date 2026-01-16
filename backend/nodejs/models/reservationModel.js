@@ -5,8 +5,8 @@ const reservationModel = {
     const query = `
       INSERT INTO reservation (
         lockerID, studentID, floorNumber, shsTerm, collegeTerm, 
-        agreement, reservationStatus, duplicate, forEndorsement, 
-        forApproval, agreementDateStart, agreementDateEnd
+        agreement, duplicate, forEndorsement, forApproval, isActive,
+        agreementDateStart, agreementDateEnd
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -17,12 +17,12 @@ const reservationModel = {
       reservationData.shsTerm || null,
       reservationData.collegeTerm || null,
       reservationData.agreement,
-      reservationData.reservationStatus || "For Endorsement",
       reservationData.duplicate || false,
       reservationData.forEndorsement !== undefined
         ? reservationData.forEndorsement
         : true,
       reservationData.forApproval || false,
+      reservationData.isActive || false,
       reservationData.agreementDateStart || null,
       reservationData.agreementDateEnd || null,
     ]);
@@ -76,10 +76,6 @@ const reservationModel = {
     const fields = [];
     const values = [];
 
-    if (updateData.reservationStatus !== undefined) {
-      fields.push("reservationStatus = ?");
-      values.push(updateData.reservationStatus);
-    }
     if (updateData.employeeID !== undefined) {
       fields.push("employeeID = ?");
       values.push(updateData.employeeID);
@@ -92,9 +88,21 @@ const reservationModel = {
       fields.push("forApproval = ?");
       values.push(updateData.forApproval);
     }
+    if (updateData.isActive !== undefined) {
+      fields.push("isActive = ?");
+      values.push(updateData.isActive);
+    }
+    if (updateData.approvalDate !== undefined) {
+      fields.push("approvalDate = ?");
+      values.push(updateData.approvalDate);
+    }
     if (updateData.duplicate !== undefined) {
       fields.push("duplicate = ?");
       values.push(updateData.duplicate);
+    }
+    if (updateData.lockerApplicationFormAgreement !== undefined) {
+      fields.push("lockerApplicationFormAgreement = ?");
+      values.push(updateData.lockerApplicationFormAgreement);
     }
     if (updateData.dropboxReceipt !== undefined) {
       fields.push("dropboxReceipt = ?");
