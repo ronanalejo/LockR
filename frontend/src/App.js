@@ -11,6 +11,8 @@ import RoleRoute from "./components/common/RoleRoute";
 import LoginPage from "./pages/auth/LoginPage";
 import notifications from "./utils/notifications.js";
 import StudentDashboard from "./pages/student/StudentDashboard.jsx";
+import LockerSelection from "./pages/student/LockerSelection.jsx";
+import EndorsementApproval from "./components/student/EndorsementApproval.jsx";
 
 function AppRoutes() {
   return (
@@ -27,6 +29,9 @@ function AppRoutes() {
           </RoleRoute>
         }
       />
+
+        <Route path="/student/LockerSelection" element={<LockerSelection/>} />
+        <Route path="/student/endorsement-approval" element={<EndorsementApproval />} />
 
       <Route
         path="/admin/dashboard"

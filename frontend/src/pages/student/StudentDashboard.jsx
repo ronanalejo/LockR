@@ -2,13 +2,25 @@ import React, { useState, useEffect } from "react";
 import "../../assets/css/dashboard.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { showConfirm } from "../../utils/notifications";
+import { showConfirm, showSuccess } from "../../utils/notifications";
+
+import LockerSelection from "./LockerSelection";
+import LockerGrid from "../../components/student/LockerGrid";
+import LockerCard from "../../components/student/LockerCard";
+import ReservationForm from "../../components/student/ReservationForm";
+import RulesRegulations from "../../components/student/RulesRegulations";
+
 
 const StudentDashboard = () => {
   const [selectedFloor, setSelectedFloor] = useState(() => {
     const savedFloor = localStorage.getItem("selectedFloor");
-    return savedFloor ? parseInt(savedFloor, 10) : 7;
+    return savedFloor ? parseInt(savedFloor, 10) : null;
   });
+  
+  const [selectedSide, setSelectedSide] = useState(null);
+  const [selectedLocker, setSelectedLocker] = useState(null);
+  const [showRules, setShowRules] = useState(false);
+  const [reservationData, setReservationData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const floors = [6, 7, 9, 10];
@@ -19,8 +31,56 @@ const StudentDashboard = () => {
   console.log("User object:", user);
 
   useEffect(() => {
-    localStorage.setItem("selectedFloor", selectedFloor);
+    if (selectedFloor) { 
+      localStorage.setItem("selectedFloor", selectedFloor);
+    }
   }, [selectedFloor]);
+
+  const handleFloorSelect = (floor) => {
+    setSelectedFloor(floor);
+    setSelectedSide(null); 
+  };
+
+  const handleSideSelect = (side) => {
+    setSelectedSide(side);
+  };
+
+  const handleBackToFloorPlan = () => {
+    setSelectedSide(null);
+  };
+
+  const handleSelectLocker = (locker) => {
+    setSelectedLocker(locker);
+  };
+
+  const handleConfirmReservation = (reservationData) => {
+    console.log('Reservation confirmed:', reservationData);
+    // alert(`Locker ${reservationData.locker.number} reserved successfully!`);
+    setReservationData(reservationData);
+    setSelectedLocker(null);
+
+  };
+
+  const handleShowRules = () => {
+    setShowRules(true);
+  };
+
+  const handleAcceptRules = () => {
+    showSuccess(`Locker ${reservationData.locker.number} reserved successfully!`);
+    setShowRules(false);
+    setReservationData(null);
+  }
+
+  const handleDeclineRules = () => {
+    setShowRules(false);
+    setReservationData(null);
+    showSuccess('Reservation cancelled.');
+  }
+
+  const handleCancelReservation = () => {
+    setSelectedLocker(null);
+  };
+
 
   const handleLogout = async () => {
     const result = await showConfirm("You will be logged out. Continue?");
@@ -73,7 +133,7 @@ const StudentDashboard = () => {
           {floors.map((floor) => (
             <button
               key={floor}
-              onClick={() => setSelectedFloor(floor)}
+              onClick={() => handleFloorSelect(floor)}
               className={`locker-floor-button ${
                 selectedFloor === floor ? "active" : "inactive"
               }`}
@@ -102,11 +162,51 @@ const StudentDashboard = () => {
 
         {/* Content Area */}
         <div className="locker-content-area">
-          <div className="locker-floor-display">
-            Selected Floor: {selectedFloor}
-          </div>
+          {!selectedFloor ? (
+            // No floor selected
+            <div className="locker-floor-display">
+              <h2>Please select a floor to begin</h2>
+              <p>Choose a floor from the sidebar to view available lockers</p>
+            </div>
+          ) : !selectedSide ? (
+            // Floor selected, show FloorPlan
+            <LockerSelection 
+              floor={selectedFloor} 
+              onSelectSide={handleSideSelect} 
+            />
+          ) : (
+            // Floor and side selected, show LockerGrid
+            <LockerGrid
+              floor={selectedFloor}
+              side={selectedSide}
+              onSelectLocker={handleSelectLocker}
+              onBack={handleBackToFloorPlan}
+            />
+          )}
         </div>
       </div>
+
+      {/* Reservation Form Modal */}
+      {selectedLocker && (
+        <ReservationForm
+          locker={selectedLocker}
+          onConfirm={handleConfirmReservation}
+          onCancel={handleCancelReservation}
+          onShowRules={handleShowRules}
+        />
+      )}
+
+      {/* Rules and Regulations Modal */}
+      {showRules && (
+        <RulesRegulations
+          onAccept={handleAcceptRules}
+          onDecline={handleDeclineRules}
+        />
+      )}
+
+      
+        
+
     </div>
   );
 };
