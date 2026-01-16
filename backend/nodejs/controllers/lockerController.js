@@ -377,7 +377,7 @@ const LockerController = {
       const newLocker = await LockerModel.createLocker({
         branchID,
         floorNumber,
-        status: status || "available",
+        status: status || "Available",
       });
 
       res.status(201).json({
