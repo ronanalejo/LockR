@@ -37,7 +37,9 @@ const lockerRoutes = require("./routes/lockerRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/lockers", lockerRoutes);
 const reservationRoutes = require("./routes/reservationRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 app.use("/api/reservations", reservationRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
