@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../services/api';
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "../services/api";
 
 /**
  * Custom hook for managing admin operations
@@ -17,9 +17,9 @@ export const useAdmin = () => {
     error: endorsementError,
     refetch: refetchEndorsements,
   } = useQuery({
-    queryKey: ['endorsementQueue'],
+    queryKey: ["endorsementQueue"],
     queryFn: async () => {
-      const response = await api.get('/admin/endorsements/pending');
+      const response = await api.get("/admin/endorsements/pending");
       return response.data;
     },
     refetchInterval: pollingInterval,
@@ -34,9 +34,9 @@ export const useAdmin = () => {
     error: approvalError,
     refetch: refetchApprovals,
   } = useQuery({
-    queryKey: ['approvalQueue'],
+    queryKey: ["approvalQueue"],
     queryFn: async () => {
-      const response = await api.get('/admin/reservations/pending');
+      const response = await api.get("/admin/reservations/pending");
       return response.data;
     },
     refetchInterval: pollingInterval,
@@ -47,7 +47,7 @@ export const useAdmin = () => {
   // Fetch all reservations (with filters - optional)
   const useReservations = (filters = {}) => {
     return useQuery({
-      queryKey: ['reservations', filters],
+      queryKey: ["reservations", filters],
       queryFn: async () => {
         const params = new URLSearchParams(filters);
         const response = await api.get(`/admin/reservations?${params}`);
@@ -61,85 +61,101 @@ export const useAdmin = () => {
   // Approve endorsement mutation
   const approveEndorsementMutation = useMutation({
     mutationFn: async ({ reservationId, notes }) => {
-      const response = await api.post(`/admin/endorsements/${reservationId}/approve`, {
-        notes,
-      });
+      const response = await api.post(
+        `/admin/endorsements/${reservationId}/approve`,
+        {
+          notes,
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
       // Invalidate and refetch relevant queries
-      queryClient.invalidateQueries({ queryKey: ['endorsementQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['approvalQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      queryClient.invalidateQueries({ queryKey: ["endorsementQueue"] });
+      queryClient.invalidateQueries({ queryKey: ["approvalQueue"] });
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
     },
   });
 
   // Reject endorsement mutation
   const rejectEndorsementMutation = useMutation({
     mutationFn: async ({ reservationId, reason }) => {
-      const response = await api.post(`/admin/endorsements/${reservationId}/reject`, {
-        reason,
-      });
+      const response = await api.post(
+        `/admin/endorsements/${reservationId}/reject`,
+        {
+          reason,
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['endorsementQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      queryClient.invalidateQueries({ queryKey: ["endorsementQueue"] });
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
     },
   });
 
   // Approve reservation mutation
   const approveReservationMutation = useMutation({
     mutationFn: async ({ reservationId, notes }) => {
-      const response = await api.post(`/admin/reservations/${reservationId}/approve`, {
-        notes,
-      });
+      const response = await api.post(
+        `/admin/reservations/${reservationId}/approve`,
+        {
+          notes,
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approvalQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      queryClient.invalidateQueries({ queryKey: ["approvalQueue"] });
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
     },
   });
 
   // Reject reservation mutation
   const rejectReservationMutation = useMutation({
     mutationFn: async ({ reservationId, reason }) => {
-      const response = await api.post(`/admin/reservations/${reservationId}/reject`, {
-        reason,
-      });
+      const response = await api.post(
+        `/admin/reservations/${reservationId}/reject`,
+        {
+          reason,
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approvalQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      queryClient.invalidateQueries({ queryKey: ["approvalQueue"] });
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
     },
   });
 
   // Cancel reservation mutation
   const cancelReservationMutation = useMutation({
     mutationFn: async ({ reservationId, reason }) => {
-      const response = await api.post(`/admin/reservations/${reservationId}/cancel`, {
-        reason,
-      });
+      const response = await api.post(
+        `/admin/reservations/${reservationId}/cancel`,
+        {
+          reason,
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      queryClient.invalidateQueries({ queryKey: ['approvalQueue'] });
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["approvalQueue"] });
     },
   });
 
   // Convenience methods with error handling
   const approveEndorsement = useCallback(
-    async (reservationId, notes = '') => {
+    async (reservationId, notes = "") => {
       try {
         await approveEndorsementMutation.mutateAsync({ reservationId, notes });
         return { success: true };
       } catch (error) {
         return {
           success: false,
-          error: error.response?.data?.message || 'Failed to approve endorsement',
+          error:
+            error.response?.data?.message || "Failed to approve endorsement",
         };
       }
     },
@@ -154,7 +170,8 @@ export const useAdmin = () => {
       } catch (error) {
         return {
           success: false,
-          error: error.response?.data?.message || 'Failed to reject endorsement',
+          error:
+            error.response?.data?.message || "Failed to reject endorsement",
         };
       }
     },
@@ -162,14 +179,15 @@ export const useAdmin = () => {
   );
 
   const approveReservation = useCallback(
-    async (reservationId, notes = '') => {
+    async (reservationId, notes = "") => {
       try {
         await approveReservationMutation.mutateAsync({ reservationId, notes });
         return { success: true };
       } catch (error) {
         return {
           success: false,
-          error: error.response?.data?.message || 'Failed to approve reservation',
+          error:
+            error.response?.data?.message || "Failed to approve reservation",
         };
       }
     },
@@ -184,7 +202,8 @@ export const useAdmin = () => {
       } catch (error) {
         return {
           success: false,
-          error: error.response?.data?.message || 'Failed to reject reservation',
+          error:
+            error.response?.data?.message || "Failed to reject reservation",
         };
       }
     },
@@ -199,7 +218,8 @@ export const useAdmin = () => {
       } catch (error) {
         return {
           success: false,
-          error: error.response?.data?.message || 'Failed to cancel reservation',
+          error:
+            error.response?.data?.message || "Failed to cancel reservation",
         };
       }
     },
@@ -210,7 +230,7 @@ export const useAdmin = () => {
   const refetchAll = useCallback(() => {
     refetchEndorsements();
     refetchApprovals();
-    queryClient.invalidateQueries({ queryKey: ['reservations'] });
+    queryClient.invalidateQueries({ queryKey: ["reservations"] });
   }, [refetchEndorsements, refetchApprovals, queryClient]);
 
   // Control polling
@@ -226,24 +246,24 @@ export const useAdmin = () => {
     // queue data
     endorsementQueue,
     approvalQueue,
-    
+
     // loading states
     isLoadingEndorsements,
     isLoadingApprovals,
     isLoading: isLoadingEndorsements || isLoadingApprovals,
-    
+
     // error states
     endorsementError,
     approvalError,
     hasError: endorsementError || approvalError,
-    
+
     // action methods
     approveEndorsement,
     rejectEndorsement,
     approveReservation,
     rejectReservation,
     cancelReservation,
-    
+
     // action loading states
     isApprovingEndorsement: approveEndorsementMutation.isPending,
     isRejectingEndorsement: rejectEndorsementMutation.isPending,
@@ -256,17 +276,17 @@ export const useAdmin = () => {
       approveReservationMutation.isPending ||
       rejectReservationMutation.isPending ||
       cancelReservationMutation.isPending,
-    
+
     // refetch methods
     refetchEndorsements,
     refetchApprovals,
     refetchAll,
-    
+
     // polling control
     startPolling,
     stopPolling,
     pollingInterval,
-    
+
     // custom query hook
     useReservations,
   };
