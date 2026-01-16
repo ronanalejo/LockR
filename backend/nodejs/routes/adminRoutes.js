@@ -3,6 +3,22 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 const authMiddleware = require("../middleware/authMiddleware");
 
+// Get endorsement queue with filters and pagination
+router.get(
+  "/reservations/endorsement",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  adminController.getEndorsementQueue
+);
+
+// Endorse a reservation (move from endorsement to approval queue)
+router.put(
+  "/reservations/:id/endorse",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  adminController.endorseReservation
+);
+
 router.get(
   "/reservations/approval",
   authMiddleware.verifyToken,

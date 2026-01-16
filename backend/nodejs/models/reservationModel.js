@@ -72,6 +72,89 @@ const reservationModel = {
     return rows;
   },
 
+  // Get endorsement queue with filters and pagination
+  getEndorsementQueue: async (filters, limit, offset) => {
+    let query = `
+      SELECT 
+        r.referralSlipNo,
+        r.lockerID,
+        r.studentID,
+        r.floorNumber,
+        r.shsTerm,
+        r.collegeTerm,
+        r.agreement,
+        r.duplicate,
+        r.forEndorsement,
+        r.forApproval,
+        r.isActive,
+        r.agreementDateStart,
+        r.agreementDateEnd,
+        r.createdAt as reservationTimeStart,
+        r.updatedAt as reservationTimeUpdated,
+        l.branchID as lockerBranchID,
+        l.status as lockerStatus,
+        l.lockerNumber,
+        s.studentEmail,
+        s.firstName as studentFirstName,
+        s.lastName as studentLastName,
+        s.middleName as studentMiddleName,
+        s.course_strand,
+        s.contactNumber as studentContactNumber,
+        b.branchName,
+        b.buildingName
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      INNER JOIN student s ON r.studentID = s.studentID
+      LEFT JOIN branch b ON l.branchID = b.branchID
+      WHERE r.forEndorsement = 1
+    `;
+
+    const queryParams = [];
+
+    // Apply filters
+    if (filters.floorNumber) {
+      query += " AND r.floorNumber = ?";
+      queryParams.push(filters.floorNumber);
+    }
+
+    if (filters.branchID) {
+      query += " AND l.branchID = ?";
+      queryParams.push(filters.branchID);
+    }
+
+    if (filters.startDate) {
+      query += " AND DATE(r.createdAt) >= ?";
+      queryParams.push(filters.startDate);
+    }
+
+    if (filters.endDate) {
+      query += " AND DATE(r.createdAt) <= ?";
+      queryParams.push(filters.endDate);
+    }
+
+    // Order by oldest first (reservationTimeStart)
+    query += " ORDER BY r.createdAt ASC";
+
+    // Get total count for pagination
+    const countQuery = query.replace(
+      /SELECT[\s\S]*?FROM/,
+      "SELECT COUNT(*) as total FROM"
+    );
+    const [countResult] = await pool.execute(countQuery, queryParams);
+    const totalCount = countResult[0].total;
+
+    // Add pagination
+    query += " LIMIT ? OFFSET ?";
+    queryParams.push(limit, offset);
+
+    const [rows] = await pool.execute(query, queryParams);
+
+    return {
+      reservations: rows,
+      totalCount: totalCount,
+    };
+  },
+
   update: async (referralSlipNo, updateData) => {
     const fields = [];
     const values = [];
