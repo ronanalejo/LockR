@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import lockerService from "../services/lockerService";
 
 /**
  * Custom hook for locker state management
@@ -14,7 +15,7 @@ const useLockers = (options = {}) => {
     floor = null,
     status = null,
     debounceMs = 300,
-    autoRefetch = true
+    autoRefetch = true,
   } = options;
 
   // State management
@@ -44,43 +45,47 @@ const useLockers = (options = {}) => {
       setLoading(true);
       setError(null);
 
-      // build query params
-      const params = new URLSearchParams();
-      if (filterParams.floor) params.append('floor', filterParams.floor);
-      if (filterParams.status) params.append('status', filterParams.status);
+      let result;
 
-      const queryString = params.toString();
-      const url = `/api/lockers${queryString ? `?${queryString}` : ''}`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: abortControllerRef.current.signal
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (filterParams.floor) {
+        // Fetch lockers for specific floor
+        result = await lockerService.getLockersByFloor(
+          Number(filterParams.floor)
+        );
+      } else if (
+        filterParams.status === "available" ||
+        filterParams.status === "Available"
+      ) {
+        // Fetch only available lockers
+        result = await lockerService.getAvailableLockers();
+      } else {
+        // Fetch all lockers
+        result = await lockerService.getAllLockers();
       }
-
-      const data = await response.json();
 
       // only update state if component is still mounted
       if (isMountedRef.current) {
-        setLockers(data.lockers || data);
-        setLastFetch(new Date());
+        if (result.success) {
+          // Handle array or object response
+          const lockersData = Array.isArray(result.data)
+            ? result.data
+            : result.data.lockers || result.data;
+          setLockers(lockersData);
+          setLastFetch(new Date());
+        } else {
+          throw new Error(result.message || "Failed to fetch lockers");
+        }
         setLoading(false);
       }
     } catch (err) {
       // ignore abort errors
-      if (err.name === 'AbortError') {
-        console.log('Fetch aborted');
+      if (err.name === "AbortError") {
+        console.log("Fetch aborted");
         return;
       }
 
       if (isMountedRef.current) {
-        setError(err.message || 'Failed to fetch lockers');
+        setError(err.message || "Failed to fetch lockers");
         setLoading(false);
       }
     }
@@ -89,17 +94,20 @@ const useLockers = (options = {}) => {
   /**
    * Debounced fetch function
    */
-  const debouncedFetch = useCallback((filterParams) => {
-    // clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+  const debouncedFetch = useCallback(
+    (filterParams) => {
+      // clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
 
-    // set new timer
-    debounceTimerRef.current = setTimeout(() => {
-      fetchLockers(filterParams);
-    }, debounceMs);
-  }, [fetchLockers, debounceMs]);
+      // set new timer
+      debounceTimerRef.current = setTimeout(() => {
+        fetchLockers(filterParams);
+      }, debounceMs);
+    },
+    [fetchLockers, debounceMs]
+  );
 
   /**
    * Manual refetch method
@@ -108,7 +116,7 @@ const useLockers = (options = {}) => {
     const filterParams = {};
     if (floor) filterParams.floor = floor;
     if (status) filterParams.status = status;
-    
+
     fetchLockers(filterParams);
   }, [fetchLockers, floor, status]);
 
@@ -119,14 +127,14 @@ const useLockers = (options = {}) => {
     let filtered = [...lockers];
 
     if (floor) {
-      filtered = filtered.filter(locker => 
-        locker.floor?.toString() === floor.toString()
+      filtered = filtered.filter(
+        (locker) => locker.floorNumber?.toString() === floor.toString()
       );
     }
 
     if (status) {
-      filtered = filtered.filter(locker => 
-        locker.status?.toLowerCase() === status.toLowerCase()
+      filtered = filtered.filter(
+        (locker) => locker.status?.toLowerCase() === status.toLowerCase()
       );
     }
 
@@ -136,39 +144,58 @@ const useLockers = (options = {}) => {
   /**
    * Get lockers by specific filter
    */
-  const getLockersByFloor = useCallback((floorNumber) => {
-    return lockers.filter(locker => 
-      locker.floor?.toString() === floorNumber.toString()
-    );
-  }, [lockers]);
+  const getLockersByFloor = useCallback(
+    (floorNumber) => {
+      return lockers.filter(
+        (locker) => locker.floorNumber?.toString() === floorNumber.toString()
+      );
+    },
+    [lockers]
+  );
 
-  const getLockersByStatus = useCallback((statusType) => {
-    return lockers.filter(locker => 
-      locker.status?.toLowerCase() === statusType.toLowerCase()
-    );
-  }, [lockers]);
+  const getLockersByStatus = useCallback(
+    (statusType) => {
+      return lockers.filter(
+        (locker) => locker.status?.toLowerCase() === statusType.toLowerCase()
+      );
+    },
+    [lockers]
+  );
 
-  const getLockerById = useCallback((lockerId) => {
-    return lockers.find(locker => 
-      locker.id?.toString() === lockerId.toString()
-    );
-  }, [lockers]);
+  const getLockerById = useCallback(
+    (lockerId) => {
+      return lockers.find(
+        (locker) => locker.lockerID?.toString() === lockerId.toString()
+      );
+    },
+    [lockers]
+  );
 
   /**
    * Statistics helpers
    */
   const stats = useMemo(() => {
     const total = lockers.length;
-    const occupied = lockers.filter(l => l.status === 'occupied').length;
-    const available = lockers.filter(l => l.status === 'available').length;
-    const maintenance = lockers.filter(l => l.status === 'maintenance').length;
+    const occupied = lockers.filter(
+      (l) => l.status?.toLowerCase() === "occupied"
+    ).length;
+    const available = lockers.filter(
+      (l) => l.status?.toLowerCase() === "available"
+    ).length;
+    const reserved = lockers.filter(
+      (l) => l.status?.toLowerCase() === "reserved"
+    ).length;
+    const unavailable = lockers.filter(
+      (l) => l.status?.toLowerCase() === "unavailable"
+    ).length;
 
     return {
       total,
       occupied,
       available,
-      maintenance,
-      occupancyRate: total > 0 ? ((occupied / total) * 100).toFixed(2) : 0
+      reserved,
+      unavailable,
+      occupancyRate: total > 0 ? ((occupied / total) * 100).toFixed(2) : 0,
     };
   }, [lockers]);
 
@@ -180,10 +207,10 @@ const useLockers = (options = {}) => {
       const filterParams = {};
       if (floor) filterParams.floor = floor;
       if (status) filterParams.status = status;
-      
+
       fetchLockers(filterParams);
     }
-  }, []); // only on mount
+  }, [autoRefetch]);
 
   /**
    * Debounced fetch when filters change
@@ -213,12 +240,12 @@ const useLockers = (options = {}) => {
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
-      
+
       // cancel ongoing request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      
+
       // clear debounce timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -230,25 +257,25 @@ const useLockers = (options = {}) => {
     // data
     lockers: filteredLockers,
     allLockers: lockers,
-    
+
     // state
     loading,
     error,
     lastFetch,
-    
+
     // statistics
     stats,
-    
+
     // methods
     refetch,
     getLockersByFloor,
     getLockersByStatus,
     getLockerById,
-    
+
     // utilities
     isEmpty: lockers.length === 0,
     hasError: error !== null,
-    isRefetching: loading && lockers.length > 0
+    isRefetching: loading && lockers.length > 0,
   };
 };
 
