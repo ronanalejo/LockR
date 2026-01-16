@@ -70,10 +70,10 @@ const reservationController = {
         shsTerm: shsTerm || null,
         collegeTerm: collegeTerm || null,
         agreement,
-        reservationStatus: "For Endorsement",
         duplicate: false,
         forEndorsement: true,
         forApproval: false,
+        isActive: false,
         agreementDateStart,
         agreementDateEnd,
       };

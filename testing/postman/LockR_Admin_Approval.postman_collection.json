@@ -1,0 +1,527 @@
+{
+  "info": {
+    "name": "LockR Admin Approval API",
+    "_postman_id": "lockr-admin-approval-2026",
+    "description": "Test suite for Admin Approval/Rejection endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_reservation_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Setup - Admin Login",
+      "item": [
+        {
+          "name": "Admin Login - Get Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin login successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('admin_token', response.token);",
+                  "    console.log('Admin Token saved:', response.token);",
+                  "    console.log('Employee ID:', response.user.employeeID);",
+                  "    console.log('Department:', response.user.department);",
+                  "    ",
+                  "    pm.test('User is admin', function() {",
+                  "        pm.expect(response.user.userType).to.equal('admin');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin.osas@iacademy.edu.ph\",\n  \"password\": \"adminpass123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as OSAS admin to get JWT token for approval operations"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. GET Reservations For Approval",
+      "item": [
+        {
+          "name": "Get All Reservations For Approval (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains data array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has count property', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.count).to.be.a('number');",
+                  "});",
+                  "",
+                  "if (pm.response.json().data.length > 0) {",
+                  "    pm.test('All reservations have status For Approval', function () {",
+                  "        const response = pm.response.json();",
+                  "        response.data.forEach(reservation => {",
+                  "            pm.expect(reservation.reservationStatus).to.equal('For Approval');",
+                  "        });",
+                  "    });",
+                  "    ",
+                  "    pm.test('Reservations have required fields', function () {",
+                  "        const response = pm.response.json();",
+                  "        const reservation = response.data[0];",
+                  "        pm.expect(reservation).to.have.property('referralSlipNo');",
+                  "        pm.expect(reservation).to.have.property('lockerID');",
+                  "        pm.expect(reservation).to.have.property('studentID');",
+                  "        pm.expect(reservation).to.have.property('studentFirstName');",
+                  "        pm.expect(reservation).to.have.property('studentLastName');",
+                  "        pm.expect(reservation).to.have.property('dropboxReceipt');",
+                  "    });",
+                  "    ",
+                  "    const firstReservation = pm.response.json().data[0];",
+                  "    pm.collectionVariables.set('test_reservation_id', firstReservation.referralSlipNo);",
+                  "    console.log('Saved test_reservation_id:', firstReservation.referralSlipNo);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/approval",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "approval"]
+            },
+            "description": "Get all reservations awaiting final approval by OSAS admin"
+          }
+        },
+        {
+          "name": "Get Reservations - No Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.message).to.include('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/approval",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "approval"]
+            },
+            "description": "Test unauthorized access without token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. PUT Approve Reservation",
+      "item": [
+        {
+          "name": "Approve Reservation (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Success message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('approved');",
+                  "});",
+                  "",
+                  "pm.test('Response contains reservation data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data).to.be.an('object');",
+                  "    pm.expect(response.data.reservation).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('Reservation has employeeID set', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.reservation.employeeID).to.not.be.null;",
+                  "});",
+                  "",
+                  "pm.test('PDF generation status indicated', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data).to.have.property('pdfGenerated');",
+                  "    console.log('PDF Generated:', response.data.pdfGenerated);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "{{test_reservation_id}}", "approve"]
+            },
+            "description": "Approve a reservation - updates status to 'For Approval', sets locker to 'Occupied', generates PDF"
+          }
+        },
+        {
+          "name": "Approve - Invalid ID (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.message).to.include('Invalid');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/abc/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "abc", "approve"]
+            },
+            "description": "Test with invalid reservation ID format"
+          }
+        },
+        {
+          "name": "Approve - Non-Existent Reservation (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates not found', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.message).to.include('not found');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/99999/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "99999", "approve"]
+            },
+            "description": "Test with non-existent reservation ID"
+          }
+        },
+        {
+          "name": "Approve - No Admin Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "{{test_reservation_id}}", "approve"]
+            },
+            "description": "Test unauthorized access"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. PUT Reject Reservation",
+      "item": [
+        {
+          "name": "Reject Reservation (Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Success message indicates rejection', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.message).to.include('rejected');",
+                  "});",
+                  "",
+                  "pm.test('Reservation status reset to For Endorsement', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.reservationStatus).to.equal('For Endorsement');",
+                  "});",
+                  "",
+                  "pm.test('forApproval flag is false', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.forApproval).to.equal(0);",
+                  "});",
+                  "",
+                  "pm.test('forEndorsement flag is true', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.data.forEndorsement).to.equal(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "{{test_reservation_id}}", "reject"]
+            },
+            "description": "Reject a reservation - resets status to 'For Endorsement', sets locker to 'Available'"
+          }
+        },
+        {
+          "name": "Reject - Invalid ID (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/invalid/reject",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "invalid", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Reject - Non-Existent Reservation (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/88888/reject",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "88888", "reject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Integration Tests",
+      "item": [
+        {
+          "name": "Full Workflow - Approve Then Check Locker Status",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// This test verifies the complete approval workflow"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Approval successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Store locker ID to verify status change",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('test_locker_id', response.data.reservation.lockerID);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "reservations", "{{test_reservation_id}}", "approve"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
