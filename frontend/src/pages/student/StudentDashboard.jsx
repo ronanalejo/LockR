@@ -11,13 +11,12 @@ import ReservationForm from "../../components/student/ReservationForm";
 import RulesRegulations from "../../components/student/RulesRegulations";
 import EndorsementApproval from "../../components/student/EndorsementApproval";
 
-
 const StudentDashboard = () => {
   const [selectedFloor, setSelectedFloor] = useState(() => {
     const savedFloor = localStorage.getItem("selectedFloor");
     return savedFloor ? parseInt(savedFloor, 10) : null;
   });
-  
+
   const [selectedSide, setSelectedSide] = useState(null);
   const [selectedLocker, setSelectedLocker] = useState(null);
   const [showRules, setShowRules] = useState(false);
@@ -33,14 +32,14 @@ const StudentDashboard = () => {
   console.log("User object:", user);
 
   useEffect(() => {
-    if (selectedFloor) { 
+    if (selectedFloor) {
       localStorage.setItem("selectedFloor", selectedFloor);
     }
   }, [selectedFloor]);
 
   const handleFloorSelect = (floor) => {
     setSelectedFloor(floor);
-    setSelectedSide(null); 
+    setSelectedSide(null);
   };
 
   const handleSideSelect = (side) => {
@@ -56,11 +55,10 @@ const StudentDashboard = () => {
   };
 
   const handleConfirmReservation = (reservationData) => {
-    console.log('Reservation confirmed:', reservationData);
+    console.log("Reservation confirmed:", reservationData);
     // alert(`Locker ${reservationData.locker.number} reserved successfully!`);
     setReservationData(reservationData);
     setSelectedLocker(null);
-
   };
 
   const handleShowRules = () => {
@@ -68,28 +66,31 @@ const StudentDashboard = () => {
   };
 
   const handleAcceptRules = () => {
-    showSuccess(`Locker ${reservationData.locker.number} reserved successfully!`);
+    showSuccess(
+      `Locker ${reservationData.locker.number} reserved successfully!`
+    );
     setShowRules(false);
     setReservationData(null);
     setShowEndorsement(true);
-  }
+  };
 
   const handleDeclineRules = () => {
     setShowRules(false);
     setReservationData(null);
-    showSuccess('Reservation cancelled.');
-  }
+    showSuccess("Reservation cancelled.");
+  };
 
   const handleCancelReservation = () => {
     setSelectedLocker(null);
   };
 
   const handleCloseEndorsement = () => {
-  showSuccess(`Locker ${reservationData.locker.number} reserved successfully!`);
-  setShowEndorsement(false);
-  setReservationData(null);
-}
-
+    showSuccess(
+      `Locker ${reservationData.locker.number} reserved successfully!`
+    );
+    setShowEndorsement(false);
+    setReservationData(null);
+  };
 
   const handleLogout = async () => {
     const result = await showConfirm("You will be logged out. Continue?");
@@ -179,9 +180,9 @@ const StudentDashboard = () => {
             </div>
           ) : !selectedSide ? (
             // Floor selected, show FloorPlan
-            <LockerSelection 
-              floor={selectedFloor} 
-              onSelectSide={handleSideSelect} 
+            <LockerSelection
+              floor={selectedFloor}
+              onSelectSide={handleSideSelect}
             />
           ) : (
             // Floor and side selected, show LockerGrid
@@ -199,6 +200,7 @@ const StudentDashboard = () => {
       {selectedLocker && (
         <ReservationForm
           locker={selectedLocker}
+          floor={selectedFloor}
           onConfirm={handleConfirmReservation}
           onCancel={handleCancelReservation}
           onShowRules={handleShowRules}
@@ -216,10 +218,6 @@ const StudentDashboard = () => {
       {showEndorsement && (
         <EndorsementApproval onClose={handleCloseEndorsement} />
       )}
-
-      
-        
-
     </div>
   );
 };
