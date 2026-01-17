@@ -5,8 +5,8 @@ const reservationModel = {
     const query = `
       INSERT INTO reservation (
         lockerID, studentID, floorNumber, shsTerm, collegeTerm, 
-        agreement, reservationStatus, duplicate, forEndorsement, 
-        forApproval, agreementDateStart, agreementDateEnd
+        agreement, duplicate, forEndorsement, forApproval, isActive,
+        agreementDateStart, agreementDateEnd
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -17,12 +17,12 @@ const reservationModel = {
       reservationData.shsTerm || null,
       reservationData.collegeTerm || null,
       reservationData.agreement,
-      reservationData.reservationStatus || "For Endorsement",
       reservationData.duplicate || false,
       reservationData.forEndorsement !== undefined
         ? reservationData.forEndorsement
         : true,
       reservationData.forApproval || false,
+      reservationData.isActive || false,
       reservationData.agreementDateStart || null,
       reservationData.agreementDateEnd || null,
     ]);
@@ -72,14 +72,93 @@ const reservationModel = {
     return rows;
   },
 
+  // Get endorsement queue with filters and pagination
+  getEndorsementQueue: async (filters, limit, offset) => {
+    let query = `
+      SELECT 
+        r.referralSlipNo,
+        r.lockerID,
+        r.studentID,
+        r.floorNumber,
+        r.shsTerm,
+        r.collegeTerm,
+        r.agreement,
+        r.duplicate,
+        r.forEndorsement,
+        r.forApproval,
+        r.isActive,
+        r.agreementDateStart,
+        r.agreementDateEnd,
+        r.createdAt as reservationTimeStart,
+        r.updatedAt as reservationTimeUpdated,
+        l.branchID as lockerBranchID,
+        l.status as lockerStatus,
+        l.lockerNumber,
+        s.studentEmail,
+        s.firstName as studentFirstName,
+        s.lastName as studentLastName,
+        s.middleName as studentMiddleName,
+        s.course_strand,
+        s.contactNumber as studentContactNumber,
+        b.branchName,
+        b.buildingName
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      INNER JOIN student s ON r.studentID = s.studentID
+      LEFT JOIN branch b ON l.branchID = b.branchID
+      WHERE r.forEndorsement = 1
+    `;
+
+    const queryParams = [];
+
+    // Apply filters
+    if (filters.floorNumber) {
+      query += " AND r.floorNumber = ?";
+      queryParams.push(filters.floorNumber);
+    }
+
+    if (filters.branchID) {
+      query += " AND l.branchID = ?";
+      queryParams.push(filters.branchID);
+    }
+
+    if (filters.startDate) {
+      query += " AND DATE(r.createdAt) >= ?";
+      queryParams.push(filters.startDate);
+    }
+
+    if (filters.endDate) {
+      query += " AND DATE(r.createdAt) <= ?";
+      queryParams.push(filters.endDate);
+    }
+
+    // Order by oldest first (reservationTimeStart)
+    query += " ORDER BY r.createdAt ASC";
+
+    // Get total count for pagination
+    const countQuery = query.replace(
+      /SELECT[\s\S]*?FROM/,
+      "SELECT COUNT(*) as total FROM"
+    );
+    const [countResult] = await pool.execute(countQuery, queryParams);
+    const totalCount = countResult[0].total;
+
+    // Add pagination
+    query += " LIMIT ? OFFSET ?";
+    queryParams.push(limit, offset);
+
+    const [rows] = await pool.execute(query, queryParams);
+
+    return {
+      reservations: rows,
+      totalCount: totalCount,
+    };
+  },
+
   update: async (referralSlipNo, updateData) => {
     const fields = [];
     const values = [];
 
-    if (updateData.reservationStatus !== undefined) {
-      fields.push("reservationStatus = ?");
-      values.push(updateData.reservationStatus);
-    }
     if (updateData.employeeID !== undefined) {
       fields.push("employeeID = ?");
       values.push(updateData.employeeID);
@@ -92,9 +171,21 @@ const reservationModel = {
       fields.push("forApproval = ?");
       values.push(updateData.forApproval);
     }
+    if (updateData.isActive !== undefined) {
+      fields.push("isActive = ?");
+      values.push(updateData.isActive);
+    }
+    if (updateData.approvalDate !== undefined) {
+      fields.push("approvalDate = ?");
+      values.push(updateData.approvalDate);
+    }
     if (updateData.duplicate !== undefined) {
       fields.push("duplicate = ?");
       values.push(updateData.duplicate);
+    }
+    if (updateData.lockerApplicationFormAgreement !== undefined) {
+      fields.push("lockerApplicationFormAgreement = ?");
+      values.push(updateData.lockerApplicationFormAgreement);
     }
     if (updateData.dropboxReceipt !== undefined) {
       fields.push("dropboxReceipt = ?");
