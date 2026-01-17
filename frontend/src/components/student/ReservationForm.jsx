@@ -5,12 +5,16 @@ import {
   closeAlert,
   showSuccess,
   showError,
-  showConfirm,
 } from "../../utils/notifications";
-import RulesRegulations from "../../components/student/RulesRegulations";
 import { API_ENDPOINTS } from "../../config/api";
 
-const ReservationForm = ({ locker, onConfirm, onCancel, onShowRules }) => {
+const ReservationForm = ({
+  locker,
+  floor,
+  onConfirm,
+  onCancel,
+  onShowRules,
+}) => {
   const [duration, setDuration] = useState("1 Semester/Term");
   const [paymentMode, setPaymentMode] = useState("");
 
@@ -20,38 +24,71 @@ const ReservationForm = ({ locker, onConfirm, onCancel, onShowRules }) => {
       return;
     }
 
+    // Get user data to determine student type
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (!user) {
+      showError(
+        "Authentication Error",
+        "User data not found. Please log in again.",
+      );
+      return;
+    }
+
+    // Determine if SHS or College based on course_strand
+    const isSHS =
+      user.courseStrand?.toUpperCase().includes("STEM") ||
+      user.courseStrand?.toUpperCase().includes("ABM") ||
+      user.courseStrand?.toUpperCase().includes("HUMSS") ||
+      user.courseStrand?.toUpperCase().includes("GAS");
+
     try {
       showLoading("Creating Reservation", "Please wait...");
 
       const token = localStorage.getItem("token");
+
+      // Prepare request body with all required fields
+      const requestBody = {
+        lockerID: locker.number,
+        agreement: duration,
+        floorNumber: floor.toString(), // ← FIX: Add missing floorNumber
+        shsTerm: isSHS ? "1" : null, // ← FIX: Add term based on student type
+        collegeTerm: !isSHS ? "1" : null,
+      };
+
+      console.log("Sending reservation request:", requestBody);
+
       const response = await fetch(API_ENDPOINTS.reservations.create, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          lockerID: locker.number,
-          agreement: duration,
-          paymentMode: paymentMode,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
+      console.log("Reservation response:", data);
 
       if (!response.ok) {
-        throw new Error(data.error || "Reservation failed");
+        throw new Error(data.message || data.error || "Reservation failed");
       }
 
       closeAlert();
+
+      // Pass reservation data including payment mode for later use
       onConfirm({
         locker,
         duration,
         paymentMode,
+        floor,
         referralSlipNo: data.data.referralSlipNo,
       });
+
       onShowRules();
     } catch (error) {
+      console.error("Reservation error:", error);
       closeAlert();
       showError("Reservation Failed", error.message);
     }
@@ -66,19 +103,28 @@ const ReservationForm = ({ locker, onConfirm, onCancel, onShowRules }) => {
           <div className="info-grid">
             <div className="info-item">
               <span className="info-label">Referral Slip No. :</span>
-              <div className="info-value">2025110401</div>
+              <div className="info-value">Pending...</div>
             </div>
             <div className="info-item">
               <span className="info-label">Student ID :</span>
-              <div className="info-value">202101104</div>
+              <div className="info-value">
+                {JSON.parse(localStorage.getItem("user") || "{}").studentID ||
+                  "N/A"}
+              </div>
             </div>
             <div className="info-item">
               <span className="info-label">Reservation Date :</span>
-              <div className="info-value">07-05-2025</div>
+              <div className="info-value">
+                {new Date().toLocaleDateString()}
+              </div>
             </div>
             <div className="info-item">
               <span className="info-label">Locker ID :</span>
               <div className="info-value">{locker.number}</div>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Floor :</span>
+              <div className="info-value">{floor}</div>
             </div>
           </div>
 
