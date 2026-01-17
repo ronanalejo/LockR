@@ -3,7 +3,12 @@ import "./auth.css";
 import iRESERVELOGO from "../../assets/images/logos/iRESERVELOGO.png";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import { showLoading, showSuccess, showError, closeAlert, } from "../../utils/notifications";
+import {
+  showLoading,
+  showSuccess,
+  showError,
+  closeAlert,
+} from "../../utils/notifications";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +23,7 @@ const LoginPage = () => {
 
     showLoading(
       "Logging in...",
-      "Please wait while we verify your credentials."
+      "Please wait while we verify your credentials.",
     );
 
     try {
@@ -28,15 +33,23 @@ const LoginPage = () => {
         throw new Error("Invalid credentials");
       }
 
+      // Store token IMMEDIATELY before any navigation
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        console.log("Token saved:", response.token);
+      }
+
       const userType = response.user.userType;
 
       await showSuccess(
         "Login Successful!",
-        "Redirecting to your dashboard..."
+        "Redirecting to your dashboard...",
       );
 
       closeAlert();
 
+      // Navigate AFTER token is saved
       if (userType === "student") {
         navigate("/student/dashboard");
       } else if (userType === "admin") {
@@ -56,7 +69,7 @@ const LoginPage = () => {
         <img src={iRESERVELOGO} alt="logo" />
       </div>
 
-      <img id="logo-mobile" src={iRESERVELOGO} alt="logo"/>
+      <img id="logo-mobile" src={iRESERVELOGO} alt="logo" />
 
       <form onSubmit={handleSubmit}>
         <button id="google-btn" type="submit" disabled={loading}>

@@ -13,14 +13,14 @@ const authMiddleware = require("../middleware/authMiddleware");
 router.get(
   "/available",
   authMiddleware.verifyToken,
-  LockerController.getAvailableLockers
+  LockerController.getAvailableLockers,
 );
 
 // GET /api/lockers/floor/:floorNumber - Fetch lockers by specific floor (must be before /:lockerID)
 router.get(
   "/floor/:floorNumber",
   authMiddleware.verifyToken,
-  LockerController.getLockersByFloor
+  LockerController.getLockersByFloor,
 );
 
 // PUT /api/lockers/:lockerID/status - Update locker status (admin only) (must be before /:lockerID)
@@ -28,14 +28,14 @@ router.put(
   "/:lockerID/status",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  LockerController.updateLockerStatus
+  LockerController.updateLockerStatus,
 );
 
 // GET /api/lockers/:lockerID - Fetch single locker details (general route, comes after specific ones)
 router.get(
   "/:lockerID",
   authMiddleware.verifyToken,
-  LockerController.getLockerById
+  LockerController.getLockerById,
 );
 
 // GET /api/lockers - Fetch all lockers with filters (root route comes last)
@@ -46,7 +46,7 @@ router.post(
   "/",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  LockerController.createLocker
+  LockerController.createLocker,
 );
 
 // DELETE /api/lockers/:lockerID - Delete a locker (admin only)
@@ -54,7 +54,7 @@ router.delete(
   "/:lockerID",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  LockerController.deleteLocker
+  LockerController.deleteLocker,
 );
 
 module.exports = router;

@@ -1,31 +1,67 @@
-import React, { useState } from 'react';
-import '../../assets/css/reservationForm.css';
-import { showLoading, closeAlert, showSuccess, showError, showConfirm, } from "../../utils/notifications";
+import React, { useState } from "react";
+import "../../assets/css/reservationForm.css";
+import {
+  showLoading,
+  closeAlert,
+  showSuccess,
+  showError,
+  showConfirm,
+} from "../../utils/notifications";
 import RulesRegulations from "../../components/student/RulesRegulations";
+import { API_ENDPOINTS } from "../../config/api";
 
 const ReservationForm = ({ locker, onConfirm, onCancel, onShowRules }) => {
-  const [duration, setDuration] = useState('1semester');
-  const [paymentMode, setPaymentMode] = useState('');
+  const [duration, setDuration] = useState("1 Semester/Term");
+  const [paymentMode, setPaymentMode] = useState("");
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!paymentMode) {
       showError("Payment Required", "Please select a mode of payment");
       return;
     }
-    // showSuccess(`Locker ${locker.number} reserved successfully!`);
-    onConfirm({ locker, duration, paymentMode });
-    onShowRules();
-    
-  };
 
+    try {
+      showLoading("Creating Reservation", "Please wait...");
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(API_ENDPOINTS.reservations.create, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          lockerID: locker.number,
+          agreement: duration,
+          paymentMode: paymentMode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Reservation failed");
+      }
+
+      closeAlert();
+      onConfirm({
+        locker,
+        duration,
+        paymentMode,
+        referralSlipNo: data.data.referralSlipNo,
+      });
+      onShowRules();
+    } catch (error) {
+      closeAlert();
+      showError("Reservation Failed", error.message);
+    }
+  };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2 className="modal-title">
-          Do you want to reserve this locker?
-        </h2>
-        
+        <h2 className="modal-title">Do you want to reserve this locker?</h2>
+
         <div className="form-section">
           <div className="info-grid">
             <div className="info-item">
@@ -47,50 +83,43 @@ const ReservationForm = ({ locker, onConfirm, onCancel, onShowRules }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">
-              Choose Duration of Locker
-            </label>
+            <label className="form-label">Select Agreement Term</label>
             <div className="radio-group">
               <label className="radio-label">
                 <input
                   type="radio"
                   name="duration"
-                  value="1semester"
-                  checked={duration === '1semester'}
+                  value="1 Semester/Term"
+                  checked={duration === "1 Semester/Term"}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="radio-input"
                 />
-                <span>1 Semester/Term</span>
+                1 Semester/Term
               </label>
               <label className="radio-label">
                 <input
                   type="radio"
                   name="duration"
-                  value="2semesters"
-                  checked={duration === '2semesters'}
+                  value="2 Semesters/Terms"
+                  checked={duration === "2 Semesters/Terms"}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="radio-input"
                 />
-                <span>2 Semesters/Terms</span>
+                2 Semesters/Terms
               </label>
               <label className="radio-label">
                 <input
                   type="radio"
                   name="duration"
-                  value="1year"
-                  checked={duration === '1year'}
+                  value="1 School Year"
+                  checked={duration === "1 School Year"}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="radio-input"
                 />
-                <span>1 School Year</span>
+                1 School Year
               </label>
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">
-              Choose Mode of Payment
-            </label>
+            <label className="form-label">Choose Mode of Payment</label>
             <select
               value={paymentMode}
               onChange={(e) => setPaymentMode(e.target.value)}

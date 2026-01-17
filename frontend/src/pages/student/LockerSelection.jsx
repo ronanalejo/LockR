@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import LockerGrid from '../../components/student/LockerGrid';
-import ReservationFrom from '../../components/student/ReservationForm';
-import '../../assets/css/lockerSelection.css';
+import React from "react";
+import "../../assets/css/lockerSelection.css";
 
 const LockerSelection = ({ floor, onSelectSide }) => {
   return (
     <div className="floor-plan-container">
       <div className="floor-plan-header">
         <h2 className="floor-title">Floor {floor} - Select Locker Side</h2>
-        <p className="floor-subtitle">Choose which side of the floor you'd like to view</p>
+        <p className="floor-subtitle">
+          Choose which side of the floor you'd like to view
+        </p>
       </div>
 
       <div className="floor-plan-layout">
@@ -24,9 +24,9 @@ const LockerSelection = ({ floor, onSelectSide }) => {
 
             <div className="sides-container">
               {/* Side A */}
-              <button 
+              <button
                 className="side-card side-a"
-                onClick={() => onSelectSide('A')}
+                onClick={() => onSelectSide("A")}
               >
                 <div className="side-icon">
                   <div className="locker-visual">
@@ -41,9 +41,9 @@ const LockerSelection = ({ floor, onSelectSide }) => {
               </button>
 
               {/* Side B */}
-              <button 
+              <button
                 className="side-card side-b"
-                onClick={() => onSelectSide('B')}
+                onClick={() => onSelectSide("B")}
               >
                 <div className="side-icon">
                   <div className="locker-visual">

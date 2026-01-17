@@ -40,7 +40,7 @@ class LockerService {
   handleError(error) {
     if (error.message === "Failed to fetch") {
       throw new Error(
-        "Network error: Unable to connect to server. Please check your connection."
+        "Network error: Unable to connect to server. Please check your connection.",
       );
     }
     if (error.name === "AbortError") {
@@ -91,6 +91,8 @@ class LockerService {
 
     try {
       const url = API_ENDPOINTS.lockers.byFloor(floorNumber);
+      console.log("Fetching from URL:", url);
+
       const response = await fetch(url, {
         method: "GET",
         headers: this.getAuthHeaders(),
@@ -98,9 +100,32 @@ class LockerService {
       });
 
       const data = await this.handleResponse(response);
+
+      // Log the raw response
+      console.log("Raw API response:", data);
+      console.log("data.data:", data.data);
+      console.log("data.data.lockers:", data.data?.lockers);
+
+      // Extract lockers correctly
+      let lockers;
+      if (data.data && data.data.lockers) {
+        // Backend sent: { success: true, data: { lockers: [...] } }
+        lockers = data.data.lockers;
+      } else if (Array.isArray(data.data)) {
+        // Backend sent: { success: true, data: [...] }
+        lockers = data.data;
+      } else if (Array.isArray(data)) {
+        // Backend sent: [...]
+        lockers = data;
+      } else {
+        lockers = [];
+      }
+
+      console.log("Extracted lockers:", lockers.length, "items");
+
       return {
         success: true,
-        data: data.lockers || data,
+        data: lockers, // ← Always return the array here
         floor: floorNumber,
         message:
           data.message ||

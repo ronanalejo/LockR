@@ -113,10 +113,10 @@ const LockerModel = {
   async getLockersByFloor(floorNumber, status = null, limit = 50, offset = 0) {
     try {
       let query = `
-        SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
-        FROM locker 
-        WHERE floorNumber = ?
-      `;
+      SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
+      FROM locker 
+      WHERE floorNumber = ?
+    `;
       const params = [floorNumber];
 
       if (status) {
@@ -127,7 +127,16 @@ const LockerModel = {
         params.push(limit, offset);
       }
 
+      // DEBUG LOGGING
+      console.log("QUERY:", query);
+      console.log("PARAMS:", params);
+
       const [rows] = await db.query(query, params);
+
+      // DEBUG LOGGING
+      console.log("ROWS RETURNED:", rows.length);
+      console.log("SAMPLE ROW:", rows[0]);
+
       return rows;
     } catch (error) {
       throw new Error(`Error fetching lockers by floor: ${error.message}.`);
