@@ -1,0 +1,233 @@
+const pool = require("../config/database");
+
+const reservationModel = {
+  create: async (reservationData) => {
+    const query = `
+      INSERT INTO reservation (
+        lockerID, studentID, floorNumber, shsTerm, collegeTerm, 
+        agreement, duplicate, forEndorsement, forApproval, isActive,
+        agreementDateStart, agreementDateEnd
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const [result] = await pool.execute(query, [
+      reservationData.lockerID,
+      reservationData.studentID,
+      reservationData.floorNumber,
+      reservationData.shsTerm || null,
+      reservationData.collegeTerm || null,
+      reservationData.agreement,
+      reservationData.duplicate || false,
+      reservationData.forEndorsement !== undefined
+        ? reservationData.forEndorsement
+        : true,
+      reservationData.forApproval || false,
+      reservationData.isActive || false,
+      reservationData.agreementDateStart || null,
+      reservationData.agreementDateEnd || null,
+    ]);
+
+    return result.insertId;
+  },
+
+  findById: async (referralSlipNo) => {
+    const query = `
+      SELECT 
+        r.*,
+        l.branchID as lockerBranchID,
+        l.status as lockerStatus,
+        s.studentEmail,
+        s.firstName as studentFirstName,
+        s.lastName as studentLastName,
+        s.course_strand,
+        a.employeeEmail,
+        a.firstName as adminFirstName,
+        a.lastName as adminLastName,
+        a.department
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      INNER JOIN student s ON r.studentID = s.studentID
+      LEFT JOIN admin a ON r.employeeID = a.employeeID
+      WHERE r.referralSlipNo = ?
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.execute(query, [referralSlipNo]);
+    return rows[0] || null;
+  },
+
+  findByStudentId: async (studentID) => {
+    const query = `
+      SELECT 
+        r.*,
+        l.branchID as lockerBranchID,
+        l.status as lockerStatus
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      WHERE r.studentID = ?
+      ORDER BY r.createdAt DESC
+    `;
+
+    const [rows] = await pool.execute(query, [studentID]);
+    return rows;
+  },
+
+  // Get endorsement queue with filters and pagination
+  getEndorsementQueue: async (filters, limit, offset) => {
+    let query = `
+      SELECT 
+        r.referralSlipNo,
+        r.lockerID,
+        r.studentID,
+        r.floorNumber,
+        r.shsTerm,
+        r.collegeTerm,
+        r.agreement,
+        r.duplicate,
+        r.forEndorsement,
+        r.forApproval,
+        r.isActive,
+        r.agreementDateStart,
+        r.agreementDateEnd,
+        r.createdAt as reservationTimeStart,
+        r.updatedAt as reservationTimeUpdated,
+        l.branchID as lockerBranchID,
+        l.status as lockerStatus,
+        l.lockerNumber,
+        s.studentEmail,
+        s.firstName as studentFirstName,
+        s.lastName as studentLastName,
+        s.middleName as studentMiddleName,
+        s.course_strand,
+        s.contactNumber as studentContactNumber,
+        b.branchName,
+        b.buildingName
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      INNER JOIN student s ON r.studentID = s.studentID
+      LEFT JOIN branch b ON l.branchID = b.branchID
+      WHERE r.forEndorsement = 1
+    `;
+
+    const queryParams = [];
+
+    // Apply filters
+    if (filters.floorNumber) {
+      query += " AND r.floorNumber = ?";
+      queryParams.push(filters.floorNumber);
+    }
+
+    if (filters.branchID) {
+      query += " AND l.branchID = ?";
+      queryParams.push(filters.branchID);
+    }
+
+    if (filters.startDate) {
+      query += " AND DATE(r.createdAt) >= ?";
+      queryParams.push(filters.startDate);
+    }
+
+    if (filters.endDate) {
+      query += " AND DATE(r.createdAt) <= ?";
+      queryParams.push(filters.endDate);
+    }
+
+    // Order by oldest first (reservationTimeStart)
+    query += " ORDER BY r.createdAt ASC";
+
+    // Get total count for pagination
+    const countQuery = query.replace(
+      /SELECT[\s\S]*?FROM/,
+      "SELECT COUNT(*) as total FROM"
+    );
+    const [countResult] = await pool.execute(countQuery, queryParams);
+    const totalCount = countResult[0].total;
+
+    // Add pagination
+    query += " LIMIT ? OFFSET ?";
+    queryParams.push(limit, offset);
+
+    const [rows] = await pool.execute(query, queryParams);
+
+    return {
+      reservations: rows,
+      totalCount: totalCount,
+    };
+  },
+
+  update: async (referralSlipNo, updateData) => {
+    const fields = [];
+    const values = [];
+
+    if (updateData.employeeID !== undefined) {
+      fields.push("employeeID = ?");
+      values.push(updateData.employeeID);
+    }
+    if (updateData.forEndorsement !== undefined) {
+      fields.push("forEndorsement = ?");
+      values.push(updateData.forEndorsement);
+    }
+    if (updateData.forApproval !== undefined) {
+      fields.push("forApproval = ?");
+      values.push(updateData.forApproval);
+    }
+    if (updateData.isActive !== undefined) {
+      fields.push("isActive = ?");
+      values.push(updateData.isActive);
+    }
+    if (updateData.approvalDate !== undefined) {
+      fields.push("approvalDate = ?");
+      values.push(updateData.approvalDate);
+    }
+    if (updateData.duplicate !== undefined) {
+      fields.push("duplicate = ?");
+      values.push(updateData.duplicate);
+    }
+    if (updateData.lockerApplicationFormAgreement !== undefined) {
+      fields.push("lockerApplicationFormAgreement = ?");
+      values.push(updateData.lockerApplicationFormAgreement);
+    }
+    if (updateData.dropboxReceipt !== undefined) {
+      fields.push("dropboxReceipt = ?");
+      values.push(updateData.dropboxReceipt);
+    }
+    if (updateData.pdfPaymentAdviceSlip !== undefined) {
+      fields.push("pdfPaymentAdviceSlip = ?");
+      values.push(updateData.pdfPaymentAdviceSlip);
+    }
+    if (updateData.agreementDateStart !== undefined) {
+      fields.push("agreementDateStart = ?");
+      values.push(updateData.agreementDateStart);
+    }
+    if (updateData.agreementDateEnd !== undefined) {
+      fields.push("agreementDateEnd = ?");
+      values.push(updateData.agreementDateEnd);
+    }
+
+    if (fields.length === 0) {
+      throw new Error("No fields to update");
+    }
+
+    values.push(referralSlipNo);
+    const query = `UPDATE reservation SET ${fields.join(
+      ", "
+    )} WHERE referralSlipNo = ?`;
+
+    const [result] = await pool.execute(query, values);
+    return result.affectedRows;
+  },
+
+  checkLockerAvailability: async (lockerID) => {
+    const query = "SELECT status FROM locker WHERE lockerID = ? LIMIT 1";
+    const [rows] = await pool.execute(query, [lockerID]);
+    return rows[0] || null;
+  },
+
+  updateLockerStatus: async (lockerID, status) => {
+    const query = "UPDATE locker SET status = ? WHERE lockerID = ?";
+    const [result] = await pool.execute(query, [status, lockerID]);
+    return result.affectedRows;
+  },
+};
+
+module.exports = reservationModel;

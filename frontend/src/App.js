@@ -1,24 +1,59 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import RoleRoute from "./components/common/RoleRoute";
+import LoginPage from "./pages/auth/LoginPage";
+import notifications from "./utils/notifications.js";
+import StudentDashboard from "./pages/student/StudentDashboard.jsx";
+import LockerSelection from "./pages/student/LockerSelection.jsx";
+import EndorsementApproval from "./components/student/EndorsementApproval.jsx";
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+
+      <Route path="/notifications" element={<notifications />} />
+
+      <Route
+        path="/student/dashboard"
+        element={
+          <RoleRoute allowedRoles={["student"]}>
+            <StudentDashboard/>
+          </RoleRoute>
+        }
+      />
+
+        <Route path="/student/LockerSelection" element={<LockerSelection/>} />
+        <Route path="/student/endorsement-approval" element={<EndorsementApproval />} />
+
+      <Route
+        path="/admin/dashboard"
+        element={
+          <RoleRoute allowedRoles={["admin"]}>
+            <div>Admin Dashboard Placeholder</div>
+          </RoleRoute>
+        }
+      />
+
+      <Route path="/" element={<Navigate to="/login" />} />
+    </Routes>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </Router>
   );
 }
 
