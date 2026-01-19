@@ -9,7 +9,7 @@ const createTestStudent = async () => {
     const hashedPassword = await bcrypt.hash("password123", 10);
 
     const query = `
-      INSERT INTO student (studentID, branchID, studentEmail, firstName, lastName, password, course_strand) 
+      INSERT INTO student (studentID, branchID, studentEmail, firstName, lastName, password, student_type) 
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 

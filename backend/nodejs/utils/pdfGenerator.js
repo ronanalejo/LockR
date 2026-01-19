@@ -8,7 +8,7 @@ async function generatePaymentAdviceSlip(reservation) {
   try {
     const outputDir = path.join(
       __dirname,
-      "../../uploads/payment-advice-slips"
+      "../../uploads/payment-advice-slips",
     );
 
     await fs.mkdir(outputDir, { recursive: true });
@@ -103,8 +103,8 @@ async function generatePaymentAdviceSlip(reservation) {
         <div class="info-row">
             <div class="info-label">Student Name:</div>
             <div class="info-value">${reservation.studentFirstName} ${
-      reservation.studentLastName
-    }</div>
+              reservation.studentLastName
+            }</div>
         </div>
         <div class="info-row">
             <div class="info-label">Student ID:</div>
@@ -112,7 +112,7 @@ async function generatePaymentAdviceSlip(reservation) {
         </div>
         <div class="info-row">
             <div class="info-label">Course/Strand:</div>
-            <div class="info-value">${reservation.course_strand || "N/A"}</div>
+            <div class="info-value">${reservation.student_type || "N/A"}</div>
         </div>
         <div class="info-row">
             <div class="info-label">Locker ID:</div>
@@ -132,10 +132,10 @@ async function generatePaymentAdviceSlip(reservation) {
               reservation.isActive
                 ? "Active"
                 : reservation.forApproval
-                ? "For Approval"
-                : reservation.forEndorsement
-                ? "For Endorsement"
-                : "Completed"
+                  ? "For Approval"
+                  : reservation.forEndorsement
+                    ? "For Endorsement"
+                    : "Completed"
             }</div>
         </div>
         <div class="info-row">
@@ -155,14 +155,14 @@ async function generatePaymentAdviceSlip(reservation) {
                 <td>${
                   reservation.agreementDateStart
                     ? new Date(
-                        reservation.agreementDateStart
+                        reservation.agreementDateStart,
                       ).toLocaleDateString()
                     : "N/A"
                 }</td>
                 <td>${
                   reservation.agreementDateEnd
                     ? new Date(
-                        reservation.agreementDateEnd
+                        reservation.agreementDateEnd,
                       ).toLocaleDateString()
                     : "N/A"
                 }</td>

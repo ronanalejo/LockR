@@ -1,7 +1,7 @@
 const pool = require("../config/database");
 
 const reservationModel = {
-  create: async (reservationData) => {
+  create: async (reservationData, connection = null) => {
     const query = `
       INSERT INTO reservation (
         lockerID, studentID, floorNumber, shsTerm, collegeTerm, 
@@ -10,7 +10,8 @@ const reservationModel = {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const [result] = await pool.execute(query, [
+    const executor = connection || pool;
+    const [result] = await executor.execute(query, [
       reservationData.lockerID,
       reservationData.studentID,
       reservationData.floorNumber,
@@ -39,7 +40,7 @@ const reservationModel = {
         s.studentEmail,
         s.firstName as studentFirstName,
         s.lastName as studentLastName,
-        s.course_strand,
+        s.student_type,
         a.employeeEmail,
         a.firstName as adminFirstName,
         a.lastName as adminLastName,
@@ -98,7 +99,7 @@ const reservationModel = {
         s.firstName as studentFirstName,
         s.lastName as studentLastName,
         s.middleName as studentMiddleName,
-        s.course_strand,
+        s.student_type,
         s.contactNumber as studentContactNumber,
         b.branchName,
         b.buildingName
@@ -138,7 +139,7 @@ const reservationModel = {
     // Get total count for pagination
     const countQuery = query.replace(
       /SELECT[\s\S]*?FROM/,
-      "SELECT COUNT(*) as total FROM"
+      "SELECT COUNT(*) as total FROM",
     );
     const [countResult] = await pool.execute(countQuery, queryParams);
     const totalCount = countResult[0].total;
@@ -210,22 +211,24 @@ const reservationModel = {
 
     values.push(referralSlipNo);
     const query = `UPDATE reservation SET ${fields.join(
-      ", "
+      ", ",
     )} WHERE referralSlipNo = ?`;
 
     const [result] = await pool.execute(query, values);
     return result.affectedRows;
   },
 
-  checkLockerAvailability: async (lockerID) => {
+  checkLockerAvailability: async (lockerID, connection = null) => {
     const query = "SELECT status FROM locker WHERE lockerID = ? LIMIT 1";
-    const [rows] = await pool.execute(query, [lockerID]);
+    const executor = connection || pool;
+    const [rows] = await executor.execute(query, [lockerID]);
     return rows[0] || null;
   },
 
-  updateLockerStatus: async (lockerID, status) => {
+  updateLockerStatus: async (lockerID, status, connection = null) => {
     const query = "UPDATE locker SET status = ? WHERE lockerID = ?";
-    const [result] = await pool.execute(query, [status, lockerID]);
+    const executor = connection || pool;
+    const [result] = await executor.execute(query, [status, lockerID]);
     return result.affectedRows;
   },
 };

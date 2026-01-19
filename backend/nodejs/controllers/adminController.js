@@ -15,7 +15,7 @@ const adminController = {
           s.studentEmail,
           s.firstName as studentFirstName,
           s.lastName as studentLastName,
-          s.course_strand,
+          s.student_type,
           s.branchID as studentBranchID
         FROM reservation r
         INNER JOIN locker l ON r.lockerID = l.lockerID
@@ -92,7 +92,7 @@ const adminController = {
       }
 
       const locker = await reservationModel.checkLockerAvailability(
-        reservation.lockerID
+        reservation.lockerID,
       );
 
       if (!locker) {
@@ -120,7 +120,8 @@ const adminController = {
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
-        "Reserved"
+        "Reserved",
+        connection,
       );
 
       await connection.commit();
@@ -202,7 +203,8 @@ const adminController = {
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
-        "Available"
+        "Available",
+        connection,
       );
 
       await connection.commit();
@@ -239,7 +241,7 @@ const adminController = {
           s.studentEmail,
           s.firstName as studentFirstName,
           s.lastName as studentLastName,
-          s.course_strand,
+          s.student_type,
           s.branchID as studentBranchID
         FROM reservation r
         INNER JOIN locker l ON r.lockerID = l.lockerID
@@ -315,7 +317,7 @@ const adminController = {
       }
 
       const locker = await reservationModel.checkLockerAvailability(
-        reservation.lockerID
+        reservation.lockerID,
       );
 
       if (!locker) {
@@ -343,7 +345,8 @@ const adminController = {
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
-        "Occupied"
+        "Occupied",
+        connection,
       );
 
       let pdfPath = null;
@@ -441,7 +444,8 @@ const adminController = {
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
-        "Available"
+        "Available",
+        connection,
       );
 
       await connection.commit();
@@ -488,7 +492,7 @@ const adminController = {
           s.studentEmail,
           s.firstName as studentFirstName,
           s.lastName as studentLastName,
-          s.course_strand,
+          s.student_type,
           s.branchID as studentBranchID
         FROM reservation r
         INNER JOIN locker l ON r.lockerID = l.lockerID
@@ -521,7 +525,7 @@ const adminController = {
       if (forEndorsement !== undefined) {
         query += " AND r.forEndorsement = ?";
         params.push(
-          forEndorsement === "true" || forEndorsement === "1" ? 1 : 0
+          forEndorsement === "true" || forEndorsement === "1" ? 1 : 0,
         );
       }
 
@@ -621,7 +625,8 @@ const adminController = {
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
-        "Available"
+        "Available",
+        connection,
       );
 
       await connection.commit();

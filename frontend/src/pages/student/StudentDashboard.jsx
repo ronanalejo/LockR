@@ -2,8 +2,14 @@ import React, { useState, useEffect } from "react";
 import "../../assets/css/dashboard.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { showConfirm, showSuccess } from "../../utils/notifications";
-
+import {
+  showConfirm,
+  showSuccess,
+  showLoading,
+  closeAlert,
+  showError,
+} from "../../utils/notifications";
+import { API_ENDPOINTS } from "../../config/api";
 import LockerSelection from "./LockerSelection";
 import LockerGrid from "../../components/student/LockerGrid";
 import LockerCard from "../../components/student/LockerCard";
@@ -55,8 +61,7 @@ const StudentDashboard = () => {
   };
 
   const handleConfirmReservation = (reservationData) => {
-    console.log("Reservation confirmed:", reservationData);
-    // alert(`Locker ${reservationData.locker.number} reserved successfully!`);
+    console.log("Reservation data prepared:", reservationData);
     setReservationData(reservationData);
     setSelectedLocker(null);
   };
@@ -65,13 +70,56 @@ const StudentDashboard = () => {
     setShowRules(true);
   };
 
-  const handleAcceptRules = () => {
-    showSuccess(
-      `Locker ${reservationData.locker.number} reserved successfully!`
-    );
-    setShowRules(false);
-    setReservationData(null);
-    setShowEndorsement(true);
+  const handleAcceptRules = async () => {
+    if (!reservationData) return;
+
+    try {
+      showLoading("Creating Reservation", "Please wait...");
+
+      const token = localStorage.getItem("token");
+
+      const requestBody = {
+        lockerID: reservationData.lockerID,
+        agreement: reservationData.agreement,
+        floorNumber: reservationData.floorNumber,
+        shsTerm: reservationData.shsTerm,
+        collegeTerm: reservationData.collegeTerm,
+      };
+
+      console.log("Sending reservation request:", requestBody);
+
+      const response = await fetch(API_ENDPOINTS.reservations.create, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      console.log("Reservation response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || "Reservation failed");
+      }
+
+      closeAlert();
+
+      showSuccess(
+        `Locker ${reservationData.locker.number} reserved successfully!`,
+      );
+
+      setShowRules(false);
+      setReservationData(null);
+      setShowEndorsement(true);
+    } catch (error) {
+      console.error("Reservation error:", error);
+      closeAlert();
+      showError("Reservation Failed", error.message);
+      setShowRules(false);
+      setReservationData(null);
+    }
   };
 
   const handleDeclineRules = () => {
@@ -86,7 +134,7 @@ const StudentDashboard = () => {
 
   const handleCloseEndorsement = () => {
     showSuccess(
-      `Locker ${reservationData.locker.number} reserved successfully!`
+      `Locker ${reservationData.locker.number} reserved successfully!`,
     );
     setShowEndorsement(false);
     setReservationData(null);

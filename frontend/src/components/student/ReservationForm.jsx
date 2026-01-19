@@ -18,7 +18,7 @@ const ReservationForm = ({
   const [duration, setDuration] = useState("1 Semester/Term");
   const [paymentMode, setPaymentMode] = useState("");
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!paymentMode) {
       showError("Payment Required", "Please select a mode of payment");
       return;
@@ -36,62 +36,25 @@ const ReservationForm = ({
       return;
     }
 
-    // Determine if SHS or College based on course_strand
-    const isSHS =
-      user.courseStrand?.toUpperCase().includes("STEM") ||
-      user.courseStrand?.toUpperCase().includes("ABM") ||
-      user.courseStrand?.toUpperCase().includes("HUMSS") ||
-      user.courseStrand?.toUpperCase().includes("GAS");
+    // Determine if SHS or College based on student_type
+    const isSHS = user.student_type?.toUpperCase() === "SHS";
 
-    try {
-      showLoading("Creating Reservation", "Please wait...");
+    // Prepare reservation data without creating it yet
+    const reservationData = {
+      locker,
+      duration,
+      paymentMode,
+      floor,
+      lockerID: locker.number,
+      agreement: duration,
+      floorNumber: floor.toString(),
+      shsTerm: isSHS ? "1" : null,
+      collegeTerm: !isSHS ? "1" : null,
+    };
 
-      const token = localStorage.getItem("token");
-
-      // Prepare request body with all required fields
-      const requestBody = {
-        lockerID: locker.number,
-        agreement: duration,
-        floorNumber: floor.toString(), // ← FIX: Add missing floorNumber
-        shsTerm: isSHS ? "1" : null, // ← FIX: Add term based on student type
-        collegeTerm: !isSHS ? "1" : null,
-      };
-
-      console.log("Sending reservation request:", requestBody);
-
-      const response = await fetch(API_ENDPOINTS.reservations.create, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await response.json();
-      console.log("Reservation response:", data);
-
-      if (!response.ok) {
-        throw new Error(data.message || data.error || "Reservation failed");
-      }
-
-      closeAlert();
-
-      // Pass reservation data including payment mode for later use
-      onConfirm({
-        locker,
-        duration,
-        paymentMode,
-        floor,
-        referralSlipNo: data.data.referralSlipNo,
-      });
-
-      onShowRules();
-    } catch (error) {
-      console.error("Reservation error:", error);
-      closeAlert();
-      showError("Reservation Failed", error.message);
-    }
+    // Pass data to parent and show rules FIRST
+    onConfirm(reservationData);
+    onShowRules();
   };
 
   return (

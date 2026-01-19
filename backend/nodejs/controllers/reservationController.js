@@ -39,7 +39,10 @@ const reservationController = {
 
       await connection.beginTransaction();
 
-      const locker = await reservationModel.checkLockerAvailability(lockerID);
+      const locker = await reservationModel.checkLockerAvailability(
+        lockerID,
+        connection,
+      );
 
       if (!locker) {
         await connection.rollback();
@@ -60,7 +63,7 @@ const reservationController = {
       const agreementDateStart = new Date();
       const agreementDateEnd = calculateAgreementDateEnd(
         agreementDateStart,
-        agreement
+        agreement,
       );
 
       const reservationData = {
@@ -78,9 +81,16 @@ const reservationController = {
         agreementDateEnd,
       };
 
-      const referralSlipNo = await reservationModel.create(reservationData);
+      const referralSlipNo = await reservationModel.create(
+        reservationData,
+        connection,
+      );
 
-      await reservationModel.updateLockerStatus(lockerID, "Reserved");
+      await reservationModel.updateLockerStatus(
+        lockerID,
+        "Reserved",
+        connection,
+      );
 
       await connection.commit();
 
@@ -207,7 +217,7 @@ const reservationController = {
 
       const affectedRows = await reservationModel.update(
         parseInt(id),
-        filteredUpdateData
+        filteredUpdateData,
       );
 
       if (affectedRows === 0) {
