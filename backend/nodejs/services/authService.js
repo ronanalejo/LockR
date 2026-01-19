@@ -33,7 +33,7 @@ const authService = {
       userData.branchID = user.branchID;
       userData.firstName = user.firstName;
       userData.lastName = user.lastName;
-      userData.courseStrand = user.course_strand;
+      userData.studentType = user.student_type;
     } else {
       userData.employeeID = user.employeeID;
       userData.branchID = user.branchID;
@@ -76,10 +76,8 @@ const authService = {
               firstName: student.firstName,
               lastName: student.lastName,
               userType: "student",
-              studentType:
-                identifiedRole === "college_student" ? "College" : "SHS",
+              studentType: student.student_type,
               branchID: student.branchID,
-              courseStrand: student.course_strand,
             },
           };
         } else {

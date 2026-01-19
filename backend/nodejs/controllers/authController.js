@@ -203,8 +203,11 @@ const authController = {
         const studentID = email.split("@")[0];
         const defaultBranch = "BRANCH-MKT";
 
+        const studentType =
+          identifiedRole === "college_student" ? "College" : "SHS";
+
         await db.query(
-          "INSERT INTO student (studentID, branchID, studentEmail, firstName, lastName, password, course_strand, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+          "INSERT INTO student (studentID, branchID, studentEmail, firstName, lastName, password, student_type, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
           [
             studentID,
             defaultBranch,
@@ -212,7 +215,7 @@ const authController = {
             userFirstName,
             userLastName,
             hashedPassword,
-            "Pending",
+            studentType,
           ],
         );
 
@@ -237,10 +240,8 @@ const authController = {
             firstName: userFirstName,
             lastName: userLastName,
             userType: "student",
-            studentType:
-              identifiedRole === "college_student" ? "College" : "SHS",
+            studentType: studentType,
             branchID: defaultBranch,
-            courseStrand: "Pending",
           },
         });
       }

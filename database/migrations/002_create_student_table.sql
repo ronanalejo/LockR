@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `student` (
   `firstName` VARCHAR(100) NOT NULL,
   `lastName` VARCHAR(100) NOT NULL,
   `password` VARCHAR(255) NOT NULL COMMENT 'bcrypt hashed password',
-  `course_strand` VARCHAR(100) NOT NULL,
+  `student_type` ENUM('SHS', 'College') NOT NULL COMMENT 'SHS for Senior High School, College for College students',
   `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
