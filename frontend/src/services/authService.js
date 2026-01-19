@@ -55,12 +55,27 @@ const authService = {
     }
   },
 
+  getBranches: async () => {
+    try {
+      const response = await api.get("/auth/branches");
+      return response.data;
+    } catch (error) {
+      console.error("Get branches error:", error);
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to load branches";
+      throw new Error(message);
+    }
+  },
+
   completeRegistration: async (
     email,
     password,
     confirmPassword,
     firstName,
     lastName,
+    branchID,
   ) => {
     try {
       const response = await api.post("/auth/complete-registration", {
@@ -69,6 +84,7 @@ const authService = {
         confirmPassword,
         firstName,
         lastName,
+        branchID,
       });
 
       const data = response.data;

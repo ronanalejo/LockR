@@ -132,6 +132,7 @@ const LoginPage = () => {
     email,
     password,
     confirmPassword,
+    branchID,
   ) => {
     try {
       const response = await authService.completeRegistration(
@@ -140,6 +141,7 @@ const LoginPage = () => {
         confirmPassword,
         registrationData.firstName,
         registrationData.lastName,
+        branchID,
       );
 
       if (!response?.success) {
@@ -175,6 +177,64 @@ const LoginPage = () => {
   const handleRegistrationCancel = () => {
     setShowRegistration(false);
     setRegistrationData(null);
+  };
+
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      showLoading("Signing in...", "Please wait while we verify your account.");
+
+      const response = await authService.googleLogin(
+        credentialResponse.credential,
+      );
+
+      if (response.needsRegistration) {
+        closeAlert();
+        setRegistrationData({
+          email: response.email,
+          firstName: response.firstName,
+          lastName: response.lastName,
+        });
+        setShowRegistration(true);
+        return;
+      }
+
+      if (!response?.success || !response.token) {
+        throw new Error(response.message || "Login failed");
+      }
+
+      updateUser(response.user);
+
+      const userType = response.user.userType;
+
+      closeAlert();
+      await showSuccess(
+        "Login Successful",
+        `Welcome ${response.user.firstName}! Redirecting to your dashboard...`,
+      );
+
+      closeAlert();
+
+      if (userType === "student") {
+        navigate("/student/dashboard");
+      } else if (userType === "admin") {
+        navigate("/admin/dashboard");
+      }
+    } catch (err) {
+      closeAlert();
+      const errorMessage = err.message || "Something went wrong";
+
+      if (errorMessage.includes("@iacademy.edu.ph")) {
+        showError(
+          "Invalid Email Domain",
+          "Only @iacademy.edu.ph email accounts are allowed to login.",
+        );
+      } else {
+        showError("Google Login Failed", errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleError = () => {

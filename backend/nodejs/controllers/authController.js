@@ -178,8 +178,28 @@ const authController = {
         });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
       const db = require("../config/database");
+
+      if (!req.body.branchID) {
+        return res.status(400).json({
+          success: false,
+          message: "Branch selection is required",
+        });
+      }
+
+      const [branchExists] = await db.query(
+        "SELECT branchID FROM branch WHERE branchID = ?",
+        [req.body.branchID],
+      );
+
+      if (branchExists.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid branch selected",
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const userFirstName = firstName || "User";
       const userLastName = lastName || "";
@@ -201,8 +221,6 @@ const authController = {
         }
 
         const studentID = email.split("@")[0];
-        const defaultBranch = "BRANCH-MKT";
-
         const studentType =
           identifiedRole === "college_student" ? "College" : "SHS";
 
@@ -210,7 +228,7 @@ const authController = {
           "INSERT INTO student (studentID, branchID, studentEmail, firstName, lastName, password, student_type, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
           [
             studentID,
-            defaultBranch,
+            req.body.branchID,
             email,
             userFirstName,
             userLastName,
@@ -224,7 +242,7 @@ const authController = {
             id: studentID,
             email: email,
             userType: "student",
-            branchID: defaultBranch,
+            branchID: req.body.branchID,
           },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES_IN },
@@ -241,7 +259,7 @@ const authController = {
             lastName: userLastName,
             userType: "student",
             studentType: studentType,
-            branchID: defaultBranch,
+            branchID: req.body.branchID,
           },
         });
       }
@@ -260,13 +278,12 @@ const authController = {
         }
 
         const employeeID = Date.now();
-        const defaultBranch = "BRANCH-MKT";
 
         await db.query(
           "INSERT INTO admin (employeeID, branchID, employeeEmail, firstName, lastName, password, department, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
           [
             employeeID,
-            defaultBranch,
+            req.body.branchID,
             email,
             userFirstName,
             userLastName,
@@ -280,7 +297,7 @@ const authController = {
             id: employeeID,
             email: email,
             userType: "admin",
-            branchID: defaultBranch,
+            branchID: req.body.branchID,
           },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES_IN },
@@ -297,7 +314,7 @@ const authController = {
             lastName: userLastName,
             userType: "admin",
             department: "OSAS",
-            branchID: defaultBranch,
+            branchID: req.body.branchID,
           },
         });
       }
@@ -307,11 +324,55 @@ const authController = {
         message: "Invalid user type",
       });
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Registration error details:", {
+        message: error.message,
+        code: error.code,
+        errno: error.errno,
+        sql: error.sql,
+        sqlState: error.sqlState,
+        sqlMessage: error.sqlMessage,
+        stack: error.stack,
+      });
+
       res.status(500).json({
         success: false,
         message: "Registration failed",
         error: error.message,
+        details:
+          process.env.NODE_ENV === "development"
+            ? {
+                code: error.code,
+                sqlMessage: error.sqlMessage,
+              }
+            : undefined,
+      });
+    }
+  },
+
+  getBranches: async (req, res) => {
+    try {
+      const db = require("../config/database");
+
+      const [branches] = await db.query(
+        "SELECT branchID, branchName, branchAddress FROM branch ORDER BY branchName ASC",
+      );
+
+      if (branches.length === 0) {
+        return res.status(500).json({
+          success: false,
+          message: "No branches configured in system",
+        });
+      }
+
+      res.json({
+        success: true,
+        branches: branches,
+      });
+    } catch (error) {
+      console.error("Get branches error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve branches",
       });
     }
   },

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import authService from "../../services/authService";
 import "./RegistrationModal.css";
 import {
   showLoading,
@@ -16,10 +17,35 @@ const RegistrationModal = ({
 }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [branchID, setBranchID] = useState("");
+  const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingBranches, setLoadingBranches] = useState(true);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const response = await authService.getBranches();
+        if (response.success && response.branches) {
+          setBranches(response.branches);
+        }
+      } catch (error) {
+        showError("Error", "Failed to load branches. Please refresh the page.");
+      } finally {
+        setLoadingBranches(false);
+      }
+    };
+
+    fetchBranches();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!branchID) {
+      showError("Branch Required", "Please select your branch/campus");
+      return;
+    }
 
     if (password !== confirmPassword) {
       showError("Password Mismatch", "Passwords do not match");
@@ -38,7 +64,7 @@ const RegistrationModal = ({
     );
 
     try {
-      await onComplete(email, password, confirmPassword);
+      await onComplete(email, password, confirmPassword, branchID);
     } catch (error) {
       closeAlert();
       showError("Registration Failed", error.message);
@@ -68,6 +94,29 @@ const RegistrationModal = ({
               disabled
               className="disabled-input"
             />
+          </div>
+
+          <div className="form-group">
+            <label>Branch/Campus *</label>
+            {loadingBranches ? (
+              <select disabled className="disabled-input">
+                <option>Loading branches...</option>
+              </select>
+            ) : (
+              <select
+                value={branchID}
+                onChange={(e) => setBranchID(e.target.value)}
+                required
+                disabled={loading}
+              >
+                <option value="">-- Select your branch/campus --</option>
+                {branches.map((branch) => (
+                  <option key={branch.branchID} value={branch.branchID}>
+                    {branch.branchName}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="form-group">
