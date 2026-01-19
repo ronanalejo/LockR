@@ -28,6 +28,65 @@ const authService = {
     }
   },
 
+  googleLogin: async (credential) => {
+    try {
+      const response = await api.post("/auth/google", {
+        credential,
+      });
+
+      const data = response.data;
+
+      // Don't store token if registration is needed
+      if (data.needsRegistration) {
+        return data;
+      }
+
+      if (data.success && data.token) {
+        tokenStorage.setToken(data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Google login error:", error);
+      const message =
+        error.response?.data?.message || error.message || "Google login failed";
+      throw new Error(message);
+    }
+  },
+
+  completeRegistration: async (
+    email,
+    password,
+    confirmPassword,
+    firstName,
+    lastName,
+  ) => {
+    try {
+      const response = await api.post("/auth/complete-registration", {
+        email,
+        password,
+        confirmPassword,
+        firstName,
+        lastName,
+      });
+
+      const data = response.data;
+
+      if (data.success && data.token) {
+        tokenStorage.setToken(data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Registration error:", error);
+      const message =
+        error.response?.data?.message || error.message || "Registration failed";
+      throw new Error(message);
+    }
+  },
+
   logout: () => {
     tokenStorage.removeToken();
     localStorage.removeItem("user");

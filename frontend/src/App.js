@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleRoute from "./components/common/RoleRoute";
@@ -25,13 +26,16 @@ function AppRoutes() {
         path="/student/dashboard"
         element={
           <RoleRoute allowedRoles={["student"]}>
-            <StudentDashboard/>
+            <StudentDashboard />
           </RoleRoute>
         }
       />
 
-        <Route path="/student/LockerSelection" element={<LockerSelection/>} />
-        <Route path="/student/endorsement-approval" element={<EndorsementApproval />} />
+      <Route path="/student/LockerSelection" element={<LockerSelection />} />
+      <Route
+        path="/student/endorsement-approval"
+        element={<EndorsementApproval />}
+      />
 
       <Route
         path="/admin/dashboard"
@@ -48,12 +52,15 @@ function AppRoutes() {
 }
 
 function App() {
+  console.log("Google Client ID:", process.env.REACT_APP_GOOGLE_CLIENT_ID);
   return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </Router>
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <Router>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </Router>
+    </GoogleOAuthProvider>
   );
 }
 

@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const studentModel = require("../models/studentModel");
 const adminModel = require("../models/adminModel");
+const db = require("../config/database");
 
 const authService = {
   authenticateUser: async (email, password) => {
@@ -42,6 +43,89 @@ const authService = {
     }
 
     return { success: true, user: userData };
+  },
+
+  authenticateUserByEmail: async (email) => {
+    try {
+      const { identifyUserRole } = require("../utils/roleIdentifier");
+      const identifiedRole = identifyUserRole(email);
+
+      if (!identifiedRole) {
+        return {
+          success: false,
+          message: "Invalid email format for this system",
+        };
+      }
+
+      if (
+        identifiedRole === "college_student" ||
+        identifiedRole === "shs_student"
+      ) {
+        const [students] = await db.query(
+          "SELECT * FROM student WHERE studentEmail = ?",
+          [email],
+        );
+
+        if (students.length > 0) {
+          const student = students[0];
+          return {
+            success: true,
+            user: {
+              studentID: student.studentID,
+              email: student.studentEmail,
+              firstName: student.firstName,
+              lastName: student.lastName,
+              userType: "student",
+              studentType:
+                identifiedRole === "college_student" ? "College" : "SHS",
+              branchID: student.branchID,
+              courseStrand: student.course_strand,
+            },
+          };
+        } else {
+          return {
+            success: false,
+            message: "Student account not found in system",
+          };
+        }
+      }
+
+      if (identifiedRole === "admin") {
+        const [admins] = await db.query(
+          "SELECT * FROM admin WHERE employeeEmail = ?",
+          [email],
+        );
+
+        if (admins.length > 0) {
+          const admin = admins[0];
+          return {
+            success: true,
+            user: {
+              employeeID: admin.employeeID,
+              email: admin.employeeEmail,
+              firstName: admin.firstName,
+              lastName: admin.lastName,
+              userType: "admin",
+              department: admin.department,
+              branchID: admin.branchID,
+            },
+          };
+        } else {
+          return {
+            success: false,
+            message: "Admin account not found in system",
+          };
+        }
+      }
+
+      return {
+        success: false,
+        message: "Account not found",
+      };
+    } catch (error) {
+      console.error("Authenticate by email error:", error);
+      throw error;
+    }
   },
 };
 

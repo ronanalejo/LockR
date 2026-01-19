@@ -9,6 +9,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
+    const token = authService.getToken();
+
+    console.log("AuthContext initialized:", {
+      user: currentUser,
+      hasToken: !!token,
+    });
+
     setUser(currentUser);
     setLoading(false);
   }, []);
@@ -17,7 +24,11 @@ export const AuthProvider = ({ children }) => {
     const response = await authService.login(email, password);
     setUser(response.user);
     return response;
-    
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
@@ -29,6 +40,7 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user,
     loading,
   };
@@ -38,4 +50,4 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   return useContext(AuthContext);
-}
+};
