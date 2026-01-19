@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import "../../assets/css/lockerSelection.css";
 
 const LockerSelection = ({ floor, onSelectSide }) => {
+  const [showLocationModal, setShowLocationModal] = useState(false);
   return (
     <div className="floor-plan-container">
       <div className="floor-plan-header">
@@ -15,11 +16,32 @@ const LockerSelection = ({ floor, onSelectSide }) => {
         {/* Visual representation of the floor */}
         <div className="floor-diagram">
           <div className="floor-section">
-            <div className="elevator-area">
-              <div className="elevator-box">
-                <span>🛗</span>
-                <p>Elevator</p>
-              </div>
+            <div className="locate-lockers-area">
+              <button
+                className="locate-lockers-button"
+                onClick={() => setShowLocationModal(true)}
+              >
+                <svg
+                  className="locate-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                Locate Lockers
+              </button>
             </div>
 
             <div className="sides-container">
@@ -71,6 +93,42 @@ const LockerSelection = ({ floor, onSelectSide }) => {
           </div>
         </div>
       </div>
+
+      {showLocationModal && (
+        <div
+          className="location-modal-overlay"
+          onClick={() => setShowLocationModal(false)}
+        >
+          <div
+            className="location-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="location-modal-close"
+              onClick={() => setShowLocationModal(false)}
+            >
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <h3 className="location-modal-title">
+              Locker Location - Floor {floor}
+            </h3>
+            <div className="location-modal-image-container">
+              <img
+                src={require("../../assets/images/floor-plans/floor-plan.jpg")}
+                alt="Floor Plan - Locker Locations"
+                className="location-modal-image"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

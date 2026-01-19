@@ -57,32 +57,158 @@
   box-sizing: border-box;
 }
 
-/* Elevator area */
-.elevator-area {
+/* Locate Lockers Button Area */
+.locate-lockers-area {
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   width: 100%;
 }
 
-.elevator-box {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
+.locate-lockers-button {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
-  padding: 1rem 1.5rem;
+  padding: 0.875rem 1.75rem;
+  border: none;
   border-radius: 0.5rem;
-  text-align: center;
+  font-weight: 600;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.locate-lockers-button:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.locate-lockers-button:active {
+  transform: translateY(0);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.elevator-box span {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  display: block;
-  margin-bottom: 0.5rem;
+.locate-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 }
 
-.elevator-box p {
+/* Location Modal */
+.location-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.location-modal-content {
+  background: white;
+  border-radius: 1rem;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.location-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.location-modal-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+.location-modal-close svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+}
+
+.location-modal-title {
+  padding: 1.5rem;
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: 600;
-  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  color: #1f2937;
+  border-bottom: 2px solid #e5e7eb;
+  text-align: center;
+}
+
+.location-modal-image-container {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+}
+
+.location-modal-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Sides container */
@@ -275,10 +401,6 @@
     padding: 1.5rem;
   }
 
-  .elevator-box {
-    padding: 0.875rem 1.25rem;
-  }
-
   .floor-info {
     margin-top: 1.5rem;
   }
@@ -300,10 +422,6 @@
 
   .floor-section {
     gap: 1.25rem;
-  }
-
-  .elevator-box {
-    padding: 0.75rem 1rem;
   }
 
   .sides-container {
@@ -342,14 +460,6 @@
 
   .floor-section {
     gap: 1rem;
-  }
-
-  .elevator-box {
-    padding: 0.625rem 0.875rem;
-  }
-
-  .elevator-box span {
-    margin-bottom: 0.25rem;
   }
 
   .sides-container {
@@ -401,10 +511,6 @@
     gap: 0.875rem;
   }
 
-  .elevator-box {
-    padding: 0.5rem 0.75rem;
-  }
-
   .sides-container {
     gap: 0.875rem;
   }
@@ -438,5 +544,78 @@
 
   .info-card li {
     padding: 0.3rem 0;
+  }
+}
+
+/* Modal Responsive Styles */
+@media (max-width: 768px) {
+  .location-modal-content {
+    max-width: 95%;
+    max-height: 85vh;
+  }
+
+  .location-modal-title {
+    padding: 1.25rem;
+    font-size: 1.125rem;
+  }
+
+  .location-modal-image-container {
+    padding: 1rem;
+  }
+
+  .location-modal-close {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .location-modal-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .location-modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .location-modal-content {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 0.75rem;
+  }
+
+  .location-modal-title {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+
+  .location-modal-image-container {
+    padding: 0.75rem;
+  }
+
+  .locate-lockers-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  .locate-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .locate-lockers-button:hover {
+    transform: none;
+  }
+
+  .locate-lockers-button:active {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  }
+
+  .location-modal-close:hover {
+    transform: none;
   }
 }
