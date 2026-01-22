@@ -18,9 +18,7 @@ import EndorsementApproval from "../../components/student/EndorsementApproval";
 import OTPVerificationModal from "../../components/student/OTPVerificationModal";
 import ReservationLog from "../../components/student/ReservationLog";
 
-
 const StudentDashboard = () => {
-
   const [selectedFloor, setSelectedFloor] = useState(() => {
     const savedFloor = localStorage.getItem("selectedFloor");
     return savedFloor ? parseInt(savedFloor, 10) : null;
@@ -54,7 +52,6 @@ const StudentDashboard = () => {
 
   const getBackgroundStyle = () => {
     if (!selectedFloor) return {};
-
   };
 
   const handleFloorSelect = (floor) => {
@@ -217,39 +214,42 @@ const StudentDashboard = () => {
   };
 
   const handleOpenReservationLog = async () => {
-  try {
-    showLoading("Loading Reservations", "Please wait...");
-    
-    const token = localStorage.getItem("token");
-    
-    // Use user.id or user.userID depending on your user object structure
-    const response = await fetch(`${API_ENDPOINTS.reservations.user}/${user.id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to fetch reservations");
-    }
-    
-    setUserReservations(data);
-    setShowReservationLog(true);
-    closeAlert();
-  } catch (error) {
-    console.error('Error fetching reservations:', error);
-    closeAlert();
-    showError("Error", "Failed to load reservations");
-  }
-};
+    try {
+      showLoading("Loading Reservations", "Please wait...");
 
-const handleCloseReservationLog = () => {
-  setShowReservationLog(false);
-};
+      const token = localStorage.getItem("token");
+
+      // Use user.id or user.userID depending on your user object structure
+      const response = await fetch(
+        `${API_ENDPOINTS.reservations.user}/${user.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch reservations");
+      }
+
+      setUserReservations(data);
+      setShowReservationLog(true);
+      closeAlert();
+    } catch (error) {
+      console.error("Error fetching reservations:", error);
+      closeAlert();
+      showError("Error", "Failed to load reservations");
+    }
+  };
+
+  const handleCloseReservationLog = () => {
+    setShowReservationLog(false);
+  };
 
   return (
     <div className="locker-dashboard">
@@ -265,13 +265,12 @@ const handleCloseReservationLog = () => {
           </div>
         </div>
 
-          <button 
-            className="reservation-log-button"
-            onClick={handleOpenReservationLog}
-          >
-            <span>My Reservations</span>
-          </button>
-
+        <button
+          className="reservation-log-button"
+          onClick={handleOpenReservationLog}
+        >
+          <span>My Reservations</span>
+        </button>
 
         {/* Floor Navigation */}
         <div className="locker-floor-nav">
@@ -296,11 +295,10 @@ const handleCloseReservationLog = () => {
         </div>
       </div>
 
-
       {/* Main Content */}
       <div className="locker-main-content" style={getBackgroundStyle()}>
         {/* Header */}
-               <div className="content-overlay">
+        <div className="content-overlay">
           <div className="locker-header">
             <h1 className="locker-header-title">
               Welcome, {user?.firstName} {user?.lastName || "Student"}
@@ -314,9 +312,9 @@ const handleCloseReservationLog = () => {
                 <p>Choose a floor from the sidebar to view available lockers</p>
               </div>
             ) : !selectedSide ? (
-              <LockerSelection 
-                floor={selectedFloor} 
-                onSelectSide={handleSideSelect} 
+              <LockerSelection
+                floor={selectedFloor}
+                onSelectSide={handleSideSelect}
               />
             ) : (
               <LockerGrid
@@ -334,6 +332,7 @@ const handleCloseReservationLog = () => {
       {selectedLocker && (
         <ReservationForm
           locker={selectedLocker}
+          floor={selectedFloor}
           onConfirm={handleConfirmReservation}
           onCancel={handleCancelReservation}
           onShowRules={handleShowRules}
@@ -361,7 +360,7 @@ const handleCloseReservationLog = () => {
         <EndorsementApproval onClose={handleCloseEndorsement} />
       )}
 
-        {/* Reservation Log Modal */}
+      {/* Reservation Log Modal */}
       {showReservationLog && (
         <ReservationLog
           reservations={userReservations}
@@ -369,8 +368,6 @@ const handleCloseReservationLog = () => {
         />
       )}
     </div>
-
-    
   );
 };
 
