@@ -24,6 +24,14 @@ const ReservationForm = ({
       return;
     }
 
+    if (!floor) {
+      showError(
+        "Invalid Floor",
+        "Floor information is missing. Please try again.",
+      );
+      return;
+    }
+
     // Get user data to determine student type
     const userStr = localStorage.getItem("user");
     const user = userStr ? JSON.parse(userStr) : null;
@@ -47,7 +55,7 @@ const ReservationForm = ({
       floor,
       lockerID: locker.number,
       agreement: duration,
-      floorNumber: floor.toString(),
+      floorNumber: floor ? floor.toString() : "",
       shsTerm: isSHS ? "1" : null,
       collegeTerm: !isSHS ? "1" : null,
     };
