@@ -98,7 +98,7 @@ const reservationController = {
       const outputDir = path.join(__dirname, "../../uploads/agreements");
       await fs.mkdir(outputDir, { recursive: true });
 
-      const filename = `agreement-${referralSlipNo}-${Date.now()}.pdf`;
+      const filename = `${referralSlipNo} - Application Form and Locker Usage Agreement - ${Date.now()}.pdf`;
       const outputPath = path.join(outputDir, filename);
       await fs.writeFile(outputPath, pdfBuffer);
 

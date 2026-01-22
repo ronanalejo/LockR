@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import CountdownTimer from "./CountdownTimer";
+import PDFViewerModal from "./PDFViewerModal";
 import "../../assets/css/dataTable.css";
 
 const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
@@ -9,6 +10,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const [showPDFModal, setShowPDFModal] = useState(false);
   const itemsPerPage = 10;
 
   const columns = useMemo(() => {
@@ -178,13 +180,23 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
         }
         return reservation.employeeID || "N/A";
       case "applicationForm":
-        return (
+        console.log("Application Form Path:", {
+          referralSlipNo: reservation.referralSlipNo,
+          path: reservation.lockerApplicationFormAgreement,
+        });
+
+        return reservation.lockerApplicationFormAgreement ? (
           <button
             className="btn-view-doc"
-            onClick={() => window.open(reservation.dropboxReceipt, "_blank")}
+            onClick={() => {
+              setSelectedReservation(reservation);
+              setShowPDFModal(true);
+            }}
           >
             View
           </button>
+        ) : (
+          "N/A"
         );
       case "receipt":
         return reservation.dropboxReceipt ? (
@@ -370,6 +382,17 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
             Next
           </button>
         </div>
+      )}
+
+      {showPDFModal && selectedReservation && (
+        <PDFViewerModal
+          pdfUrl={selectedReservation.lockerApplicationFormAgreement}
+          onClose={() => {
+            setShowPDFModal(false);
+            setSelectedReservation(null);
+          }}
+          title={`Application Form and Locker Usage Agreement - ${selectedReservation.referralSlipNo}`}
+        />
       )}
     </div>
   );
