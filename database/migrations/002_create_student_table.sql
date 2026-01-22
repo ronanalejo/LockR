@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS `student` (
   `lastName` VARCHAR(100) NOT NULL,
   `password` VARCHAR(255) NOT NULL COMMENT 'bcrypt hashed password',
   `student_type` ENUM('SHS', 'College') NOT NULL COMMENT 'SHS for Senior High School, College for College students',
+  `program` VARCHAR(200) DEFAULT NULL COMMENT 'Student program/course',
   `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `program` VARCHAR(200) DEFAULT NULL COMMENT 'Student program/course' AFTER `student_type`,
   
   -- Foreign Key
   CONSTRAINT `fk_student_branch` 
