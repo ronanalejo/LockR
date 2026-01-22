@@ -28,6 +28,10 @@ const API_ENDPOINTS = {
     approve: (id) => `${API_BASE_URL}/admin/reservations/${id}/approve`,
     floorPlans: `${API_BASE_URL}/admin/floor-plans`,
   },
+  otp: {
+    send: `${API_BASE_URL}/otp/send`,
+    verify: `${API_BASE_URL}/otp/verify`,
+  },
   finance: {
     pending: `${API_BASE_URL}/finance/payments/pending`,
     history: `${API_BASE_URL}/finance/payments/history`,

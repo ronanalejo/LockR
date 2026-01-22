@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `student` (
   `student_type` ENUM('SHS', 'College') NOT NULL COMMENT 'SHS for Senior High School, College for College students',
   `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `program` VARCHAR(200) DEFAULT NULL COMMENT 'Student program/course' AFTER `student_type`,
   
   -- Foreign Key
   CONSTRAINT `fk_student_branch` 
@@ -21,3 +22,4 @@ CREATE TABLE IF NOT EXISTS `student` (
 -- Add indexes for better query performance
 CREATE INDEX idx_student_email ON `student`(`studentEmail`);
 CREATE INDEX idx_student_branch ON `student`(`branchID`);
+CREATE INDEX idx_student_program ON `student`(`program`);

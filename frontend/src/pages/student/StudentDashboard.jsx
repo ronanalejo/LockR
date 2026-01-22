@@ -12,10 +12,10 @@ import {
 import { API_ENDPOINTS } from "../../config/api";
 import LockerSelection from "./LockerSelection";
 import LockerGrid from "../../components/student/LockerGrid";
-import LockerCard from "../../components/student/LockerCard";
 import ReservationForm from "../../components/student/ReservationForm";
 import RulesRegulations from "../../components/student/RulesRegulations";
 import EndorsementApproval from "../../components/student/EndorsementApproval";
+import OTPVerificationModal from "../../components/student/OTPVerificationModal";
 
 const StudentDashboard = () => {
   const [selectedFloor, setSelectedFloor] = useState(() => {
@@ -27,8 +27,11 @@ const StudentDashboard = () => {
   const [selectedLocker, setSelectedLocker] = useState(null);
   const [showRules, setShowRules] = useState(false);
   const [reservationData, setReservationData] = useState(null);
+  const [tempReservationData, setTempReservationData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showEndorsement, setShowEndorsement] = useState(false);
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [pendingAgreementData, setPendingAgreementData] = useState(null);
 
   const floors = [6, 7, 9, 10];
 
@@ -62,7 +65,7 @@ const StudentDashboard = () => {
 
   const handleConfirmReservation = (reservationData) => {
     console.log("Reservation data prepared:", reservationData);
-    setReservationData(reservationData);
+    setTempReservationData(reservationData);
     setSelectedLocker(null);
   };
 
@@ -70,23 +73,64 @@ const StudentDashboard = () => {
     setShowRules(true);
   };
 
-  const handleAcceptRules = async () => {
-    if (!reservationData) return;
+  const handleAcceptRules = async (agreementData) => {
+    if (!tempReservationData) return;
 
     try {
-      showLoading("Creating Reservation", "Please wait...");
+      // Show loading while sending OTP
+      showLoading("Sending Verification Code", "Please wait...");
 
       const token = localStorage.getItem("token");
 
-      const requestBody = {
-        lockerID: reservationData.lockerID,
-        agreement: reservationData.agreement,
-        floorNumber: reservationData.floorNumber,
-        shsTerm: reservationData.shsTerm,
-        collegeTerm: reservationData.collegeTerm,
-      };
+      const response = await fetch(API_ENDPOINTS.otp.send, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      console.log("Sending reservation request:", requestBody);
+      const data = await response.json();
+
+      closeAlert();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send verification code");
+      }
+
+      // Store agreement data and show OTP modal
+      setPendingAgreementData(agreementData);
+      setShowOTPModal(true);
+    } catch (error) {
+      console.error("Send OTP error:", error);
+      closeAlert();
+      showError("Error", error.message || "Failed to send verification code");
+    }
+  };
+
+  const handleOTPVerified = async () => {
+    if (!tempReservationData || !pendingAgreementData) return;
+
+    setShowOTPModal(false);
+
+    try {
+      showLoading(
+        "Processing Agreement",
+        "Generating document and sending confirmation...",
+      );
+
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      const reservationPayload = {
+        lockerID: tempReservationData.lockerID,
+        duration: tempReservationData.duration,
+        floorNumber: tempReservationData.floorNumber,
+        shsTerm: tempReservationData.shsTerm,
+        collegeTerm: tempReservationData.collegeTerm,
+        program: pendingAgreementData.program,
+        signature: pendingAgreementData.signature,
+      };
 
       const response = await fetch(API_ENDPOINTS.reservations.create, {
         method: "POST",
@@ -94,37 +138,49 @@ const StudentDashboard = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(reservationPayload),
       });
 
       const data = await response.json();
-      console.log("Reservation response:", data);
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || "Reservation failed");
+        throw new Error(data.message || "Failed to create reservation");
       }
 
       closeAlert();
 
-      showSuccess(
-        `Locker ${reservationData.locker.number} reserved successfully!`,
+      await showSuccess(
+        "Agreement Submitted Successfully!",
+        "Your signed agreement has been sent to your email. Your reservation is now pending OSAS approval.",
       );
 
       setShowRules(false);
-      setReservationData(null);
+      setTempReservationData(null);
+      setPendingAgreementData(null);
+      setReservationData(data.reservation);
       setShowEndorsement(true);
     } catch (error) {
       console.error("Reservation error:", error);
       closeAlert();
-      showError("Reservation Failed", error.message);
-      setShowRules(false);
-      setReservationData(null);
+      showError(
+        "Submission Failed",
+        error.message || "Failed to submit agreement",
+      );
     }
+  };
+
+  const handleOTPCancel = () => {
+    setShowOTPModal(false);
+    setPendingAgreementData(null);
+    showError(
+      "Verification Cancelled",
+      "Agreement submission was cancelled. Your progress has been saved.",
+    );
   };
 
   const handleDeclineRules = () => {
     setShowRules(false);
-    setReservationData(null);
+    setTempReservationData(null);
     showSuccess("Reservation cancelled.");
   };
 
@@ -260,6 +316,16 @@ const StudentDashboard = () => {
         <RulesRegulations
           onAccept={handleAcceptRules}
           onDecline={handleDeclineRules}
+          reservationData={tempReservationData}
+        />
+      )}
+
+      {/* OTP Verification Modal */}
+      {showOTPModal && (
+        <OTPVerificationModal
+          email={user?.email}
+          onVerified={handleOTPVerified}
+          onCancel={handleOTPCancel}
         />
       )}
 

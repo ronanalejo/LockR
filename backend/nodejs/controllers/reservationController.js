@@ -1,84 +1,68 @@
 const reservationModel = require("../models/reservationModel");
 const pool = require("../config/database");
+const fs = require("fs").promises;
+const path = require("path");
 
 const reservationController = {
   createReservation: async (req, res) => {
     const connection = await pool.getConnection();
 
     try {
-      const { lockerID, agreement, floorNumber, shsTerm, collegeTerm } =
-        req.body;
       const studentID = req.user.id;
+      const {
+        lockerID,
+        duration,
+        floorNumber,
+        shsTerm,
+        collegeTerm,
+        program,
+        signature,
+      } = req.body;
 
-      if (!lockerID || !agreement || !floorNumber) {
+      if (!lockerID || !duration || !floorNumber || !program || !signature) {
         return res.status(400).json({
           success: false,
-          message: "Missing required fields: lockerID, agreement, floorNumber",
-        });
-      }
-
-      const validAgreements = [
-        "1 Semester/Term",
-        "2 Semesters/Terms",
-        "1 School Year",
-      ];
-      if (!validAgreements.includes(agreement)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid agreement type",
-        });
-      }
-
-      const validFloors = ["6", "7", "9", "10"];
-      if (!validFloors.includes(floorNumber)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid floor number",
+          message: "All fields are required",
         });
       }
 
       await connection.beginTransaction();
 
-      const locker = await reservationModel.checkLockerAvailability(
-        lockerID,
-        connection,
-      );
+      const locker = await reservationModel.checkLockerAvailability(lockerID);
 
-      if (!locker) {
-        await connection.rollback();
-        return res.status(404).json({
-          success: false,
-          message: "Locker not found",
-        });
-      }
-
-      if (locker.status !== "Available") {
+      if (!locker || locker.status !== "Available") {
         await connection.rollback();
         return res.status(400).json({
           success: false,
-          message: `Locker is not available. Current status: ${locker.status}`,
+          message: "Locker is not available",
         });
       }
 
-      const agreementDateStart = new Date();
-      const agreementDateEnd = calculateAgreementDateEnd(
-        agreementDateStart,
-        agreement,
+      const [students] = await connection.query(
+        "SELECT studentEmail, firstName, lastName FROM student WHERE studentID = ?",
+        [studentID],
       );
 
+      if (students.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({
+          success: false,
+          message: "Student not found",
+        });
+      }
+
+      const student = students[0];
+
       const reservationData = {
-        lockerID,
-        studentID,
-        floorNumber,
+        lockerID: lockerID,
+        studentID: studentID,
+        floorNumber: floorNumber,
         shsTerm: shsTerm || null,
         collegeTerm: collegeTerm || null,
-        agreement,
-        duplicate: false,
+        agreement: duration,
         forEndorsement: true,
         forApproval: false,
         isActive: false,
-        agreementDateStart,
-        agreementDateEnd,
       };
 
       const referralSlipNo = await reservationModel.create(
@@ -92,16 +76,56 @@ const reservationController = {
         connection,
       );
 
+      await connection.query(
+        "UPDATE student SET program = ? WHERE studentID = ?",
+        [program, studentID],
+      );
+
+      const agreementData = {
+        referralSlipNo: referralSlipNo,
+        studentName: `${student.firstName} ${student.lastName}`,
+        program: program,
+        lockerID: lockerID,
+        duration: duration,
+        signature: signature,
+      };
+
+      const {
+        generateAgreementPDF,
+      } = require("../utils/agreementPdfGenerator");
+      const pdfBuffer = await generateAgreementPDF(agreementData);
+
+      const outputDir = path.join(__dirname, "../../uploads/agreements");
+      await fs.mkdir(outputDir, { recursive: true });
+
+      const filename = `agreement-${referralSlipNo}-${Date.now()}.pdf`;
+      const outputPath = path.join(outputDir, filename);
+      await fs.writeFile(outputPath, pdfBuffer);
+
+      const pdfPath = `agreements/${filename}`;
+      await connection.query(
+        "UPDATE reservation SET lockerApplicationFormAgreement = ? WHERE referralSlipNo = ?",
+        [pdfPath, referralSlipNo],
+      );
+
+      const emailService = require("../services/emailService");
+      await emailService.sendAgreementPDF(
+        student.studentEmail,
+        student.firstName,
+        pdfBuffer,
+        referralSlipNo,
+      );
+
       await connection.commit();
 
-      const newReservation = await reservationModel.findById(referralSlipNo);
-
-      res.status(201).json({
+      res.json({
         success: true,
-        message: "Reservation created successfully",
-        data: {
-          referralSlipNo,
-          reservation: newReservation,
+        message:
+          "Agreement submitted successfully. A confirmation has been sent to your email.",
+        reservation: {
+          referralSlipNo: referralSlipNo,
+          lockerID: lockerID,
+          status: "For Endorsement",
         },
       });
     } catch (error) {
@@ -109,7 +133,8 @@ const reservationController = {
       console.error("Create reservation error:", error);
       res.status(500).json({
         success: false,
-        message: "An error occurred while creating the reservation",
+        message: "Failed to create reservation",
+        error: error.message,
       });
     } finally {
       connection.release();

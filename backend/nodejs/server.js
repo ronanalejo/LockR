@@ -32,6 +32,7 @@ const db = require("./config/database");
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const lockerRoutes = require("./routes/lockerRoutes");
+const otpRoutes = require("./routes/otpRoutes");
 
 // Register routes
 app.use("/api/auth", authRoutes);
@@ -40,6 +41,7 @@ const reservationRoutes = require("./routes/reservationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/otp", otpRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
