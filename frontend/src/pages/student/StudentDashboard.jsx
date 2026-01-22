@@ -16,8 +16,11 @@ import ReservationForm from "../../components/student/ReservationForm";
 import RulesRegulations from "../../components/student/RulesRegulations";
 import EndorsementApproval from "../../components/student/EndorsementApproval";
 import OTPVerificationModal from "../../components/student/OTPVerificationModal";
+import ReservationLog from "../../components/student/ReservationLog";
+
 
 const StudentDashboard = () => {
+
   const [selectedFloor, setSelectedFloor] = useState(() => {
     const savedFloor = localStorage.getItem("selectedFloor");
     return savedFloor ? parseInt(savedFloor, 10) : null;
@@ -29,9 +32,12 @@ const StudentDashboard = () => {
   const [reservationData, setReservationData] = useState(null);
   const [tempReservationData, setTempReservationData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showEndorsement, setShowEndorsement] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [pendingAgreementData, setPendingAgreementData] = useState(null);
+  // const [searchQuery, setSearchQuery] = useState("");
+  const [showEndorsement, setShowEndorsement] = useState(false);
+  const [showReservationLog, setShowReservationLog] = useState(false);
+  const [userReservations, setUserReservations] = useState([]);
 
   const floors = [6, 7, 9, 10];
 
@@ -45,6 +51,11 @@ const StudentDashboard = () => {
       localStorage.setItem("selectedFloor", selectedFloor);
     }
   }, [selectedFloor]);
+
+  const getBackgroundStyle = () => {
+    if (!selectedFloor) return {};
+
+  };
 
   const handleFloorSelect = (floor) => {
     setSelectedFloor(floor);
@@ -205,6 +216,41 @@ const StudentDashboard = () => {
     }
   };
 
+  const handleOpenReservationLog = async () => {
+  try {
+    showLoading("Loading Reservations", "Please wait...");
+    
+    const token = localStorage.getItem("token");
+    
+    // Use user.id or user.userID depending on your user object structure
+    const response = await fetch(`${API_ENDPOINTS.reservations.user}/${user.id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch reservations");
+    }
+    
+    setUserReservations(data);
+    setShowReservationLog(true);
+    closeAlert();
+  } catch (error) {
+    console.error('Error fetching reservations:', error);
+    closeAlert();
+    showError("Error", "Failed to load reservations");
+  }
+};
+
+const handleCloseReservationLog = () => {
+  setShowReservationLog(false);
+};
+
   return (
     <div className="locker-dashboard">
       {/* Sidebar */}
@@ -219,28 +265,13 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="locker-search-container">
-          <div className="locker-search-wrapper">
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="locker-search-input"
-            />
-            <div className="locker-search-icon">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
+          <button 
+            className="reservation-log-button"
+            onClick={handleOpenReservationLog}
+          >
+            <span>My Reservations</span>
+          </button>
+
 
         {/* Floor Navigation */}
         <div className="locker-floor-nav">
@@ -265,53 +296,50 @@ const StudentDashboard = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="locker-main-content">
-        {/* Header */}
-        <div className="locker-header">
-          <h1 className="locker-header-title">
-            Welcome, {user?.firstName} {user?.lastName || "Student"}
-          </h1>
-        </div>
 
-        {/* Content Area */}
-        <div className="locker-content-area">
-          {!selectedFloor ? (
-            // No floor selected
-            <div className="locker-floor-display">
-              <h2>Please select a floor to begin</h2>
-              <p>Choose a floor from the sidebar to view available lockers</p>
-            </div>
-          ) : !selectedSide ? (
-            // Floor selected, show FloorPlan
-            <LockerSelection
-              floor={selectedFloor}
-              onSelectSide={handleSideSelect}
-            />
-          ) : (
-            // Floor and side selected, show LockerGrid
-            <LockerGrid
-              floor={selectedFloor}
-              side={selectedSide}
-              onSelectLocker={handleSelectLocker}
-              onBack={handleBackToFloorPlan}
-            />
-          )}
+      {/* Main Content */}
+      <div className="locker-main-content" style={getBackgroundStyle()}>
+        {/* Header */}
+               <div className="content-overlay">
+          <div className="locker-header">
+            <h1 className="locker-header-title">
+              Welcome, {user?.firstName} {user?.lastName || "Student"}
+            </h1>
+          </div>
+
+          <div className="locker-content-area">
+            {!selectedFloor ? (
+              <div className="locker-floor-display">
+                <h2>Please select a floor to begin</h2>
+                <p>Choose a floor from the sidebar to view available lockers</p>
+              </div>
+            ) : !selectedSide ? (
+              <LockerSelection 
+                floor={selectedFloor} 
+                onSelectSide={handleSideSelect} 
+              />
+            ) : (
+              <LockerGrid
+                floor={selectedFloor}
+                side={selectedSide}
+                onSelectLocker={handleSelectLocker}
+                onBack={handleBackToFloorPlan}
+              />
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Reservation Form Modal */}
+      {/* Modals */}
       {selectedLocker && (
         <ReservationForm
           locker={selectedLocker}
-          floor={selectedFloor}
           onConfirm={handleConfirmReservation}
           onCancel={handleCancelReservation}
           onShowRules={handleShowRules}
         />
       )}
 
-      {/* Rules and Regulations Modal */}
       {showRules && (
         <RulesRegulations
           onAccept={handleAcceptRules}
@@ -332,7 +360,17 @@ const StudentDashboard = () => {
       {showEndorsement && (
         <EndorsementApproval onClose={handleCloseEndorsement} />
       )}
+
+        {/* Reservation Log Modal */}
+      {showReservationLog && (
+        <ReservationLog
+          reservations={userReservations}
+          onClose={handleCloseReservationLog}
+        />
+      )}
     </div>
+
+    
   );
 };
 

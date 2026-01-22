@@ -43,6 +43,7 @@
 /* Grid legend */
 .grid-legend {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
@@ -63,6 +64,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+
 }
 
 .legend-color {
@@ -72,15 +74,15 @@
 }
 
 .legend-color.occupied {
-  background-color: #2563eb;
-}
-
-.legend-color.reserved {
   background-color: #dc2626;
 }
 
+.legend-color.reserved {
+  background-color: #2563eb;
+}
+
 .legend-color.unavailable {
-  background-color: #4b5563;
+  background-color: #a7a7a7;
 }
 
 .legend-color.available {
@@ -92,6 +94,8 @@
 .set-label {
   font-size: 1.125rem;
   font-weight: 600;
+  margin-top: 15px;
+  color: black;
 }
 
 /* Grid layout */
@@ -99,4 +103,9 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
+}
+
+/* Last Udpate */
+.last-update {
+  color: black;
 }

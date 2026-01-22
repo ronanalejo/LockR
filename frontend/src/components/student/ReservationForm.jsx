@@ -32,6 +32,11 @@ const ReservationForm = ({
       return;
     }
 
+    if (!locker || !locker.number) {
+      showError("Error", "Invalid locker selected");
+      return;
+    }
+
     // Get user data to determine student type
     const userStr = localStorage.getItem("user");
     const user = userStr ? JSON.parse(userStr) : null;
@@ -44,12 +49,14 @@ const ReservationForm = ({
       return;
     }
 
-    // Determine if SHS or College based on student_type
     const isSHS = user.student_type?.toUpperCase() === "SHS";
 
-    // Prepare reservation data without creating it yet
     const reservationData = {
-      locker,
+      locker: {
+        number: locker.number,
+        id: locker.id,
+        status: locker.status
+      },
       duration,
       paymentMode,
       floor,
@@ -60,7 +67,7 @@ const ReservationForm = ({
       collegeTerm: !isSHS ? "1" : null,
     };
 
-    // Pass data to parent and show rules FIRST
+
     onConfirm(reservationData);
     onShowRules();
   };

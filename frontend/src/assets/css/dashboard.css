@@ -47,7 +47,7 @@ body {
 }
 
 /* Search Bar Styles */
-.locker-search-container {
+/* .locker-search-container {
     padding: 8px;
 }
 
@@ -84,7 +84,7 @@ body {
     width: 17px;
     height: 10px;
     color: #9ca3af;
-}
+} */
 
 /* Floor Navigation Styles */
 .locker-floor-nav {
@@ -110,7 +110,7 @@ body {
 
 .locker-floor-button.active {
    background-color: #2563eb;
-    color: white;
+   color: white;
 }
 
 .locker-floor-button.inactive {
@@ -186,6 +186,28 @@ body {
     text-align: center;
 }
 
+.reservation-log-button {
+    height: 40px;
+    margin: 10px 10px 2px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.reservation-log-button:hover {
+    opacity: 0.9;
+}
+.reservation-log-button:active {
+    background-color: #2563eb;
+    color: white;
+}
+.reservation-log-button.inactive {
+    background-color: #475569;
+}
+.reservation-log-button.inactive:hover {
+    background-color: #6b7280;
+}
 /* Responsive Design */
 
 /* Large Tablets and Small Laptops (1024px and below) */
@@ -387,3 +409,4 @@ body {
         font-size: 14px;
     }
 }
+
