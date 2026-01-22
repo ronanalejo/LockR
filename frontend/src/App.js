@@ -14,6 +14,9 @@ import notifications from "./utils/notifications.js";
 import StudentDashboard from "./pages/student/StudentDashboard.jsx";
 import LockerSelection from "./pages/student/LockerSelection.jsx";
 import EndorsementApproval from "./components/student/EndorsementApproval.jsx";
+import DepartmentRoute from "./components/common/DepartmentRoute.jsx";
+import Unauthorized from "./pages/common/Unauthorized.jsx";
+import OSASDashboard from "./pages/osas/OSASDashboard.jsx";
 
 function AppRoutes() {
   return (
@@ -30,6 +33,20 @@ function AppRoutes() {
           </RoleRoute>
         }
       />
+
+      <Route
+        path="/admin/dashboard"
+        element={
+          <DepartmentRoute
+            allowedRoles={["admin"]}
+            allowedDepartments={["OSAS"]}
+          >
+            <OSASDashboard />
+          </DepartmentRoute>
+        }
+      />
+
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
       <Route path="/student/LockerSelection" element={<LockerSelection />} />
       <Route

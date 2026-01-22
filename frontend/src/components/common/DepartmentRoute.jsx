@@ -2,7 +2,11 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
-const RoleRoute = ({ children, allowedRoles = [] }) => {
+const DepartmentRoute = ({
+  children,
+  allowedRoles = [],
+  allowedDepartments = [],
+}) => {
   const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
@@ -24,18 +28,19 @@ const RoleRoute = ({ children, allowedRoles = [] }) => {
   if (!allowedRoles.includes(userType)) {
     const redirectMap = {
       student: "/student/dashboard",
-      admin:
-        userDepartment === "OSAS"
-          ? "/admin/dashboard"
-          : userDepartment === "Finance"
-            ? "/finance/dashboard"
-            : "/unauthorized",
+      admin: "/admin/dashboard",
     };
-
     return <Navigate to={redirectMap[userType] || "/login"} replace />;
+  }
+
+  if (
+    allowedDepartments.length > 0 &&
+    !allowedDepartments.includes(userDepartment)
+  ) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;
 };
 
-export default RoleRoute;
+export default DepartmentRoute;

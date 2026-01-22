@@ -8,21 +8,21 @@ router.get(
   "/endorsements/pending",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.getReservationsForEndorsement
+  adminController.getReservationsForEndorsement,
 );
 
 router.post(
   "/endorsements/:id/approve",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.approveEndorsement
+  adminController.approveEndorsement,
 );
 
 router.post(
   "/endorsements/:id/reject",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.rejectEndorsement
+  adminController.rejectEndorsement,
 );
 
 // Approval Queue Endpoints
@@ -30,28 +30,28 @@ router.get(
   "/reservations/pending",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.getReservationsForApproval
+  adminController.getReservationsForApproval,
 );
 
 router.get(
   "/reservations/approval",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.getReservationsForApproval
+  adminController.getReservationsForApproval,
 );
 
 router.post(
   "/reservations/:id/approve",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.approveReservation
+  adminController.approveReservation,
 );
 
 router.post(
   "/reservations/:id/reject",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.rejectReservation
+  adminController.rejectReservation,
 );
 
 // Reservation Management
@@ -59,14 +59,30 @@ router.get(
   "/reservations",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.getAllReservations
+  adminController.getAllReservations,
 );
 
 router.post(
   "/reservations/:id/cancel",
   authMiddleware.verifyToken,
   authMiddleware.isAdmin,
-  adminController.cancelReservation
+  adminController.cancelReservation,
+);
+
+// Occupied Lockers Endpoint
+router.get(
+  "/reservations/occupied",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  adminController.getOccupiedLockers,
+);
+
+// Reservation History Endpoint
+router.get(
+  "/reservations/history",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  adminController.getReservationHistory,
 );
 
 module.exports = router;

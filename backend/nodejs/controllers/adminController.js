@@ -650,6 +650,166 @@ const adminController = {
       connection.release();
     }
   },
+
+  // Get occupied lockers (active reservations)
+  getOccupiedLockers: async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          r.*,
+          l.branchID as lockerBranchID,
+          l.status as lockerStatus,
+          l.floorNumber as lockerFloor,
+          s.studentEmail,
+          s.firstName as studentFirstName,
+          s.lastName as studentLastName,
+          s.student_type,
+          s.branchID as studentBranchID,
+          a.firstName as endorsedByFirstName,
+          a.lastName as endorsedByLastName
+        FROM reservation r
+        INNER JOIN locker l ON r.lockerID = l.lockerID
+        INNER JOIN student s ON r.studentID = s.studentID
+        LEFT JOIN admin a ON r.employeeID = a.employeeID
+        WHERE r.isActive = TRUE
+        ORDER BY r.agreementDateStart DESC
+      `;
+
+      const [reservations] = await pool.execute(query);
+
+      res.json({
+        success: true,
+        data: reservations,
+        count: reservations.length,
+      });
+    } catch (error) {
+      console.error("Get occupied lockers error:", error);
+      res.status(500).json({
+        success: false,
+        message: "An error occurred while fetching occupied lockers",
+      });
+    }
+  },
+
+  // Get reservation history (all past and current reservations)
+  getReservationHistory: async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          r.*,
+          l.branchID as lockerBranchID,
+          l.status as lockerStatus,
+          l.floorNumber as lockerFloor,
+          s.studentEmail,
+          s.firstName as studentFirstName,
+          s.lastName as studentLastName,
+          s.student_type,
+          s.branchID as studentBranchID,
+          a.firstName as endorsedByFirstName,
+          a.lastName as endorsedByLastName
+        FROM reservation r
+        INNER JOIN locker l ON r.lockerID = l.lockerID
+        INNER JOIN student s ON r.studentID = s.studentID
+        LEFT JOIN admin a ON r.employeeID = a.employeeID
+        WHERE (r.isActive = TRUE OR r.forEndorsement = FALSE OR r.forApproval = FALSE)
+        ORDER BY r.updatedAt DESC
+      `;
+
+      const [reservations] = await pool.execute(query);
+
+      res.json({
+        success: true,
+        data: reservations,
+        count: reservations.length,
+      });
+    } catch (error) {
+      console.error("Get reservation history error:", error);
+      res.status(500).json({
+        success: false,
+        message: "An error occurred while fetching reservation history",
+      });
+    }
+  },
+
+  // Get occupied lockers (active reservations)
+  getOccupiedLockers: async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          r.*,
+          l.branchID as lockerBranchID,
+          l.status as lockerStatus,
+          l.floorNumber as lockerFloor,
+          s.studentEmail,
+          s.firstName as studentFirstName,
+          s.lastName as studentLastName,
+          s.student_type,
+          s.branchID as studentBranchID,
+          a.firstName as endorsedByFirstName,
+          a.lastName as endorsedByLastName
+        FROM reservation r
+        INNER JOIN locker l ON r.lockerID = l.lockerID
+        INNER JOIN student s ON r.studentID = s.studentID
+        LEFT JOIN admin a ON r.employeeID = a.employeeID
+        WHERE r.isActive = TRUE
+        ORDER BY r.agreementDateStart DESC
+      `;
+
+      const [reservations] = await pool.execute(query);
+
+      res.json({
+        success: true,
+        data: reservations,
+        count: reservations.length,
+      });
+    } catch (error) {
+      console.error("Get occupied lockers error:", error);
+      res.status(500).json({
+        success: false,
+        message: "An error occurred while fetching occupied lockers",
+      });
+    }
+  },
+
+  // Get reservation history (all past and current reservations)
+  getReservationHistory: async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          r.*,
+          l.branchID as lockerBranchID,
+          l.status as lockerStatus,
+          l.floorNumber as lockerFloor,
+          s.studentEmail,
+          s.firstName as studentFirstName,
+          s.lastName as studentLastName,
+          s.student_type,
+          s.branchID as studentBranchID,
+          a.firstName as endorsedByFirstName,
+          a.lastName as endorsedByLastName
+        FROM reservation r
+        INNER JOIN locker l ON r.lockerID = l.lockerID
+        INNER JOIN student s ON r.studentID = s.studentID
+        LEFT JOIN admin a ON r.employeeID = a.employeeID
+        WHERE (r.isActive = TRUE OR r.forEndorsement = FALSE OR r.forApproval = FALSE)
+        ORDER BY r.updatedAt DESC
+      `;
+
+      const [reservations] = await pool.execute(query);
+
+      res.json({
+        success: true,
+        data: reservations,
+        count: reservations.length,
+      });
+    } catch (error) {
+      console.error("Get reservation history error:", error);
+      res.status(500).json({
+        success: false,
+        message: "An error occurred while fetching reservation history",
+      });
+    }
+  },
 };
 
 module.exports = adminController;

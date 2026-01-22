@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 /**
  * Admin Service
@@ -11,7 +12,7 @@ class AdminService {
     this.client = axios.create({
       baseURL: API_BASE_URL,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -24,7 +25,7 @@ class AdminService {
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     // Response interceptor for consistent error handling
@@ -36,7 +37,7 @@ class AdminService {
           this.handleUnauthorized();
         }
         return Promise.reject(this.formatError(error));
-      }
+      },
     );
   }
 
@@ -44,16 +45,18 @@ class AdminService {
    * Get JWT token from localStorage
    */
   getAuthToken() {
-    return localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+    return (
+      localStorage.getItem("admin_token") || localStorage.getItem("auth_token")
+    );
   }
 
   /**
    * Handle unauthorized access
    */
   handleUnauthorized() {
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('auth_token');
-    window.location.href = '/login';
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("auth_token");
+    window.location.href = "/login";
   }
 
   /**
@@ -63,20 +66,23 @@ class AdminService {
     if (error.response) {
       return {
         success: false,
-        message: error.response.data?.error || error.response.data?.message || 'An error occurred',
+        message:
+          error.response.data?.error ||
+          error.response.data?.message ||
+          "An error occurred",
         statusCode: error.response.status,
         data: error.response.data,
       };
     } else if (error.request) {
       return {
         success: false,
-        message: 'No response from server. Please check your connection.',
+        message: "No response from server. Please check your connection.",
         statusCode: 0,
       };
     } else {
       return {
         success: false,
-        message: error.message || 'An unexpected error occurred',
+        message: error.message || "An unexpected error occurred",
         statusCode: 0,
       };
     }
@@ -85,7 +91,7 @@ class AdminService {
   /**
    * Format success responses consistently
    */
-  formatSuccess(response, message = 'Operation successful') {
+  formatSuccess(response, message = "Operation successful") {
     return {
       success: true,
       message: response.data?.message || message,
@@ -102,8 +108,11 @@ class AdminService {
    */
   async getEndorsementQueue() {
     try {
-      const response = await this.client.get('/admin/endorsements/pending');
-      return this.formatSuccess(response, 'Endorsement queue fetched successfully');
+      const response = await this.client.get("/admin/endorsements/pending");
+      return this.formatSuccess(
+        response,
+        "Endorsement queue fetched successfully",
+      );
     } catch (error) {
       throw error;
     }
@@ -115,13 +124,13 @@ class AdminService {
    * @param {string} notes - Optional approval notes
    * @returns {Promise<Object>}
    */
-  async approveEndorsement(reservationId, notes = '') {
+  async approveEndorsement(reservationId, notes = "") {
     try {
       const response = await this.client.post(
         `/admin/endorsements/${reservationId}/approve`,
-        { notes }
+        { notes },
       );
-      return this.formatSuccess(response, 'Endorsement approved successfully');
+      return this.formatSuccess(response, "Endorsement approved successfully");
     } catch (error) {
       throw error;
     }
@@ -135,15 +144,15 @@ class AdminService {
    */
   async rejectEndorsement(reservationId, reason) {
     try {
-      if (!reason || reason.trim() === '') {
-        throw new Error('Rejection reason is required');
+      if (!reason || reason.trim() === "") {
+        throw new Error("Rejection reason is required");
       }
 
       const response = await this.client.post(
         `/admin/endorsements/${reservationId}/reject`,
-        { reason }
+        { reason },
       );
-      return this.formatSuccess(response, 'Endorsement rejected successfully');
+      return this.formatSuccess(response, "Endorsement rejected successfully");
     } catch (error) {
       throw error;
     }
@@ -157,8 +166,11 @@ class AdminService {
    */
   async getApprovalQueue() {
     try {
-      const response = await this.client.get('/admin/reservations/pending');
-      return this.formatSuccess(response, 'Approval queue fetched successfully');
+      const response = await this.client.get("/admin/reservations/pending");
+      return this.formatSuccess(
+        response,
+        "Approval queue fetched successfully",
+      );
     } catch (error) {
       throw error;
     }
@@ -170,13 +182,13 @@ class AdminService {
    * @param {string} notes - Optional approval notes
    * @returns {Promise<Object>}
    */
-  async approveReservation(reservationId, notes = '') {
+  async approveReservation(reservationId, notes = "") {
     try {
       const response = await this.client.post(
         `/admin/reservations/${reservationId}/approve`,
-        { notes }
+        { notes },
       );
-      return this.formatSuccess(response, 'Reservation approved successfully');
+      return this.formatSuccess(response, "Reservation approved successfully");
     } catch (error) {
       throw error;
     }
@@ -190,15 +202,15 @@ class AdminService {
    */
   async rejectReservation(reservationId, reason) {
     try {
-      if (!reason || reason.trim() === '') {
-        throw new Error('Rejection reason is required');
+      if (!reason || reason.trim() === "") {
+        throw new Error("Rejection reason is required");
       }
 
       const response = await this.client.post(
         `/admin/reservations/${reservationId}/reject`,
-        { reason }
+        { reason },
       );
-      return this.formatSuccess(response, 'Reservation rejected successfully');
+      return this.formatSuccess(response, "Reservation rejected successfully");
     } catch (error) {
       throw error;
     }
@@ -214,9 +226,9 @@ class AdminService {
     try {
       const response = await this.client.post(
         `/admin/reservations/${reservationId}/cancel`,
-        { reason }
+        { reason },
       );
-      return this.formatSuccess(response, 'Reservation cancelled successfully');
+      return this.formatSuccess(response, "Reservation cancelled successfully");
     } catch (error) {
       throw error;
     }
@@ -231,8 +243,10 @@ class AdminService {
    */
   async getReservations(filters = {}) {
     try {
-      const response = await this.client.get('/admin/reservations', { params: filters });
-      return this.formatSuccess(response, 'Reservations fetched successfully');
+      const response = await this.client.get("/admin/reservations", {
+        params: filters,
+      });
+      return this.formatSuccess(response, "Reservations fetched successfully");
     } catch (error) {
       throw error;
     }
@@ -245,8 +259,13 @@ class AdminService {
    */
   async getReservationById(reservationId) {
     try {
-      const response = await this.client.get(`/admin/reservations/${reservationId}`);
-      return this.formatSuccess(response, 'Reservation details fetched successfully');
+      const response = await this.client.get(
+        `/admin/reservations/${reservationId}`,
+      );
+      return this.formatSuccess(
+        response,
+        "Reservation details fetched successfully",
+      );
     } catch (error) {
       throw error;
     }
@@ -260,8 +279,8 @@ class AdminService {
    */
   async getFloorPlans() {
     try {
-      const response = await this.client.get('/admin/floor-plans');
-      return this.formatSuccess(response, 'Floor plans fetched successfully');
+      const response = await this.client.get("/admin/floor-plans");
+      return this.formatSuccess(response, "Floor plans fetched successfully");
     } catch (error) {
       throw error;
     }
@@ -275,7 +294,7 @@ class AdminService {
   async getFloorPlan(floor) {
     try {
       const response = await this.client.get(`/admin/floor-plans/${floor}`);
-      return this.formatSuccess(response, 'Floor plan fetched successfully');
+      return this.formatSuccess(response, "Floor plan fetched successfully");
     } catch (error) {
       throw error;
     }
@@ -289,8 +308,11 @@ class AdminService {
    */
   async updateFloorPlan(floor, data) {
     try {
-      const response = await this.client.put(`/admin/floor-plans/${floor}`, data);
-      return this.formatSuccess(response, 'Floor plan updated successfully');
+      const response = await this.client.put(
+        `/admin/floor-plans/${floor}`,
+        data,
+      );
+      return this.formatSuccess(response, "Floor plan updated successfully");
     } catch (error) {
       throw error;
     }
@@ -305,18 +327,21 @@ class AdminService {
   async uploadFloorPlanImage(floor, imageFile) {
     try {
       const formData = new FormData();
-      formData.append('floor_plan_image', imageFile);
+      formData.append("floor_plan_image", imageFile);
 
       const response = await this.client.post(
         `/admin/floor-plans/${floor}/image`,
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
-      return this.formatSuccess(response, 'Floor plan image uploaded successfully');
+      return this.formatSuccess(
+        response,
+        "Floor plan image uploaded successfully",
+      );
     } catch (error) {
       throw error;
     }
@@ -330,8 +355,11 @@ class AdminService {
    */
   async getDashboardStats() {
     try {
-      const response = await this.client.get('/admin/statistics/dashboard');
-      return this.formatSuccess(response, 'Dashboard statistics fetched successfully');
+      const response = await this.client.get("/admin/statistics/dashboard");
+      return this.formatSuccess(
+        response,
+        "Dashboard statistics fetched successfully",
+      );
     } catch (error) {
       throw error;
     }
@@ -343,8 +371,11 @@ class AdminService {
    */
   async getOccupancyStats() {
     try {
-      const response = await this.client.get('/admin/statistics/occupancy');
-      return this.formatSuccess(response, 'Occupancy statistics fetched successfully');
+      const response = await this.client.get("/admin/statistics/occupancy");
+      return this.formatSuccess(
+        response,
+        "Occupancy statistics fetched successfully",
+      );
     } catch (error) {
       throw error;
     }
@@ -373,6 +404,30 @@ class AdminService {
       if (rollback) {
         rollback();
       }
+      throw error;
+    }
+  }
+
+  async getOccupiedLockers() {
+    try {
+      const response = await this.client.get("/admin/reservations/occupied");
+      return this.formatSuccess(
+        response,
+        "Occupied lockers fetched successfully",
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getReservationHistory() {
+    try {
+      const response = await this.client.get("/admin/reservations/history");
+      return this.formatSuccess(
+        response,
+        "Reservation history fetched successfully",
+      );
+    } catch (error) {
       throw error;
     }
   }
