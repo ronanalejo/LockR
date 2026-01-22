@@ -219,9 +219,12 @@ const StudentDashboard = () => {
 
       const token = localStorage.getItem("token");
 
-      // Use user.id or user.userID depending on your user object structure
+      if (!user || !user.studentID) {
+        throw new Error("Student ID not found");
+      }
+
       const response = await fetch(
-        `${API_ENDPOINTS.reservations.user}/${user.id}`,
+        API_ENDPOINTS.reservations.byStudent(user.studentID),
         {
           method: "GET",
           headers: {
@@ -237,13 +240,13 @@ const StudentDashboard = () => {
         throw new Error(data.message || "Failed to fetch reservations");
       }
 
-      setUserReservations(data);
+      setUserReservations(data.data || data);
       setShowReservationLog(true);
       closeAlert();
     } catch (error) {
       console.error("Error fetching reservations:", error);
       closeAlert();
-      showError("Error", "Failed to load reservations");
+      showError("Error", error.message || "Failed to load reservations");
     }
   };
 

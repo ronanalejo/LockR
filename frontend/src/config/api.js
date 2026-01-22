@@ -21,6 +21,8 @@ const API_ENDPOINTS = {
     byId: (id) => `${API_BASE_URL}/reservations/${id}`,
     update: (id) => `${API_BASE_URL}/reservations/${id}`,
     uploadReceipt: `${API_BASE_URL}/reservations/upload-receipt`,
+    byStudent: (studentID) =>
+      `${API_BASE_URL}/reservations/students/${studentID}/reservations`,
   },
   admin: {
     endorsement: `${API_BASE_URL}/admin/reservations/endorsement`,
