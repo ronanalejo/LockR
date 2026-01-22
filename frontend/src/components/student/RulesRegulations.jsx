@@ -32,6 +32,8 @@ const RulesRegulations = ({ onAccept, onDecline, reservationData }) => {
   const [customProgram, setCustomProgram] = useState("");
   const [signature, setSignature] = useState(null);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const rulesContentRef = useRef(null);
   const sigCanvas = useRef(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -66,6 +68,18 @@ const RulesRegulations = ({ onAccept, onDecline, reservationData }) => {
         "Signature Required",
         "Please provide your signature before saving",
       );
+    }
+  };
+
+  const handleScroll = (e) => {
+    const element = e.target;
+    const scrollThreshold = 10;
+    const hasReachedBottom =
+      element.scrollHeight - element.scrollTop - element.clientHeight <=
+      scrollThreshold;
+
+    if (hasReachedBottom && !hasScrolledToBottom) {
+      setHasScrolledToBottom(true);
     }
   };
 
@@ -104,7 +118,11 @@ const RulesRegulations = ({ onAccept, onDecline, reservationData }) => {
             Application Form and Locker Usage Agreement (OSAS)
           </h2>
 
-          <div className="rules-content">
+          <div
+            className="rules-content"
+            ref={rulesContentRef}
+            onScroll={handleScroll}
+          >
             <div className="student-info-section">
               <div className="info-field">
                 <label className="info-label">NAME OF STUDENT:</label>
@@ -276,7 +294,8 @@ const RulesRegulations = ({ onAccept, onDecline, reservationData }) => {
                 disabled={
                   !program ||
                   (program === "Others" && !customProgram.trim()) ||
-                  !signature
+                  !signature ||
+                  !hasScrolledToBottom
                 }
               >
                 I Accept
