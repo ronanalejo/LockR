@@ -5,17 +5,25 @@ function setCorsHeaders(): void
 {
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
     
-    $allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:3001'
-    ];
+    $isDevelopment = ($_ENV['NODE_ENV'] ?? 'development') === 'development';
+    
+    $allowedOrigins = $isDevelopment 
+        ? [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:3001'
+        ]
+        : [
+            'https://lockr.fit',
+            'https://www.lockr.fit',
+            'https://api.lockr.fit'
+        ];
 
     if (in_array($origin, $allowedOrigins, true)) {
         header("Access-Control-Allow-Origin: {$origin}");
-    } else {
-        header('Access-Control-Allow-Origin: http://localhost:3000');
+    } elseif (!$origin) {
+        header('Access-Control-Allow-Origin: ' . ($isDevelopment ? 'http://localhost:3000' : 'https://lockr.fit'));
     }
 
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');

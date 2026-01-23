@@ -1,9 +1,43 @@
 import axios from "axios";
 import tokenStorage from "../utils/tokenStorage";
 
-// base configuration with axios
+/**
+ * Get the appropriate API base URL based on environment
+ * - Local development: uses localhost backend
+ * - Production (lockr.fit): uses api.lockr.fit subdomain
+ * - Can be overridden with REACT_APP_API_URL environment variable
+ */
+const getBaseURL = () => {
+  // 1. Allow explicit override via environment variable (if not empty)
+  if (
+    process.env.REACT_APP_API_URL &&
+    process.env.REACT_APP_API_URL.trim() !== ""
+  ) {
+    console.log(
+      "Using API URL from environment:",
+      process.env.REACT_APP_API_URL,
+    );
+    return process.env.REACT_APP_API_URL;
+  }
+
+  // 2. Detect if running locally
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "";
+
+  if (isLocalhost) {
+    console.log("Local development detected - using localhost backend");
+    return "http://localhost:5000/api";
+  }
+
+  // 3. Production - use API subdomain
+  console.log("Production environment detected - using api.lockr.fit");
+  return "https://api.lockr.fit/api";
+};
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
@@ -11,12 +45,14 @@ const api = axios.create({
   adapter: "xhr",
 });
 
+// Log the base URL for debugging
+console.log("API Base URL configured:", api.defaults.baseURL);
+
 // request interceptor - inject token into every request
 api.interceptors.request.use(
   (config) => {
     const token = tokenStorage.getToken();
 
-    // if exists, add it to authorization header
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,7 +61,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // response interceptor - handle token expiration and errors
@@ -34,12 +70,10 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // handle 401 unauthorized - token expired or invalid
     if (error.response && error.response.status === 401) {
       tokenStorage.removeToken();
       localStorage.removeItem("user");
 
-      // Redirect to login page
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
@@ -48,7 +82,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

@@ -1,7 +1,32 @@
-const API_BASE_URL =
-  process.env.NODE_ENV === "development"
-    ? "https://api.lockr.fit/api"
-    : "http://localhost:5000/api";
+/**
+ * API Configuration
+ * Auto-detects environment and provides appropriate base URL
+ */
+
+const getAPIBaseURL = () => {
+  // Allow explicit override via environment variable
+  if (
+    process.env.REACT_APP_API_URL &&
+    process.env.REACT_APP_API_URL.trim() !== ""
+  ) {
+    return process.env.REACT_APP_API_URL;
+  }
+
+  // Detect if running locally
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "";
+
+  if (isLocalhost) {
+    return "http://localhost:5000/api";
+  }
+
+  // Production - use API subdomain
+  return "https://api.lockr.fit/api";
+};
+
+const API_BASE_URL = getAPIBaseURL();
 
 const API_ENDPOINTS = {
   auth: {
@@ -115,6 +140,8 @@ const apiClient = {
     return response.json();
   },
 };
+
+console.log("API Base URL:", API_BASE_URL);
 
 export { API_BASE_URL, API_ENDPOINTS, apiClient };
 export default API_ENDPOINTS;

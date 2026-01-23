@@ -10,12 +10,17 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 const allowedOrigins =
   process.env.NODE_ENV === "development"
-    ? ["https://lockr.fit", "https://www.lockr.fit"]
-    : [
+    ? [
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:5173",
-      ];
+        "https://lockr.fit",
+        "https://www.lockr.fit",
+        "https://api.lockr.fit",
+        "http://lockr.fit",
+        "http://www.lockr.fit",
+      ]
+    : ["https://lockr.fit", "https://www.lockr.fit", "https://api.lockr.fit"];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -42,10 +47,19 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+// Custom security headers for Google OAuth compatibility
+app.use((req, res, next) => {
+  // Allow cross-origin popups for Google OAuth
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  next();
+});
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false, // Disable helmet's COOP to use custom
   }),
 );
 app.use(express.json());
