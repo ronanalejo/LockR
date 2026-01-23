@@ -57,11 +57,12 @@
 .locker-slot {
   background-color: rgba(255, 255, 255, 0.3);
   border-radius: 0.25rem;
+  border: 1px rgb(167, 167, 167) solid;
 }
 
 .locker-slot.top {
-  height: 1.5rem;
-  width: 4rem;
+  height: 0.75rem;
+  width: 3rem;
 }
 
 .locker-slot.bottom {
@@ -108,4 +109,74 @@
 .locker-card.unavailable .locker-lock {
   border-color: white;
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+/*  */
+
+/* Status icon at top */
+.locker-card::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.locker-card.occupied::before {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.locker-card.reserved::before {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.locker-card.unavailable::before {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.locker-card.available::before {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+/* Lock icon */
+.locker-lock {
+  position: static;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-top: 15px;
+  margin-bottom: 4px;
+}
+
+.locker-lock::before {
+  content: '🔒';
+  filter: grayscale(100%);
+}
+
+.locker-card.available .locker-lock {
+  background: #f3f4f6;
+}
+
+.locker-card.available .locker-lock::before {
+  content: '🔓';
+}
+
+.locker-card.occupied .locker-lock,
+.locker-card.reserved .locker-lock,
+.locker-card.unavailable .locker-lock {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Ripple effect on click */
+.locker-card.clickable:active {
+  transform: scale(0.98);
 }

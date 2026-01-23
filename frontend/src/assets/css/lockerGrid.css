@@ -96,6 +96,9 @@
   font-weight: 600;
   margin-top: 15px;
   color: black;
+  background-color: white;
+  padding: 5px 14px;
+  border-radius: 7px;
 }
 
 /* Grid layout */
