@@ -42,3 +42,7 @@
     font-weight: 500;
     height: 46px;
 }
+
+h2, p {
+  color: rgb(92, 92, 92);
+}
