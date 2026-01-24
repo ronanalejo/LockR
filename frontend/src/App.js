@@ -14,7 +14,7 @@ import notifications from "./utils/notifications.js";
 import StudentDashboard from "./pages/student/StudentDashboard.jsx";
 import LockerSelection from "./pages/student/LockerSelection.jsx";
 import EndorsementApproval from "./components/student/EndorsementApproval.jsx";
-import DepartmentRoute from "./components/common/DepartmentRoute.jsx";
+import DepartmentRoute from "./components/common/DepartmentRoute";
 import Unauthorized from "./pages/common/Unauthorized.jsx";
 import OSASDashboard from "./pages/osas/OSASDashboard.jsx";
 
