@@ -1,48 +1,93 @@
+.endorsement-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .endorsement-modal-content {
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 3rem 2rem;
   max-width: 500px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease-out;
+  position: relative;
+  z-index: 10000;
 }
 
-.endorsement-icon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.info-circle {
-  width: 64px;
-  height: 64px;
-  border: 4px solid #1f2937;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .endorsement-message {
-  font-size: 1.125rem;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0;
 }
 
 .endorsement-thanks {
   font-size: 1rem;
-  color: #4b5563;
+  color: #6b7280;
   font-weight: 500;
+  margin-bottom: 2rem;
 }
 
-.modal-overlay span {
-    color: black;
-    font-weight: 500;
-    height: 46px;
+.endorsement-close-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  position: relative;
+  z-index: 10001;
+  pointer-events: auto;
 }
 
-h2, p {
-  color: rgb(92, 92, 92);
+.endorsement-close-btn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.endorsement-close-btn:active {
+  transform: translateY(0);
+  background-color: #1e40af;
+}
+
+.endorsement-close-btn:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }

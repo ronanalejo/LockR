@@ -1,23 +1,40 @@
-import React from 'react';
-import '../../assets/css/endorsementApproval.css';
+import React from "react";
+import "../../assets/css/endorsementApproval.css";
 
 const EndorsementApproval = ({ onClose }) => {
-
   const handleOverlayClick = (e) => {
+    console.log("Overlay clicked");
     if (e.target === e.currentTarget) {
+      console.log("Closing via overlay");
       onClose();
     }
-  }
+  };
+
+  const handleClose = () => {
+    console.log("Close button clicked");
+    if (typeof onClose === "function") {
+      onClose();
+    } else {
+      console.error("onClose is not a function:", onClose);
+    }
+  };
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content">
-        {/* <div className="modal-icon">!</div> */}
-        <h2>Please wait for the Endorsement Approval</h2>
-        <p>Thank you!</p>
-        
-        {/* Optional: Add a close button */}
-        <button onClick={onClose} className="btn btn-primary">
+    <div className="endorsement-modal-overlay" onClick={handleOverlayClick}>
+      <div
+        className="endorsement-modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="endorsement-message">
+          Please wait for the Endorsement Approval
+        </h2>
+        <p className="endorsement-thanks">Thank you!</p>
+
+        <button
+          type="button"
+          onClick={handleClose}
+          className="endorsement-close-btn"
+        >
           Close
         </button>
       </div>

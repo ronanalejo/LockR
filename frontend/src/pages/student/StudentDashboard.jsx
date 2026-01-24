@@ -228,13 +228,25 @@ const StudentDashboard = () => {
   };
 
   const handleCloseEndorsement = () => {
-    showSuccess(
-      `Locker ${reservationData.locker.number} reserved successfully!`,
-    );
-    setShowEndorsement(false);
-    setReservationData(null);
-  };
+    console.log("handleCloseEndorsement called");
+    console.log("Current showEndorsement state:", showEndorsement);
 
+    try {
+      setShowEndorsement(false);
+      setReservationData(null);
+
+      setTimeout(() => {
+        const lockerInfo = reservationData?.lockerID || "Your locker";
+        showSuccess(
+          "Reservation Submitted",
+          `${lockerInfo} has been reserved successfully! Please wait for OSAS approval.`,
+        );
+      }, 100);
+    } catch (error) {
+      console.error("Error in handleCloseEndorsement:", error);
+      setShowEndorsement(false);
+    }
+  };
   const handleLogout = async () => {
     const result = await showConfirm("You will be logged out. Continue?");
 
@@ -397,7 +409,12 @@ const StudentDashboard = () => {
       )}
 
       {showEndorsement && (
-        <EndorsementApproval onClose={handleCloseEndorsement} />
+        <EndorsementApproval
+          onClose={() => {
+            console.log("EndorsementApproval onClose called");
+            handleCloseEndorsement();
+          }}
+        />
       )}
 
       {/* Reservation Log Modal */}
