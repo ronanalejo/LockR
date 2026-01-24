@@ -2,22 +2,24 @@ import React from 'react';
 import '../../assets/css/endorsementApproval.css';
 
 const EndorsementApproval = ({ onClose }) => {
+
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="modal-overlay">
-      <div className="endorsement-modal-content">
-        <div className="endorsement-icon">
-          <div className="info-circle">
-            <span>!</span>
-          </div>
-        </div>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className="modal-content">
+        {/* <div className="modal-icon">!</div> */}
+        <h2>Please wait for the Endorsement Approval</h2>
+        <p>Thank you!</p>
         
-        <p className="endorsement-message">
-          Please wait for the Endorsement Approval
-        </p>
-        
-        <p className="endorsement-thanks">
-          Thank you!
-        </p>
+        {/* Optional: Add a close button */}
+        <button onClick={onClose} className="btn btn-primary">
+          Close
+        </button>
       </div>
     </div>
   );
