@@ -1,14 +1,28 @@
-import React from 'react';
-import '../../assets/css/lockerCard.css';
+import React from "react";
+import "../../assets/css/lockerCard.css";
 
-const LockerCard = ({ locker, onClick }) => {
-  const isClickable = locker.status === 'available';
+const LockerCard = ({ locker, onClick, disabled = false }) => {
+  const isClickable = locker.status === "available" && !disabled;
+
+  const handleClick = () => {
+    if (isClickable) {
+      onClick(locker);
+    }
+  };
 
   return (
     <button
-      onClick={() => isClickable && onClick(locker)}
+      onClick={handleClick}
       disabled={!isClickable}
-      className={`locker-card ${locker.status} ${isClickable ? 'clickable' : ''}`}
+      className={`locker-card ${locker.status} ${isClickable ? "clickable" : ""} ${disabled ? "disabled-by-reservation" : ""}`}
+      style={{
+        cursor: disabled
+          ? "not-allowed"
+          : locker.status === "available"
+            ? "pointer"
+            : "default",
+        opacity: disabled ? 0.6 : 1,
+      }}
     >
       <div className="locker-content">
         <div className="locker-slot top"></div>

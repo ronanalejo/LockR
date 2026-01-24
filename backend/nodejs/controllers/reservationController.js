@@ -28,6 +28,28 @@ const reservationController = {
 
       await connection.beginTransaction();
 
+      // Check if student already has an active reservation
+      const existingReservation =
+        await reservationModel.findActiveByStudentId(studentID);
+
+      if (existingReservation) {
+        await connection.rollback();
+        return res.status(400).json({
+          success: false,
+          message:
+            "You already have an active reservation. Please wait for approval or cancellation before creating a new one.",
+          existingReservation: {
+            referralSlipNo: existingReservation.referralSlipNo,
+            lockerID: existingReservation.lockerID,
+            status: existingReservation.forEndorsement
+              ? "For Endorsement"
+              : existingReservation.forApproval
+                ? "For Approval"
+                : "Active",
+          },
+        });
+      }
+
       const locker = await reservationModel.checkLockerAvailability(lockerID);
 
       if (!locker || locker.status !== "Available") {
@@ -292,6 +314,125 @@ const reservationController = {
         success: false,
         message: "An error occurred while fetching reservations",
       });
+    }
+  },
+
+  checkActiveReservation: async (req, res) => {
+    try {
+      const studentID = req.user.id;
+
+      const activeReservation =
+        await reservationModel.findActiveByStudentId(studentID);
+
+      if (!activeReservation) {
+        return res.json({
+          success: true,
+          hasActiveReservation: false,
+          data: null,
+        });
+      }
+
+      res.json({
+        success: true,
+        hasActiveReservation: true,
+        data: {
+          referralSlipNo: activeReservation.referralSlipNo,
+          lockerID: activeReservation.lockerID,
+          floorNumber:
+            activeReservation.lockerFloorNumber ||
+            activeReservation.floorNumber,
+          status: activeReservation.forEndorsement
+            ? "For Endorsement"
+            : activeReservation.forApproval
+              ? "For Approval"
+              : "Active",
+          createdAt: activeReservation.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error("Check active reservation error:", error);
+      res.status(500).json({
+        success: false,
+        message: "An error occurred while checking reservation status",
+      });
+    }
+  },
+
+  cancelReservationByStudent: async (req, res) => {
+    const connection = await pool.getConnection();
+
+    try {
+      const studentID = req.user.id;
+      const { referralSlipNo } = req.params;
+
+      await connection.beginTransaction();
+
+      const reservation = await reservationModel.findById(
+        parseInt(referralSlipNo),
+      );
+
+      if (!reservation) {
+        await connection.rollback();
+        return res.status(404).json({
+          success: false,
+          message: "Reservation not found",
+        });
+      }
+
+      if (reservation.studentID !== studentID) {
+        await connection.rollback();
+        return res.status(403).json({
+          success: false,
+          message: "You can only cancel your own reservations",
+        });
+      }
+
+      if (reservation.isActive) {
+        await connection.rollback();
+        return res.status(400).json({
+          success: false,
+          message:
+            "Cannot cancel an active reservation. Please contact OSAS office.",
+        });
+      }
+
+      await reservationModel.update(parseInt(referralSlipNo), {
+        forEndorsement: false,
+        forApproval: false,
+        isActive: false,
+      });
+
+      await reservationModel.updateLockerStatus(
+        reservation.lockerID,
+        "Available",
+        connection,
+      );
+
+      const emailService = require("../services/emailService");
+      await emailService.sendCancellationEmail(
+        reservation.studentEmail,
+        reservation.studentFirstName,
+        referralSlipNo,
+        reservation.lockerID,
+      );
+
+      await connection.commit();
+
+      res.json({
+        success: true,
+        message:
+          "Reservation cancelled successfully. A confirmation has been sent to your email.",
+      });
+    } catch (error) {
+      await connection.rollback();
+      console.error("Cancel reservation error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to cancel reservation",
+        error: error.message,
+      });
+    } finally {
+      connection.release();
     }
   },
 };

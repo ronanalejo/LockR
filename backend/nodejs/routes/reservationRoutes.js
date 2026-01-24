@@ -7,25 +7,39 @@ router.post(
   "/",
   authMiddleware.verifyToken,
   authMiddleware.isStudent,
-  reservationController.createReservation
+  reservationController.createReservation,
 );
 
 router.get(
   "/:id",
   authMiddleware.verifyToken,
-  reservationController.getReservationById
+  reservationController.getReservationById,
 );
 
 router.put(
   "/:id",
   authMiddleware.verifyToken,
-  reservationController.updateReservation
+  reservationController.updateReservation,
 );
 
 router.get(
   "/students/:studentID/reservations",
   authMiddleware.verifyToken,
-  reservationController.getStudentReservations
+  reservationController.getStudentReservations,
+);
+
+router.get(
+  "/student/active",
+  authMiddleware.verifyToken,
+  authMiddleware.isStudent,
+  reservationController.checkActiveReservation,
+);
+
+router.delete(
+  "/:referralSlipNo/cancel",
+  authMiddleware.verifyToken,
+  authMiddleware.isStudent,
+  reservationController.cancelReservationByStudent,
 );
 
 module.exports = router;

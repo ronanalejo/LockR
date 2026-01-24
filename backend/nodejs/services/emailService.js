@@ -132,6 +132,57 @@ class EmailService {
 
     await this.transporter.sendMail(mailOptions);
   }
+
+  async sendCancellationEmail(email, firstName, referralSlipNo, lockerID) {
+    const mailOptions = {
+      from: this.fromAddress,
+      to: email,
+      subject: "Locker Reservation Cancelled - Confirmation",
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #dc2626; color: white; padding: 20px; text-align: center; }
+            .content { background-color: #f9fafb; padding: 30px; }
+            .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+            .info-box { background-color: #fee2e2; padding: 15px; border-radius: 8px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Reservation Cancelled</h1>
+            </div>
+            <div class="content">
+              <h2>Cancellation Confirmed</h2>
+              <p>Dear ${firstName},</p>
+              <p>Your locker reservation has been successfully cancelled.</p>
+              <div class="info-box">
+                <p><strong>Referral Slip No:</strong> ${referralSlipNo}</p>
+                <p><strong>Locker ID:</strong> ${lockerID}</p>
+                <p><strong>Status:</strong> Cancelled</p>
+              </div>
+              <p>You may now create a new reservation if needed.</p>
+              <p>If you did not request this cancellation, please contact the OSAS office immediately.</p>
+            </div>
+            <div class="footer">
+              <p style="color: #dc2626; font-weight: bold;">⚠️ PLEASE DO NOT REPLY TO THIS EMAIL</p>
+              <p>This is an automated confirmation from the iACADEMY Locker Reservation System.</p>
+              <p>This mailbox is not monitored. For assistance, please contact:</p>
+              <p><strong>OSAS Office:</strong> osas@iacademy.edu.ph</p>
+              <p><strong>Phone:</strong> (02) 8889 5555</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await this.transporter.sendMail(mailOptions);
+  }
 }
 
 module.exports = new EmailService();

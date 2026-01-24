@@ -27,6 +27,17 @@ CREATE TABLE IF NOT EXISTS `reservation` (
   `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
+  -- Computed column for enforcing single active reservation per student
+  -- Returns 1 if reservation is active (in any pending or approved state), NULL otherwise
+  -- This enables a unique constraint that only applies to active reservations
+  `activeFlag` TINYINT(1) GENERATED ALWAYS AS (
+    CASE 
+      WHEN `forEndorsement` = 1 OR `forApproval` = 1 OR `isActive` = 1 
+      THEN 1 
+      ELSE NULL 
+    END
+  ) STORED COMMENT 'Computed flag: 1 if active/pending, NULL if inactive/completed',
+  
   -- Foreign Keys
   CONSTRAINT `fk_reservation_locker` 
     FOREIGN KEY (`lockerID`) 
@@ -64,14 +75,27 @@ CREATE INDEX idx_reservation_active ON `reservation`(`isActive`, `agreementDateE
 CREATE INDEX idx_reservation_dates ON `reservation`(`reservationTimeStart`, `reservationTimeEnd`);
 
 -- ========================================================================
+-- CRITICAL: Single Active Reservation Constraint
+-- ========================================================================
+-- This unique index enforces the business rule: one active reservation per student
+-- Because activeFlag is NULL for inactive reservations, this constraint only applies
+-- when activeFlag = 1 (i.e., when forEndorsement OR forApproval OR isActive is TRUE)
+-- Multiple NULL values are allowed (inactive reservations don't conflict)
+CREATE UNIQUE INDEX idx_unique_active_reservation 
+ON `reservation` (`studentID`, `activeFlag`);
+
+-- ========================================================================
 -- Status Logic Reference
 -- ========================================================================
 -- 
--- Status State           | forEndorsement | forApproval | isActive
--- -----------------------|----------------|-------------|----------
--- For Endorsement        | TRUE           | FALSE       | FALSE
--- For Approval           | FALSE          | TRUE        | FALSE
--- Active (Approved)      | FALSE          | FALSE       | TRUE
--- Rejected/Completed     | FALSE          | FALSE       | FALSE
+-- Status State           | forEndorsement | forApproval | isActive | activeFlag
+-- -----------------------|----------------|-------------|----------|------------
+-- For Endorsement        | TRUE           | FALSE       | FALSE    | 1
+-- For Approval           | FALSE          | TRUE        | FALSE    | 1
+-- Active (Approved)      | FALSE          | FALSE       | TRUE     | 1
+-- Rejected/Completed     | FALSE          | FALSE       | FALSE    | NULL
+-- Cancelled/Expired      | FALSE          | FALSE       | FALSE    | NULL
 -- 
+-- The unique index on (studentID, activeFlag) ensures only ONE row per student
+-- can have activeFlag = 1, preventing duplicate active reservations at DB level.
 -- ========================================================================

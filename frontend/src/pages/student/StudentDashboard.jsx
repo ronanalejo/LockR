@@ -29,14 +29,12 @@ const StudentDashboard = () => {
   const [showRules, setShowRules] = useState(false);
   const [reservationData, setReservationData] = useState(null);
   const [tempReservationData, setTempReservationData] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [pendingAgreementData, setPendingAgreementData] = useState(null);
-  // const [searchQuery, setSearchQuery] = useState("");
   const [showEndorsement, setShowEndorsement] = useState(false);
   const [showReservationLog, setShowReservationLog] = useState(false);
   const [userReservations, setUserReservations] = useState([]);
-  
+  const [hasActiveReservation, setHasActiveReservation] = useState(false);
 
   const floors = [6, 7, 9, 10];
 
@@ -50,6 +48,27 @@ const StudentDashboard = () => {
       localStorage.setItem("selectedFloor", selectedFloor);
     }
   }, [selectedFloor]);
+
+  useEffect(() => {
+    const checkActiveReservationStatus = async () => {
+      try {
+        const reservationService =
+          require("../../services/reservationService").default;
+        const result = await reservationService.checkActiveReservation();
+
+        if (result.success && result.hasActiveReservation) {
+          setHasActiveReservation(true);
+        } else {
+          setHasActiveReservation(false);
+        }
+      } catch (error) {
+        console.error("Failed to check active reservation:", error);
+        setHasActiveReservation(false);
+      }
+    };
+
+    checkActiveReservationStatus();
+  }, []);
 
   const getBackgroundStyle = () => {
     if (!selectedFloor) return {};
@@ -129,7 +148,6 @@ const StudentDashboard = () => {
       );
 
       const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
 
       const reservationPayload = {
         lockerID: tempReservationData.lockerID,
@@ -162,6 +180,18 @@ const StudentDashboard = () => {
         "Agreement Submitted Successfully!",
         "Your signed agreement has been sent to your email. Your reservation is now pending OSAS approval.",
       );
+
+      // Refresh active reservation status
+      const reservationService =
+        require("../../services/reservationService").default;
+      try {
+        const checkResult = await reservationService.checkActiveReservation();
+        if (checkResult.success && checkResult.hasActiveReservation) {
+          setHasActiveReservation(true);
+        }
+      } catch (error) {
+        console.error("Failed to refresh reservation status:", error);
+      }
 
       setShowRules(false);
       setTempReservationData(null);
@@ -281,10 +311,15 @@ const StudentDashboard = () => {
           {floors.map((floor) => (
             <button
               key={floor}
-              onClick={() => handleFloorSelect(floor)}
+              onClick={() => !hasActiveReservation && handleFloorSelect(floor)}
               className={`locker-floor-button ${
                 selectedFloor === floor ? "active" : "inactive"
               }`}
+              disabled={hasActiveReservation}
+              style={{
+                opacity: hasActiveReservation ? 0.5 : 1,
+                cursor: hasActiveReservation ? "not-allowed" : "pointer",
+              }}
             >
               Floor {floor}
             </button>
@@ -326,6 +361,7 @@ const StudentDashboard = () => {
                 side={selectedSide}
                 onSelectLocker={handleSelectLocker}
                 onBack={handleBackToFloorPlan}
+                hasActiveReservation={hasActiveReservation}
               />
             )}
           </div>
@@ -369,6 +405,19 @@ const StudentDashboard = () => {
         <ReservationLog
           reservations={userReservations}
           onClose={handleCloseReservationLog}
+          onReservationCancelled={async () => {
+            setHasActiveReservation(false);
+            const reservationService =
+              require("../../services/reservationService").default;
+            try {
+              const result = await reservationService.checkActiveReservation();
+              if (result.success && result.hasActiveReservation) {
+                setHasActiveReservation(true);
+              }
+            } catch (error) {
+              console.error("Failed to refresh reservation status:", error);
+            }
+          }}
         />
       )}
     </div>

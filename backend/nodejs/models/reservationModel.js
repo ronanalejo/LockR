@@ -73,6 +73,29 @@ const reservationModel = {
     return rows;
   },
 
+  findActiveByStudentId: async (studentID) => {
+    const query = `
+      SELECT 
+        r.*,
+        l.branchID as lockerBranchID,
+        l.status as lockerStatus,
+        l.floorNumber as lockerFloorNumber
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      WHERE r.studentID = ?
+      AND (
+        r.forEndorsement = true 
+        OR r.forApproval = true 
+        OR r.isActive = true
+      )
+      ORDER BY r.createdAt DESC
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.execute(query, [studentID]);
+    return rows[0] || null;
+  },
+
   // Get endorsement queue with filters and pagination
   getEndorsementQueue: async (filters, limit, offset) => {
     let query = `

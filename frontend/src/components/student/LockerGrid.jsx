@@ -6,7 +6,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "../../assets/css/lockerGrid.css";
 
-const LockerGrid = ({ floor, side, onSelectLocker, onBack }) => {
+const LockerGrid = ({
+  floor,
+  side,
+  onSelectLocker,
+  onBack,
+  hasActiveReservation = false,
+}) => {
   const [lockers, setLockers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -114,8 +120,8 @@ const LockerGrid = ({ floor, side, onSelectLocker, onBack }) => {
 
     console.log("Auth check:", { token: !!token, user: !!user });
 
-    // Only show error if BOTH token is missing AND we're not loading
-    if (!token && !loading) {
+    // Only show error if token is missing
+    if (!token) {
       console.log("No token - showing auth error");
       setAuthError(true);
       setLoading(false);
@@ -124,17 +130,15 @@ const LockerGrid = ({ floor, side, onSelectLocker, onBack }) => {
       return;
     }
 
-    // Proceed with fetch if token exists, regardless of user object state
-    if (token) {
-      fetchLockers();
+    // Proceed with fetch if token exists
+    fetchLockers();
 
-      const interval = setInterval(() => {
-        fetchLockers(true);
-      }, 10000);
+    const interval = setInterval(() => {
+      fetchLockers(true);
+    }, 10000);
 
-      return () => clearInterval(interval);
-    }
-  }, [floor, side, navigate, fetchLockers]);
+    return () => clearInterval(interval);
+  }, [floor, side, navigate, fetchLockers, user]);
 
   if (authError) {
     return (
@@ -231,6 +235,7 @@ const LockerGrid = ({ floor, side, onSelectLocker, onBack }) => {
               key={locker.id}
               locker={locker}
               onClick={onSelectLocker}
+              disabled={hasActiveReservation}
             />
           ))
         )}

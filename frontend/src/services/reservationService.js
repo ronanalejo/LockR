@@ -11,7 +11,7 @@ const reservationService = {
 
       if (!lockerID || !agreement || !floorNumber) {
         throw new Error(
-          "Missing required fields: lockerID, agreement, and floorNumber"
+          "Missing required fields: lockerID, agreement, and floorNumber",
         );
       }
 
@@ -179,7 +179,7 @@ const reservationService = {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Upload failed with status ${response.status}`
+          errorData.message || `Upload failed with status ${response.status}`,
         );
       }
 
@@ -205,13 +205,13 @@ const reservationService = {
         console.log(`Retrying upload (${retryCount + 1}/${MAX_RETRIES})...`);
 
         await new Promise((resolve) =>
-          setTimeout(resolve, RETRY_DELAY * (retryCount + 1))
+          setTimeout(resolve, RETRY_DELAY * (retryCount + 1)),
         );
 
         return reservationService.uploadReceipt(
           file,
           reservationID,
-          retryCount + 1
+          retryCount + 1,
         );
       }
 
@@ -241,12 +241,12 @@ const reservationService = {
       }
 
       const response = await api.get(
-        `/reservations/students/${studentID}/reservations`
+        `/reservations/students/${studentID}/reservations`,
       );
 
       if (!response.data.success) {
         throw new Error(
-          response.data.message || "Failed to fetch reservations"
+          response.data.message || "Failed to fetch reservations",
         );
       }
 
@@ -274,11 +274,33 @@ const reservationService = {
         console.log(
           `Request failed, retrying in ${backoffDelay}ms... (${
             i + 1
-          }/${maxRetries})`
+          }/${maxRetries})`,
         );
 
         await new Promise((resolve) => setTimeout(resolve, backoffDelay));
       }
+    }
+  },
+
+  checkActiveReservation: async () => {
+    try {
+      const response = await api.get("/reservations/student/active");
+      return response.data;
+    } catch (error) {
+      console.error("Check active reservation error:", error);
+      throw error;
+    }
+  },
+
+  cancelReservation: async (referralSlipNo) => {
+    try {
+      const response = await api.delete(
+        `/reservations/${referralSlipNo}/cancel`,
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Cancel reservation error:", error);
+      throw error;
     }
   },
 };
