@@ -20,6 +20,10 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:production": "cross-env REACT_APP_API_URL=https://api.lockr.fit/api REACT_APP_ENV=production react-scripts build",
+    "build:check": "node scripts/check-build.js",
+    "prebuild:production": "node scripts/prebuild-check.js",
+    "postbuild:production": "npm run build:check",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -40,5 +44,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }
