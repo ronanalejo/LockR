@@ -74,6 +74,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
             label: "Payment Advice Slip",
             sortable: false,
           },
+          { key: "receipt", label: "Receipt", sortable: false },
           { key: "duplicate", label: "Duplicate?", sortable: false },
         ];
       case "history":

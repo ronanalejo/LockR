@@ -43,7 +43,7 @@ console.log("Frontend build path:", buildPath);
 app.use(express.static(buildPath));
 
 // Fallback to index.html for client-side routing
-app.get("*", (req, res) => {
+app.use((req, res) => {
   console.log(`[Frontend] ${req.method} ${req.url} -> index.html`);
   res.sendFile(path.join(buildPath, "index.html"));
 });
