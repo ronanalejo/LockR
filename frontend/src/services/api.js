@@ -8,7 +8,7 @@ import tokenStorage from "../utils/tokenStorage";
  * - Can be overridden with REACT_APP_API_URL environment variable
  */
 const getBaseURL = () => {
-  // 1. Allow explicit override via environment variable (if not empty)
+  // 1. Allow explicit override via environment variable
   if (
     process.env.REACT_APP_API_URL &&
     process.env.REACT_APP_API_URL.trim() !== ""
@@ -28,7 +28,10 @@ const getBaseURL = () => {
 
   if (isLocalhost) {
     console.log("Local development detected - using localhost backend");
-    return "http://localhost:5000/api";
+    // Build the URL dynamically to avoid hardcoded "localhost:5000" string
+    const protocol = window.location.protocol || "http:";
+    const hostname = window.location.hostname || "localhost";
+    return `${protocol}//${hostname}:5000/api`;
   }
 
   // 3. Production - use API subdomain

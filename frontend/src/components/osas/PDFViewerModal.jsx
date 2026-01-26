@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../../assets/css/pdfViewerModal.css";
+import { API_BASE_URL } from "../../config/api";
 
 const PDFViewerModal = ({
   pdfUrl,
@@ -8,9 +9,6 @@ const PDFViewerModal = ({
 }) => {
   const [loadError, setLoadError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
-  const API_BASE_URL =
-    process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
   let fullPdfUrl = "";
   if (pdfUrl) {

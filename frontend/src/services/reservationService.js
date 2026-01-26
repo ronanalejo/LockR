@@ -1,8 +1,28 @@
 import api from "./api";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "../config/api";
 
-const PHP_BASE_URL =
-  process.env.REACT_APP_PHP_URL || "http://localhost:80/backend/php";
+// Derive PHP URL dynamically based on environment
+const getPhpUrl = () => {
+  if (
+    process.env.REACT_APP_PHP_URL &&
+    process.env.REACT_APP_PHP_URL.trim() !== ""
+  ) {
+    return process.env.REACT_APP_PHP_URL;
+  }
+
+  // Use same domain as API but point to /backend/php
+  if (API_BASE_URL.includes("api.lockr.fit")) {
+    return "https://api.lockr.fit/backend/php";
+  }
+
+  // Local development - construct dynamically
+  const protocol = window.location.protocol || "http:";
+  const hostname = window.location.hostname || "localhost";
+  return `${protocol}//${hostname}:80/backend/php`;
+};
+
+const PHP_BASE_URL = getPhpUrl();
 
 const reservationService = {
   createReservation: async (data) => {

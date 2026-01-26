@@ -2,9 +2,8 @@
  * API Configuration
  * Auto-detects environment and provides appropriate base URL
  */
-
 const getAPIBaseURL = () => {
-  // Allow explicit override via environment variable
+  // 1. Use environment variable if set
   if (
     process.env.REACT_APP_API_URL &&
     process.env.REACT_APP_API_URL.trim() !== ""
@@ -12,17 +11,18 @@ const getAPIBaseURL = () => {
     return process.env.REACT_APP_API_URL;
   }
 
-  // Detect if running locally
+  // 2. Detect environment
   const isLocalhost =
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1" ||
     window.location.hostname === "";
 
   if (isLocalhost) {
-    return "http://localhost:5000/api";
+    // Build the localhost URL dynamically to avoid hardcoded strings
+    return `http://${window.location.hostname || "localhost"}:5000/api`;
   }
 
-  // Production - use API subdomain
+  // 3. Production - use API subdomain
   return "https://api.lockr.fit/api";
 };
 

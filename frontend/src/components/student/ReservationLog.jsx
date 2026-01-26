@@ -8,6 +8,7 @@ import {
   closeAlert,
 } from "../../utils/notifications";
 import reservationService from "../../services/reservationService";
+import { API_BASE_URL } from "../../config/api";
 
 const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
   const [expandedAuditTrail, setExpandedAuditTrail] = useState(false);
@@ -120,8 +121,7 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
       );
       return;
     }
-    const baseURL =
-      process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+    const baseURL = API_BASE_URL;
     window.open(`${baseURL}/uploads/${docPath}`, "_blank");
   };
 

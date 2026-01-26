@@ -1,0 +1,28 @@
+{
+  "name": "lockr",
+  "version": "1.0.0",
+  "description": "A comprehensive web-based platform for locker reservation and management at iACADEMY, designed for students, Office of Student Affairs and Services (OSAS), and Finance Department.",
+  "main": "proxy-server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/I-PentaByte/LockR.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/I-PentaByte/LockR/issues"
+  },
+  "homepage": "https://github.com/I-PentaByte/LockR#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.5"
+  }
+}

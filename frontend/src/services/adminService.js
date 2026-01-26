@@ -1,7 +1,4 @@
-import axios from "axios";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+import api from "./api";
 
 /**
  * Admin Service
@@ -9,54 +6,11 @@ const API_BASE_URL =
  */
 class AdminService {
   constructor() {
-    this.client = axios.create({
-      baseURL: API_BASE_URL,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    // Request interceptor to attach JWT token
-    this.client.interceptors.request.use(
-      (config) => {
-        const token = this.getAuthToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error),
-    );
-
-    // Response interceptor for consistent error handling
-    this.client.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid - redirect to login
-          this.handleUnauthorized();
-        }
-        return Promise.reject(this.formatError(error));
-      },
-    );
-  }
-
-  /**
-   * Get JWT token from localStorage
-   */
-  getAuthToken() {
-    return (
-      localStorage.getItem("admin_token") || localStorage.getItem("auth_token")
-    );
-  }
-
-  /**
-   * Handle unauthorized access
-   */
-  handleUnauthorized() {
-    localStorage.removeItem("admin_token");
-    localStorage.removeItem("auth_token");
-    window.location.href = "/login";
+    // Use the centralized API instance which already has:
+    // - Correct base URL (with environment detection)
+    // - JWT token interceptor
+    // - Error handling
+    this.client = api;
   }
 
   /**
