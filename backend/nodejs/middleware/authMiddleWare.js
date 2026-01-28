@@ -42,6 +42,18 @@ const authMiddleware = {
     }
     next();
   },
+
+  isFinance: (req, res, next) => {
+    if (req.user.userType !== "finance") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Finance only",
+      });
+    }
+    next();
+  },
 };
+
+
 
 module.exports = authMiddleware;

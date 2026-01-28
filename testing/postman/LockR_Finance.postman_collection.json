@@ -1,0 +1,104 @@
+{
+  "info": {
+    "name": "LockR - Finance API",
+    "description": "Finance payment management endpoints for LockR",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "token",
+      "value": "PASTE_FINANCE_JWT_HERE"
+    },
+    {
+      "key": "paymentId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get Pending Payments",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/finance/payments/pending",
+          "host": ["{{baseUrl}}"],
+          "path": ["finance", "payments", "pending"]
+        }
+      }
+    },
+    {
+      "name": "Get Payment History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/finance/payments/history",
+          "host": ["{{baseUrl}}"],
+          "path": ["finance", "payments", "history"]
+        }
+      }
+    },
+    {
+      "name": "Verify Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"verified\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/finance/payments/{{paymentId}}/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["finance", "payments", "{{paymentId}}", "verify"]
+        }
+      }
+    },
+    {
+      "name": "Get Finance Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/finance/stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["finance", "stats"]
+        }
+      }
+    }
+  ]
+}

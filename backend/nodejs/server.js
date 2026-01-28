@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const financeRoutes = require("./routes/financeRoutes");
+
 
 // Initialize Express app
 const app = express();
@@ -136,6 +138,8 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
+app.use("/api/finance", financeRoutes);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -151,6 +155,7 @@ app.use((err, req, res, next) => {
     message: err.message,
   });
 });
+
 
 // Start server
 app.listen(PORT, () => {
