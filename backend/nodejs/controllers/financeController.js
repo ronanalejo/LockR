@@ -1,4 +1,8 @@
 const pool = require("../config/database");
+const {
+  formatSuccess,
+  formatError,
+} = require("../services/authService.js");
 
 /**
  * GET /api/finance/payments/pending
@@ -29,13 +33,12 @@ exports.getPendingPayments = async (req, res) => {
       ORDER BY r.approvalDate DESC
     `);
 
-    res.json({ success: true, data: rows });
+    return res.json(formatSuccess(rows));
   } catch (err) {
-    console.error("getPendingPayments error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch pending payments",
-    });
+    console.error("getPendingPayments:", err);
+    return res
+      .status(500)
+      .json(formatError("Failed to load pending payments"));
   }
 };
 
@@ -68,13 +71,12 @@ exports.getPaymentHistory = async (req, res) => {
       ORDER BY r.paymentVerifiedAt DESC
     `);
 
-    res.json({ success: true, data: rows });
+    return res.json(formatSuccess(rows));
   } catch (err) {
-    console.error("getPaymentHistory error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch payment history",
-    });
+    console.error("getPaymentHistory:", err);
+    return res
+      .status(500)
+      .json(formatError("Failed to load payment history"));
   }
 };
 
@@ -82,15 +84,14 @@ exports.getPaymentHistory = async (req, res) => {
  * POST /api/finance/payments/:id/verify
  */
 exports.verifyPayment = async (req, res) => {
-  const reservationId = req.params.id;
-  const financeEmployeeId = req.user.employeeID;
-
+  const reservationID = req.params.id;
+  const financeEmployeeID = req.user.employeeID;
   const connection = await pool.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    await connection.execute(
+    const [result] = await connection.execute(
       `
       UPDATE reservation
       SET
@@ -99,8 +100,12 @@ exports.verifyPayment = async (req, res) => {
         verifiedBy = ?
       WHERE reservationID = ?
       `,
-      [financeEmployeeId, reservationId]
+      [financeEmployeeID, reservationID]
     );
+
+    if (result.affectedRows === 0) {
+      throw new Error("Reservation not found");
+    }
 
     await connection.execute(
       `
@@ -108,25 +113,23 @@ exports.verifyPayment = async (req, res) => {
       VALUES (?, ?, NOW())
       `,
       [
-        financeEmployeeId,
-        `Verified payment for reservation ${reservationId}`,
+        financeEmployeeID,
+        `Verified payment for reservation ${reservationID}`,
       ]
     );
 
     await connection.commit();
 
-    res.json({
-      success: true,
-      message: "Payment successfully verified",
-    });
+    return res.json(
+      formatSuccess(null, "Payment successfully verified")
+    );
   } catch (err) {
     await connection.rollback();
-    console.error("verifyPayment error:", err);
+    console.error("verifyPayment:", err);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to verify payment",
-    });
+    return res
+      .status(500)
+      .json(formatError("Failed to verify payment"));
   } finally {
     connection.release();
   }
@@ -146,15 +149,11 @@ exports.getFinanceStats = async (req, res) => {
       WHERE isActive = TRUE
     `);
 
-    res.json({
-      success: true,
-      data: stats,
-    });
+    return res.json(formatSuccess(stats));
   } catch (err) {
-    console.error("getFinanceStats error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch finance stats",
-    });
+    console.error("getFinanceStats:", err);
+    return res
+      .status(500)
+      .json(formatError("Failed to load finance stats"));
   }
 };

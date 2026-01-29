@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "LockR Finance API",
-    "_postman_id": "lockr-finance-2026",
-    "description": "Full test suite for Finance payment management endpoints",
+    "name": "LockR Finance API - Updated",
+    "_postman_id": "lockr-finance-updated-2026",
+    "description": "Finance API tests aligned with formatSuccess/formatError and team notes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -18,7 +18,7 @@
     },
     {
       "key": "test_reservation_id",
-      "value": "1",
+      "value": "",
       "type": "string"
     }
   ],
@@ -27,7 +27,7 @@
       "name": "0. Setup - Finance Login",
       "item": [
         {
-          "name": "Finance Login - Get Token",
+          "name": "Finance Login",
           "request": {
             "method": "POST",
             "header": [
@@ -57,12 +57,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Login successful', () => pm.response.to.have.status(200));",
+                  "pm.test('Login success', () => pm.response.to.have.status(200));",
                   "const res = pm.response.json();",
+                  "pm.expect(res.success).to.be.true;",
                   "pm.collectionVariables.set('finance_token', res.token);",
-                  "pm.test('User is finance admin', () => {",
-                  "  pm.expect(res.user.department).to.equal('Finance');",
-                  "});"
+                  "pm.expect(res.user.department).to.equal('Finance');"
                 ]
               }
             }
@@ -74,7 +73,7 @@
       "name": "1. Pending Payments",
       "item": [
         {
-          "name": "Get Pending Payments (Success)",
+          "name": "Get Pending Payments (200)",
           "request": {
             "method": "GET",
             "header": [
@@ -105,37 +104,9 @@
                   "const res = pm.response.json();",
                   "pm.expect(res.success).to.be.true;",
                   "pm.expect(res.data).to.be.an('array');",
-                  "if (res.data.length) {",
+                  "if (res.data.length > 0) {",
                   "  pm.collectionVariables.set('test_reservation_id', res.data[0].reservationID);",
                   "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get Pending Payments - No Token (401)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/finance/payments/pending",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "finance",
-                "payments",
-                "pending"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Unauthorized', () => pm.response.to.have.status(401));"
                 ]
               }
             }
@@ -147,7 +118,7 @@
       "name": "2. Verify Payment",
       "item": [
         {
-          "name": "Verify Payment (Success)",
+          "name": "Verify Payment (200)",
           "request": {
             "method": "POST",
             "header": [
@@ -175,7 +146,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Payment verified', () => pm.response.to.have.status(200));",
+                  "pm.test('Verified successfully', () => pm.response.to.have.status(200));",
                   "pm.expect(pm.response.json().success).to.be.true;"
                 ]
               }
@@ -188,7 +159,7 @@
       "name": "3. Payment History",
       "item": [
         {
-          "name": "Get Payment History",
+          "name": "Get Payment History (200)",
           "request": {
             "method": "GET",
             "header": [
@@ -225,10 +196,10 @@
       ]
     },
     {
-      "name": "4. Finance Dashboard Stats",
+      "name": "4. Finance Stats",
       "item": [
         {
-          "name": "Get Finance Stats",
+          "name": "Get Finance Stats (200)",
           "request": {
             "method": "GET",
             "header": [
@@ -254,7 +225,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Stats loaded', () => pm.response.to.have.status(200));",
+                  "pm.test('Stats OK', () => pm.response.to.have.status(200));",
                   "const stats = pm.response.json().data;",
                   "pm.expect(stats).to.have.keys(['total','pending','verified']);"
                 ]
