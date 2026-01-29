@@ -108,6 +108,7 @@ const adminRoutes = require("./routes/adminRoutes");
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
+app.use("/api/finance", financeRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
@@ -137,8 +138,6 @@ app.get("/api/health", async (req, res) => {
     });
   }
 });
-
-app.use("/api/finance", financeRoutes);
 
 // 404 handler
 app.use((req, res) => {

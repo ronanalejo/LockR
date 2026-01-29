@@ -1,104 +1,268 @@
 {
   "info": {
-    "name": "LockR - Finance API",
-    "description": "Finance payment management endpoints for LockR",
+    "name": "LockR Finance API",
+    "_postman_id": "lockr-finance-2026",
+    "description": "Full test suite for Finance payment management endpoints",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
-      "key": "baseUrl",
-      "value": "http://localhost:8000/api"
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
     },
     {
-      "key": "token",
-      "value": "PASTE_FINANCE_JWT_HERE"
+      "key": "finance_token",
+      "value": "",
+      "type": "string"
     },
     {
-      "key": "paymentId",
-      "value": "1"
+      "key": "test_reservation_id",
+      "value": "1",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "Get Pending Payments",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/finance/payments/pending",
-          "host": ["{{baseUrl}}"],
-          "path": ["finance", "payments", "pending"]
-        }
-      }
-    },
-    {
-      "name": "Get Payment History",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/finance/payments/history",
-          "host": ["{{baseUrl}}"],
-          "path": ["finance", "payments", "history"]
-        }
-      }
-    },
-    {
-      "name": "Verify Payment",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
+      "name": "0. Setup - Finance Login",
+      "item": [
+        {
+          "name": "Finance Login - Get Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"finance.admin@iacademy.edu.ph\",\n  \"password\": \"financepass123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
           },
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"status\": \"verified\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/finance/payments/{{paymentId}}/verify",
-          "host": ["{{baseUrl}}"],
-          "path": ["finance", "payments", "{{paymentId}}", "verify"]
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login successful', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.collectionVariables.set('finance_token', res.token);",
+                  "pm.test('User is finance admin', () => {",
+                  "  pm.expect(res.user.department).to.equal('Finance');",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
-      }
+      ]
     },
     {
-      "name": "Get Finance Stats",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/finance/stats",
-          "host": ["{{baseUrl}}"],
-          "path": ["finance", "stats"]
+      "name": "1. Pending Payments",
+      "item": [
+        {
+          "name": "Get Pending Payments (Success)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{finance_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/payments/pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "payments",
+                "pending"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "pm.expect(res.success).to.be.true;",
+                  "pm.expect(res.data).to.be.an('array');",
+                  "if (res.data.length) {",
+                  "  pm.collectionVariables.set('test_reservation_id', res.data[0].reservationID);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Pending Payments - No Token (401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/finance/payments/pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "payments",
+                "pending"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
         }
-      }
+      ]
+    },
+    {
+      "name": "2. Verify Payment",
+      "item": [
+        {
+          "name": "Verify Payment (Success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{finance_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/payments/{{test_reservation_id}}/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "payments",
+                "{{test_reservation_id}}",
+                "verify"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Payment verified', () => pm.response.to.have.status(200));",
+                  "pm.expect(pm.response.json().success).to.be.true;"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Payment History",
+      "item": [
+        {
+          "name": "Get Payment History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{finance_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/payments/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "payments",
+                "history"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.expect(pm.response.json().data).to.be.an('array');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Finance Dashboard Stats",
+      "item": [
+        {
+          "name": "Get Finance Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{finance_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/finance/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "finance",
+                "stats"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stats loaded', () => pm.response.to.have.status(200));",
+                  "const stats = pm.response.json().data;",
+                  "pm.expect(stats).to.have.keys(['total','pending','verified']);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -44,16 +44,17 @@ const authMiddleware = {
   },
 
   isFinance: (req, res, next) => {
-    if (req.user.userType !== "finance") {
+    if (
+      req.user.userType !== "admin" ||
+      req.user.department !== "Finance"
+    ) {
       return res.status(403).json({
         success: false,
-        message: "Access denied. Finance only",
+        message: "Access denied. Finance department access required.",
       });
     }
     next();
-  },
+  }, 
 };
-
-
 
 module.exports = authMiddleware;
