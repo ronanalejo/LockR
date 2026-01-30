@@ -1,20 +1,23 @@
 const pool = require("../config/database");
-const {
-  formatSuccess,
-  formatError,
-} = require("../services/authService.js");
 
-/**
- * GET /api/finance/payments/pending
- */
+const formatSuccess = (data, message = "Success") => ({
+  success: true,
+  message,
+  data,
+});
+
+const formatError = (message) => ({
+  success: false,
+  message,
+});
+
 exports.getPendingPayments = async (req, res) => {
   try {
     const [rows] = await pool.execute(`
       SELECT
-        r.reservationID,
-        r.referralSlipNo,
+        r.referralSlipNo,            -- ✅ correct PK
         r.lockerID,
-        l.floorNumber,
+        r.floorNumber,
         s.firstName AS studentFirstName,
         s.lastName AS studentLastName,
         r.agreement,
@@ -25,22 +28,28 @@ exports.getPendingPayments = async (req, res) => {
         a.firstName AS endorsedByFirstName,
         a.lastName AS endorsedByLastName
       FROM reservation r
-      INNER JOIN locker l ON r.lockerID = l.lockerID
       INNER JOIN student s ON r.studentID = s.studentID
       LEFT JOIN admin a ON r.employeeID = a.employeeID
-      WHERE r.isActive = TRUE
-        AND r.paymentVerified = FALSE
+      WHERE r.isActive = 1
+        AND r.forApproval = 1
+        AND r.paymentVerified = 0
       ORDER BY r.approvalDate DESC
     `);
 
-    return res.json(formatSuccess(rows));
+    return res.json({
+      success: true,
+      message: "Pending payments retrieved",
+      data: rows,
+    });
   } catch (err) {
     console.error("getPendingPayments:", err);
-    return res
-      .status(500)
-      .json(formatError("Failed to load pending payments"));
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load pending payments",
+    });
   }
 };
+
 
 /**
  * GET /api/finance/payments/history
@@ -49,10 +58,9 @@ exports.getPaymentHistory = async (req, res) => {
   try {
     const [rows] = await pool.execute(`
       SELECT
-        r.reservationID,
         r.referralSlipNo,
         r.lockerID,
-        l.floorNumber,
+        r.floorNumber,
         s.firstName AS studentFirstName,
         s.lastName AS studentLastName,
         r.agreement,
@@ -61,31 +69,37 @@ exports.getPaymentHistory = async (req, res) => {
         r.dropboxReceipt,
         r.pdfPaymentAdviceSlip,
         r.paymentVerifiedAt,
-        f.firstName AS verifiedByFirstName,
-        f.lastName AS verifiedByLastName
+        a.firstName AS verifiedByFirstName,
+        a.lastName AS verifiedByLastName
       FROM reservation r
-      INNER JOIN locker l ON r.lockerID = l.lockerID
       INNER JOIN student s ON r.studentID = s.studentID
-      LEFT JOIN admin f ON r.verifiedBy = f.employeeID
-      WHERE r.paymentVerified = TRUE
+      LEFT JOIN admin a ON r.verifiedBy = a.employeeID
+      WHERE r.isActive = 1
+        AND r.paymentVerified = 1
       ORDER BY r.paymentVerifiedAt DESC
     `);
 
-    return res.json(formatSuccess(rows));
+    return res.json({
+      success: true,
+      message: "Payment history retrieved",
+      data: rows,
+    });
   } catch (err) {
     console.error("getPaymentHistory:", err);
-    return res
-      .status(500)
-      .json(formatError("Failed to load payment history"));
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load payment history",
+    });
   }
 };
+
 
 /**
  * POST /api/finance/payments/:id/verify
  */
 exports.verifyPayment = async (req, res) => {
-  const reservationID = req.params.id;
-  const financeEmployeeID = req.user.employeeID;
+  const referralSlipNo = req.params.id;
+  const financeEmployeeID = req.user.id; // ✅ correct source
   const connection = await pool.getConnection();
 
   try {
@@ -95,45 +109,41 @@ exports.verifyPayment = async (req, res) => {
       `
       UPDATE reservation
       SET
-        paymentVerified = TRUE,
+        paymentVerified = 1,
         paymentVerifiedAt = NOW(),
         verifiedBy = ?
-      WHERE reservationID = ?
+      WHERE referralSlipNo = ?
       `,
-      [financeEmployeeID, reservationID]
+      [financeEmployeeID, referralSlipNo]
     );
 
     if (result.affectedRows === 0) {
-      throw new Error("Reservation not found");
+      await connection.rollback();
+      return res.status(404).json({
+        success: false,
+        message: "Reservation not found",
+      });
     }
-
-    await connection.execute(
-      `
-      INSERT INTO audit_logs (employeeID, action, createdAt)
-      VALUES (?, ?, NOW())
-      `,
-      [
-        financeEmployeeID,
-        `Verified payment for reservation ${reservationID}`,
-      ]
-    );
 
     await connection.commit();
 
-    return res.json(
-      formatSuccess(null, "Payment successfully verified")
-    );
+    return res.json({
+      success: true,
+      message: "Payment successfully verified",
+    });
   } catch (err) {
     await connection.rollback();
     console.error("verifyPayment:", err);
 
-    return res
-      .status(500)
-      .json(formatError("Failed to verify payment"));
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify payment",
+    });
   } finally {
     connection.release();
   }
 };
+
 
 /**
  * GET /api/finance/stats
@@ -143,17 +153,25 @@ exports.getFinanceStats = async (req, res) => {
     const [[stats]] = await pool.execute(`
       SELECT
         COUNT(*) AS total,
-        SUM(paymentVerified = FALSE) AS pending,
-        SUM(paymentVerified = TRUE) AS verified
+        SUM(paymentVerified = 0 AND isActive = 1) AS pending,
+        SUM(paymentVerified = 1 AND isActive = 1) AS verified
       FROM reservation
-      WHERE isActive = TRUE
     `);
 
-    return res.json(formatSuccess(stats));
+    return res.json({
+      success: true,
+      message: "Finance stats retrieved",
+      data: {
+        total: Number(stats.total),
+        pending: Number(stats.pending),
+        verified: Number(stats.verified),
+      },
+    });
   } catch (err) {
     console.error("getFinanceStats:", err);
-    return res
-      .status(500)
-      .json(formatError("Failed to load finance stats"));
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load finance stats",
+    });
   }
 };

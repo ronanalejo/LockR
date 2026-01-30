@@ -24,7 +24,7 @@ const authMiddleware = {
   },
 
   isStudent: (req, res, next) => {
-    if (req.user.userType !== "student") {
+    if (req.user.role !== "Student") {
       return res.status(403).json({
         success: false,
         message: "Access denied. Students only",
@@ -34,7 +34,7 @@ const authMiddleware = {
   },
 
   isAdmin: (req, res, next) => {
-    if (req.user.userType !== "admin") {
+    if (!["Admin", "OSAS", "Finance"].includes(req.user.role)) {
       return res.status(403).json({
         success: false,
         message: "Access denied. Admin only",
@@ -44,10 +44,7 @@ const authMiddleware = {
   },
 
   isFinance: (req, res, next) => {
-    if (
-      req.user.userType !== "admin" ||
-      req.user.department !== "Finance"
-    ) {
+    if (req.user.role !== "Finance") {
       return res.status(403).json({
         success: false,
         message: "Access denied. Finance department access required.",
@@ -55,7 +52,6 @@ const authMiddleware = {
     }
     next();
   },
- 
 };
 
 module.exports = authMiddleware;
