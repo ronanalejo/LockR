@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const financeRoutes = require("./routes/financeRoutes");
 
 
 // Initialize Express app
@@ -99,6 +98,8 @@ const db = require("./config/database");
 const authRoutes = require("./routes/authRoutes");
 const lockerRoutes = require("./routes/lockerRoutes");
 const otpRoutes = require("./routes/otpRoutes");
+const financeRoutes = require("./routes/financeRoutes");
+const academicCalendarRoutes = require("./routes/academicCalendarRoutes");
 
 // Register routes
 app.use("/api/auth", authRoutes);
@@ -109,6 +110,7 @@ app.use("/api/reservations", reservationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/finance", financeRoutes);
+app.use("/api/academic-calendar", academicCalendarRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
