@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../../assets/css/reservationLog.css";
 import {
   showConfirm,
@@ -12,8 +12,62 @@ import { API_BASE_URL } from "../../config/api";
 
 const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
   const [expandedAuditTrail, setExpandedAuditTrail] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const fileInputRef = useRef(null);
 
-  const activeReservation = reservations.find(
+  const [currentReservations, setCurrentReservations] = useState(reservations);
+
+  // Poll for updates every 5 seconds when modal is open
+  useEffect(() => {
+    const fetchLatestReservations = async () => {
+      try {
+        setIsRefreshing(true);
+        const token = localStorage.getItem("token");
+        const userStr = localStorage.getItem("user");
+        const user = userStr ? JSON.parse(userStr) : null;
+
+        if (!user || !user.studentID) return;
+
+        const response = await fetch(
+          `${API_BASE_URL}/reservations/students/${user.studentID}/reservations`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data.data) {
+          setCurrentReservations(data.data);
+          setLastUpdated(new Date());
+        }
+      } catch (error) {
+        console.error("Error fetching latest reservations:", error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    // Initial fetch
+    fetchLatestReservations();
+
+    // Poll every 5 seconds for more responsive updates
+    const interval = setInterval(fetchLatestReservations, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update when props change
+  useEffect(() => {
+    setCurrentReservations(reservations);
+  }, [reservations]);
+
+  const activeReservation = currentReservations.find(
     (r) => r.forEndorsement || r.forApproval || r.isActive,
   );
 
@@ -25,7 +79,12 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="reservation-log-header">
-            <h2 className="reservation-log-title">My Reservation</h2>
+            <div className="header-title-row">
+              <h2 className="reservation-log-title">My Reservation</h2>
+              {isRefreshing && (
+                <span className="refresh-indicator">Updating...</span>
+              )}
+            </div>
             <button className="close-button" onClick={onClose}>
               <svg
                 width="24"
@@ -45,7 +104,6 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
           </div>
           <div className="reservation-log-content">
             <div className="no-reservations">
-              <div className="no-reservations-icon">📋</div>
               <h3>No Active Reservation</h3>
               <p>You don't have any active reservations at the moment.</p>
             </div>
@@ -125,6 +183,15 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
     window.open(`${baseURL}/uploads/${docPath}`, "_blank");
   };
 
+  const formatEndDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   const auditTrail = [
     {
       action: "Reservation Created",
@@ -136,27 +203,105 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
       timestamp: activeReservation.createdAt,
       description: "Locker usage agreement form signed and submitted",
     },
-    activeReservation.forEndorsement && {
-      action: "Pending Endorsement",
-      timestamp: activeReservation.createdAt,
-      description: "Waiting for OSAS endorsement approval",
-    },
-    activeReservation.forApproval && {
-      action: "Pending Final Approval",
+    activeReservation.forEndorsement &&
+      !activeReservation.forApproval &&
+      !activeReservation.isActive && {
+        action: "Pending Endorsement",
+        timestamp: activeReservation.createdAt,
+        description: "Waiting for OSAS endorsement approval",
+      },
+    activeReservation.forApproval &&
+      !activeReservation.isActive && {
+        action: "Endorsement Approved",
+        timestamp: activeReservation.updatedAt,
+        description: `Your endorsement has been approved by ${activeReservation.endorsedByName || "OSAS Staff"}, waiting for final approval.`,
+      },
+    activeReservation.proofOfPayment && {
+      action: "Proof of Payment Uploaded",
       timestamp: activeReservation.updatedAt,
-      description: "Endorsed by OSAS, waiting for final approval",
-    },
-    activeReservation.dropboxReceipt && {
-      action: "Payment Receipt Uploaded",
-      timestamp: activeReservation.updatedAt,
-      description: "Student uploaded payment receipt",
+      description: "Student uploaded proof of payment",
     },
     activeReservation.isActive && {
       action: "Reservation Approved",
       timestamp: activeReservation.approvalDate || activeReservation.updatedAt,
-      description: "Reservation fully approved and activated",
+      description: `Your reservation has been fully approved. Locker ${activeReservation.lockerID} is yours until ${formatEndDate(activeReservation.agreementDateEnd)}.`,
     },
   ].filter(Boolean);
+
+  const handleProofOfPaymentUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "application/pdf",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      showError(
+        "Invalid File",
+        "Please upload an image (JPG, PNG, GIF) or PDF file.",
+      );
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      showError("File Too Large", "Please upload a file smaller than 5MB.");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      showLoading("Uploading", "Please wait...");
+
+      const formData = new FormData();
+      formData.append("proofOfPayment", file);
+      formData.append("referralSlipNo", activeReservation.referralSlipNo);
+
+      const token = localStorage.getItem("token");
+      const phpBaseUrl =
+        window.location.hostname === "localhost"
+          ? "http://localhost:8080"
+          : "https://api.lockr.fit/php";
+
+      const response = await fetch(
+        `${phpBaseUrl}/upload-proof-of-payment.php`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const data = await response.json();
+      closeAlert();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Upload failed");
+      }
+
+      await showSuccess(
+        "Upload Successful",
+        "Your proof of payment has been uploaded.",
+      );
+
+      if (onReservationCancelled) {
+        onReservationCancelled();
+      }
+    } catch (error) {
+      closeAlert();
+      showError(
+        "Upload Failed",
+        error.message || "Failed to upload proof of payment",
+      );
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -228,6 +373,72 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
                 </div>
               )}
             </div>
+
+            {/* Proof of Payment Upload Section */}
+            {(activeReservation.forApproval || activeReservation.isActive) &&
+              !activeReservation.proofOfPayment && (
+                <div className="proof-of-payment-section">
+                  <h4 className="section-title">Proof of Payment</h4>
+                  <p className="upload-instruction">
+                    Please upload your proof of payment (receipt, screenshot, or
+                    bank confirmation).
+                  </p>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleProofOfPaymentUpload}
+                    accept="image/*,.pdf"
+                    style={{ display: "none" }}
+                    id="proof-of-payment-input"
+                  />
+                  <button
+                    className="btn-upload-proof"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    <span>
+                      {uploading ? "Uploading..." : "Upload Proof of Payment"}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+            {activeReservation.proofOfPayment && (
+              <div className="proof-of-payment-section uploaded">
+                <h4 className="section-title">Proof of Payment</h4>
+                <div className="upload-success">
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span>Proof of payment uploaded</span>
+                </div>
+              </div>
+            )}
 
             <div className="documents-section">
               <h4 className="section-title">Documents</h4>

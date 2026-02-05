@@ -68,6 +68,10 @@ const StudentDashboard = () => {
     };
 
     checkActiveReservationStatus();
+
+    // Poll for updates every 10 seconds
+    const interval = setInterval(checkActiveReservationStatus, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const getBackgroundStyle = () => {

@@ -17,10 +17,20 @@ const ReservationForm = ({
 }) => {
   const [duration, setDuration] = useState("1 Semester/Term");
   const [paymentMode, setPaymentMode] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
 
   const handleConfirm = () => {
     if (!paymentMode) {
       showError("Payment Required", "Please select a mode of payment");
+      return;
+    }
+
+    // Validate account number for non-cash payments
+    if (paymentMode.toLowerCase() !== "cash" && !accountNumber.trim()) {
+      showError(
+        "Account Number Required",
+        "Please enter your account number for the selected payment method",
+      );
       return;
     }
 
@@ -55,10 +65,12 @@ const ReservationForm = ({
       locker: {
         number: locker.number,
         id: locker.id,
-        status: locker.status
+        status: locker.status,
       },
       duration,
       paymentMode,
+      accountNumber:
+        paymentMode.toLowerCase() !== "cash" ? accountNumber : null,
       floor,
       lockerID: locker.number,
       agreement: duration,
@@ -66,7 +78,6 @@ const ReservationForm = ({
       shsTerm: isSHS ? "1" : null,
       collegeTerm: !isSHS ? "1" : null,
     };
-
 
     onConfirm(reservationData);
     onShowRules();
@@ -146,7 +157,12 @@ const ReservationForm = ({
             <label className="form-label">Choose Mode of Payment</label>
             <select
               value={paymentMode}
-              onChange={(e) => setPaymentMode(e.target.value)}
+              onChange={(e) => {
+                setPaymentMode(e.target.value);
+                if (e.target.value.toLowerCase() === "cash") {
+                  setAccountNumber("");
+                }
+              }}
               className="select-input"
             >
               <option value="">Select Payment...</option>
@@ -156,6 +172,19 @@ const ReservationForm = ({
               <option value="online">Online Payment</option>
             </select>
           </div>
+
+          {paymentMode && paymentMode.toLowerCase() !== "cash" && (
+            <div className="form-group">
+              <label className="form-label">Account Number</label>
+              <input
+                type="text"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                className="text-input"
+                placeholder="Enter your account number"
+              />
+            </div>
+          )}
         </div>
 
         <div className="button-group">

@@ -124,14 +124,76 @@ const adminController = {
         connection,
       );
 
+      // Fetch employee details for audit trail
+      const [employeeRows] = await connection.query(
+        "SELECT firstName, lastName FROM admin WHERE employeeID = ?",
+        [employeeID],
+      );
+      const employee = employeeRows[0];
+      const employeeFullName = employee
+        ? `${employee.firstName} ${employee.lastName}`
+        : "OSAS Staff";
+
+      // Fetch student details
+      const [studentRows] = await connection.query(
+        "SELECT studentEmail, firstName, lastName, student_type FROM student WHERE studentID = ?",
+        [reservation.studentID],
+      );
+      const student = studentRows[0];
+
       await connection.commit();
+
+      // Generate Payment Advice Slip and send email
+      setImmediate(async () => {
+        try {
+          const {
+            generatePaymentAdviceSlipWithCopy,
+          } = require("../utils/pdfGenerator");
+          const emailService = require("../services/emailService");
+
+          const paymentAdviceData = {
+            ...reservation,
+            studentFirstName: student.firstName,
+            studentLastName: student.lastName,
+            student_type: student.student_type,
+            endorsedByName: employeeFullName,
+          };
+
+          const { studentCopyPath, osasCopyPath, studentCopyBuffer } =
+            await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
+
+          // Update reservation with OSAS copy path
+          await reservationModel.update(parseInt(id), {
+            pdfPaymentAdviceSlipOSAS: osasCopyPath,
+          });
+
+          // Send email to student with Payment Advice Slip
+          await emailService.sendEndorsementApprovalEmail(
+            student.studentEmail,
+            student.firstName,
+            reservation.referralSlipNo,
+            employeeFullName,
+            studentCopyBuffer,
+          );
+
+          console.log(
+            "Endorsement approval email sent successfully to:",
+            student.studentEmail,
+          );
+        } catch (emailError) {
+          console.error("Email/PDF generation error:", emailError);
+        }
+      });
 
       const updatedReservation = await reservationModel.findById(parseInt(id));
 
       res.json({
         success: true,
         message: "Endorsement approved successfully. Moved to approval queue.",
-        data: updatedReservation,
+        data: {
+          ...updatedReservation,
+          endorsedByName: employeeFullName,
+        },
         notes: notes || null,
       });
     } catch (error) {
@@ -216,6 +278,25 @@ const adminController = {
         message: "Endorsement rejected successfully",
         data: updatedReservation,
         reason: reason || null,
+      });
+
+      // Send rejection email (non-blocking)
+      setImmediate(async () => {
+        try {
+          const emailService = require("../services/emailService");
+          await emailService.sendEndorsementRejectedEmail(
+            reservation.studentEmail,
+            reservation.studentFirstName,
+            reservation.referralSlipNo,
+            reason,
+          );
+          console.log(
+            "Endorsement rejection email sent to:",
+            reservation.studentEmail,
+          );
+        } catch (emailError) {
+          console.error("Failed to send rejection email:", emailError);
+        }
       });
     } catch (error) {
       await connection.rollback();
@@ -336,6 +417,28 @@ const adminController = {
         });
       }
 
+      // Fetch employee details for audit trail
+      const [employeeRows] = await connection.query(
+        "SELECT firstName, lastName FROM admin WHERE employeeID = ?",
+        [employeeID],
+      );
+      const employee = employeeRows[0];
+      const approverFullName = employee
+        ? `${employee.firstName} ${employee.lastName}`
+        : "OSAS Staff";
+
+      // Fetch endorser details if exists
+      let endorserFullName = "OSAS Staff";
+      if (reservation.employeeID) {
+        const [endorserRows] = await connection.query(
+          "SELECT firstName, lastName FROM admin WHERE employeeID = ?",
+          [reservation.employeeID],
+        );
+        if (endorserRows[0]) {
+          endorserFullName = `${endorserRows[0].firstName} ${endorserRows[0].lastName}`;
+        }
+      }
+
       await reservationModel.update(parseInt(id), {
         forApproval: false,
         isActive: true,
@@ -349,19 +452,6 @@ const adminController = {
         connection,
       );
 
-      let pdfPath = null;
-      try {
-        pdfPath = await generatePaymentAdviceSlip(reservation);
-
-        if (pdfPath) {
-          await reservationModel.update(parseInt(id), {
-            pdfPaymentAdviceSlip: pdfPath,
-          });
-        }
-      } catch (pdfError) {
-        console.error("PDF generation error:", pdfError);
-      }
-
       await connection.commit();
 
       const updatedReservation = await reservationModel.findById(parseInt(id));
@@ -370,10 +460,34 @@ const adminController = {
         success: true,
         message: "Reservation approved successfully",
         data: {
-          reservation: updatedReservation,
-          pdfGenerated: !!pdfPath,
+          reservation: {
+            ...updatedReservation,
+            endorsedByName: endorserFullName,
+            approvedByName: approverFullName,
+          },
+          pdfGenerated: true,
         },
         notes: notes || null,
+      });
+
+      // Send approval email (non-blocking)
+      setImmediate(async () => {
+        try {
+          const emailService = require("../services/emailService");
+          await emailService.sendReservationApprovedEmail(
+            reservation.studentEmail,
+            reservation.studentFirstName,
+            reservation.referralSlipNo,
+            reservation.lockerID,
+            reservation.agreementDateEnd,
+          );
+          console.log(
+            "Reservation approval email sent to:",
+            reservation.studentEmail,
+          );
+        } catch (emailError) {
+          console.error("Failed to send approval email:", emailError);
+        }
       });
     } catch (error) {
       await connection.rollback();
@@ -457,6 +571,25 @@ const adminController = {
         message: "Reservation rejected successfully",
         data: updatedReservation,
         reason: reason || null,
+      });
+
+      // Send rejection email (non-blocking)
+      setImmediate(async () => {
+        try {
+          const emailService = require("../services/emailService");
+          await emailService.sendReservationRejectedEmail(
+            reservation.studentEmail,
+            reservation.studentFirstName,
+            reservation.referralSlipNo,
+            reason,
+          );
+          console.log(
+            "Reservation rejection email sent to:",
+            reservation.studentEmail,
+          );
+        } catch (emailError) {
+          console.error("Failed to send rejection email:", emailError);
+        }
       });
     } catch (error) {
       await connection.rollback();

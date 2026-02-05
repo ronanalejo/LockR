@@ -405,3 +405,99 @@
     width: 100%;
   }
 }
+
+/* Proof of Payment Section */
+.proof-of-payment-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #fef3c7;
+  border-radius: 8px;
+  border: 1px solid #f59e0b;
+}
+
+.proof-of-payment-section.uploaded {
+  background: #d1fae5;
+  border-color: #10b981;
+}
+
+.proof-of-payment-section .section-title {
+  margin-bottom: 0.75rem;
+  color: #92400e;
+}
+
+.proof-of-payment-section.uploaded .section-title {
+  color: #065f46;
+}
+
+.upload-instruction {
+  font-size: 0.875rem;
+  color: #78350f;
+  margin-bottom: 1rem;
+}
+
+.btn-upload-proof {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-upload-proof:hover:not(:disabled) {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.btn-upload-proof:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.upload-success {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #065f46;
+  font-weight: 500;
+}
+
+.upload-success svg {
+  color: #10b981;
+}
+
+/* Real-time update indicator */
+.header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.refresh-indicator {
+  font-size: 0.75rem;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Status badge animation on change */
+.status-badge {
+  transition: all 0.3s ease;
+}

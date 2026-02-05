@@ -227,6 +227,25 @@ const reservationModel = {
       fields.push("agreementDateEnd = ?");
       values.push(updateData.agreementDateEnd);
     }
+    if (updateData.modeOfPayment !== undefined) {
+      fields.push("modeOfPayment = ?");
+      values.push(updateData.modeOfPayment);
+    }
+
+    if (updateData.accountNumber !== undefined) {
+      fields.push("accountNumber = ?");
+      values.push(updateData.accountNumber);
+    }
+
+    if (updateData.pdfPaymentAdviceSlipOSAS !== undefined) {
+      fields.push("pdfPaymentAdviceSlipOSAS = ?");
+      values.push(updateData.pdfPaymentAdviceSlipOSAS);
+    }
+
+    if (updateData.proofOfPayment !== undefined) {
+      fields.push("proofOfPayment = ?");
+      values.push(updateData.proofOfPayment);
+    }
 
     if (fields.length === 0) {
       throw new Error("No fields to update");

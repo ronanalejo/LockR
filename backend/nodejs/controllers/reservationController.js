@@ -134,6 +134,7 @@ const reservationController = {
       await emailService.sendAgreementPDF(
         student.studentEmail,
         student.firstName,
+        student.lastName,
         pdfBuffer,
         referralSlipNo,
       );
