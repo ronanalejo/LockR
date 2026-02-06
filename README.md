@@ -13,7 +13,7 @@ LockR is a modern locker reservation system that streamlines the process of lock
 - Enable students to select and reserve locker slots through an intuitive, seat-reservation-style interface
 - Integrate an admin panel for OSAS for viewing and confirming of locker reservations, and for Finance Department for viewing of pending payments
 - Integrate a system that generates digital referral slips to be displayed on OSAS and Finance admin panel respectively
-- Provide a dropbox for students to upload their scanned official receipt for confirmation
+- Provide a dropbox for students to upload their scanned official proofOfPayment for confirmation
 - Ensure secure storage and retrieval of locker data using a centralized and reliable database
 - Evaluate system usability, performance, and effectiveness through user testing and feedback collection
 
@@ -26,7 +26,7 @@ LockR is a modern locker reservation system that streamlines the process of lock
 - Real-time locker availability display
 - Digital payment advice slip generation
 - Administrative dashboard for reservation management
-- Receipt upload and verification system
+- Proof of Payment upload and verification system
 - Floor plan management for locker locations
 
 **Limitations:**
@@ -115,7 +115,7 @@ The project follows a modern **Frontend + API** architecture with React.js front
   - For Payment
   - Payment History
 - View pending payments
-- Verify receipt uploads
+- Verify proofOfPayment uploads
 - Payment status management
 
 ## 🚀 Getting Started
@@ -144,7 +144,6 @@ The project follows a modern **Frontend + API** architecture with React.js front
    ```
 
 3. **Setup XAMPP Database**
-
    - Start XAMPP (Apache + MySQL)
    - Open phpMyAdmin (http://localhost/phpmyadmin)
    - Create database: `lockr_db`
@@ -181,7 +180,6 @@ The project follows a modern **Frontend + API** architecture with React.js front
 ### Development Workflow
 
 1. **Start XAMPP services**
-
    - Apache (for PHP backend)
    - MySQL (for database)
 
@@ -217,7 +215,7 @@ The project follows a modern **Frontend + API** architecture with React.js front
 - `GET /api/lockers` - Get available lockers
 - `POST /api/reservations` - Create reservation
 - `PUT /api/reservations/:id` - Update reservation
-- `POST /api/upload/receipt` - Upload payment receipt
+- `POST /api/upload/proofOfPayment` - Upload payment proofOfPayment
 
 ### Admin Endpoints (OSAS)
 
@@ -263,7 +261,7 @@ Import Postman collection from `/testing/postman/lockr-api.postman_collection.js
 - **Dashboard:** Overview of current reservations
 - **Locker Selection:** Interactive floor plan with real-time availability
 - **Reservation Form:** Agreement selection and booking confirmation
-- **Receipt Upload:** Drag-and-drop receipt submission with SweetAlert2 confirmations
+- **Proof of Payment Upload:** Drag-and-drop proofOfPayment submission with SweetAlert2 confirmations
 
 ### OSAS Admin Panel Features
 

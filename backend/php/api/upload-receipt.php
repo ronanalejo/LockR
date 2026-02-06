@@ -50,11 +50,11 @@ try {
     $studentID = $user['id'];
 
     // Check if file was uploaded
-    if (!isset($_FILES['receipt']) || $_FILES['receipt']['error'] === UPLOAD_ERR_NO_FILE) {
+    if (!isset($_FILES['proofOfPayment']) || $_FILES['proofOfPayment']['error'] === UPLOAD_ERR_NO_FILE) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'error' => 'No file uploaded. Please select a receipt file.'
+            'error' => 'No file uploaded. Please select a proofOfPayment file.'
         ]);
         exit;
     }
@@ -71,13 +71,13 @@ try {
 
     // Process upload
     $controller = new UploadController();
-    $result = $controller->uploadReceipt($_FILES['receipt'], $studentID, $referralSlipNo);
+    $result = $controller->uploadReceipt($_FILES['proofOfPayment'], $studentID, $referralSlipNo);
 
     if ($result['success']) {
         http_response_code(200);
         echo json_encode([
             'success' => true,
-            'message' => 'Receipt uploaded successfully',
+            'message' => 'Proof of Payment uploaded successfully',
             'data' => $result['data']
         ]);
     } else {
@@ -89,7 +89,7 @@ try {
     }
 
 } catch (Exception $e) {
-    error_log('Receipt upload API error: ' . $e->getMessage());
+    error_log('Proof of Payment upload API error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,

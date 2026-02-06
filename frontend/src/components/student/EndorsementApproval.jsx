@@ -28,7 +28,9 @@ const EndorsementApproval = ({ onClose }) => {
         <h2 className="endorsement-message">
           Please wait for the Endorsement Approval
         </h2>
-        <p className="endorsement-thanks">Thank you!</p>
+        <p className="endorsement-thanks">
+          Kindly proceed to the Finance office to complete the payment.
+        </p>
 
         <button
           type="button"

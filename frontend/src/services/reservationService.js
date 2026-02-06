@@ -183,7 +183,7 @@ const reservationService = {
       }
 
       const formData = new FormData();
-      formData.append("receipt", file);
+      formData.append("proofOfPayment", file);
       formData.append("reservation_id", reservationID);
 
       const token = localStorage.getItem("token");
@@ -211,15 +211,15 @@ const reservationService = {
 
       await Swal.fire({
         icon: "success",
-        title: "Receipt Uploaded",
-        text: "Your payment receipt has been uploaded successfully",
+        title: "Proof of Payment Uploaded",
+        text: "Your payment proofOfPayment has been uploaded successfully",
         confirmButtonColor: "#3085d6",
         timer: 2000,
       });
 
       return result.data;
     } catch (error) {
-      console.error("Upload receipt error:", error);
+      console.error("Upload proofOfPayment error:", error);
 
       if (retryCount < MAX_RETRIES && !error.message.includes("Invalid")) {
         console.log(`Retrying upload (${retryCount + 1}/${MAX_RETRIES})...`);
@@ -238,7 +238,7 @@ const reservationService = {
       await Swal.fire({
         icon: "error",
         title: "Upload Failed",
-        text: error.message || "Failed to upload receipt",
+        text: error.message || "Failed to upload proofOfPayment",
         confirmButtonColor: "#d33",
       });
 

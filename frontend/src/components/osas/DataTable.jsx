@@ -52,7 +52,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
             label: "Application Form",
             sortable: false,
           },
-          { key: "receipt", label: "Receipt", sortable: false },
+          { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
           { key: "actions", label: "Approve?", sortable: false },
         ];
       case "occupied":
@@ -74,7 +74,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
             label: "Payment Advice Slip",
             sortable: false,
           },
-          { key: "receipt", label: "Receipt", sortable: false },
+          { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
           { key: "duplicate", label: "Duplicate?", sortable: false },
         ];
       case "history":
@@ -199,7 +199,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
         ) : (
           "N/A"
         );
-      case "receipt":
+      case "proofOfPayment":
         return reservation.dropboxReceipt ? (
           <button
             className="btn-view-doc"

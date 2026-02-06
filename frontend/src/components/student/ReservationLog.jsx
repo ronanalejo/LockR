@@ -214,7 +214,7 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
       !activeReservation.isActive && {
         action: "Endorsement Approved",
         timestamp: activeReservation.updatedAt,
-        description: `Your endorsement has been approved by ${activeReservation.endorsedByName || "OSAS Staff"}, waiting for final approval.`,
+        description: `Your endorsement has been approved by ${activeReservation.endorsedByName || "OSAS Staff"}. Kindly proceed to the Finance office to complete the payment.`,
       },
     activeReservation.proofOfPayment && {
       action: "Proof of Payment Uploaded",

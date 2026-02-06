@@ -121,7 +121,7 @@
       "name": "2. Upload Tests",
       "item": [
         {
-          "name": "TC5.1 - Upload Receipt (Success)",
+          "name": "TC5.1 - Upload Proof of Payment (Success)",
           "event": [
             {
               "listen": "test",
@@ -158,7 +158,7 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "receipt",
+                  "key": "proofOfPayment",
                   "type": "file",
                   "src": [],
                   "description": "Select a PDF, JPG, or PNG file"
@@ -178,7 +178,7 @@
           }
         },
         {
-          "name": "TC5.2 - Upload Receipt - No File (400)",
+          "name": "TC5.2 - Upload Proof of Payment - No File (400)",
           "event": [
             {
               "listen": "test",
@@ -245,7 +245,7 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "receipt",
+                  "key": "proofOfPayment",
                   "type": "file",
                   "src": []
                 },

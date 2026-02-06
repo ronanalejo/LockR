@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $user = JWTAuth::requireRole(['student']);
 
-if (!isset($_FILES['receipt']) || $_FILES['receipt']['error'] !== UPLOAD_ERR_OK) {
+if (!isset($_FILES['proofOfPayment']) || $_FILES['proofOfPayment']['error'] !== UPLOAD_ERR_OK) {
     $errorMessages = [
         UPLOAD_ERR_INI_SIZE   => 'File exceeds server limit',
         UPLOAD_ERR_FORM_SIZE  => 'File exceeds form limit',
@@ -32,7 +32,7 @@ if (!isset($_FILES['receipt']) || $_FILES['receipt']['error'] !== UPLOAD_ERR_OK)
         UPLOAD_ERR_NO_TMP_DIR => 'Server configuration error',
         UPLOAD_ERR_CANT_WRITE => 'Failed to write file',
     ];
-    $code = $_FILES['receipt']['error'] ?? UPLOAD_ERR_NO_FILE;
+    $code = $_FILES['proofOfPayment']['error'] ?? UPLOAD_ERR_NO_FILE;
     errorResponse($errorMessages[$code] ?? 'Upload failed', 400);
 }
 
@@ -41,7 +41,7 @@ if (!$reservationId) {
     errorResponse('Invalid reservation ID', 400);
 }
 
-$file = $_FILES['receipt'];
+$file = $_FILES['proofOfPayment'];
 $validator = new FileValidator($file);
 
 $validation = $validator->validate();
@@ -86,7 +86,7 @@ try {
         errorResponse('Reservation not found or unauthorized', 404);
     }
 
-    successResponse(['filename' => $filename], 'Receipt uploaded successfully');
+    successResponse(['filename' => $filename], 'Proof of Payment uploaded successfully');
 
 } catch (PDOException $e) {
     if (file_exists($filepath)) {

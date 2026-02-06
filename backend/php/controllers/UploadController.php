@@ -205,7 +205,7 @@ class UploadController
                     ':referralSlipNo' => $referralSlipNo
                 ]);
             } else {
-                // Update most recent reservation without receipt
+                // Update most recent reservation without proofOfPayment
                 $sql = "UPDATE reservation 
                         SET dropboxReceipt = :filepath,
                             updatedAt = CURRENT_TIMESTAMP
@@ -225,7 +225,7 @@ class UploadController
             return $stmt->rowCount() > 0;
 
         } catch (PDOException $e) {
-            error_log('Database error updating receipt: ' . $e->getMessage());
+            error_log('Database error updating proofOfPayment: ' . $e->getMessage());
             return false;
         }
     }
@@ -259,7 +259,7 @@ class UploadController
             return $result ?: null;
 
         } catch (PDOException $e) {
-            error_log('Database error fetching receipt info: ' . $e->getMessage());
+            error_log('Database error fetching proofOfPayment info: ' . $e->getMessage());
             return null;
         }
     }

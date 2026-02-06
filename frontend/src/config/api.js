@@ -47,7 +47,7 @@ const API_ENDPOINTS = {
     create: `${API_BASE_URL}/reservations`,
     byId: (id) => `${API_BASE_URL}/reservations/${id}`,
     update: (id) => `${API_BASE_URL}/reservations/${id}`,
-    uploadReceipt: `${API_BASE_URL}/reservations/upload-receipt`,
+    uploadReceipt: `${API_BASE_URL}/reservations/upload-proofOfPayment`,
     byStudent: (studentID) =>
       `${API_BASE_URL}/reservations/students/${studentID}/reservations`,
   },
