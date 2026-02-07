@@ -359,6 +359,87 @@ const reservationController = {
     }
   },
 
+  uploadProofOfPayment: async (req, res) => {
+    try {
+      const { referralSlipNo, file, fileName, fileType } = req.body;
+
+      if (!referralSlipNo || !file || !fileName || !fileType) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Missing required fields: referralSlipNo, file, fileName, fileType",
+        });
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "application/pdf",
+      ];
+      if (!allowedTypes.includes(fileType)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid file type. Only JPG, PNG, GIF, and PDF are allowed.",
+        });
+      }
+
+      // Decode base64
+      const fileBuffer = Buffer.from(file, "base64");
+
+      // Validate size (5MB max)
+      const maxSize = 5 * 1024 * 1024;
+      if (fileBuffer.length > maxSize) {
+        return res.status(400).json({
+          success: false,
+          message: "File too large. Maximum size is 5MB.",
+        });
+      }
+
+      // Create upload directory
+      const uploadDir = path.join(__dirname, "../../uploads/proof-of-payment");
+      await fs.mkdir(uploadDir, { recursive: true });
+
+      // Generate unique filename
+      const extension = path.extname(fileName) || ".jpg";
+      const uniqueName = `proof-${referralSlipNo}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}${extension}`;
+      const uploadPath = path.join(uploadDir, uniqueName);
+
+      // Write file
+      await fs.writeFile(uploadPath, fileBuffer);
+
+      // Update database
+      const relativePath = `proof-of-payment/${uniqueName}`;
+      const affectedRows = await reservationModel.update(
+        parseInt(referralSlipNo),
+        { proofOfPayment: relativePath },
+      );
+
+      if (affectedRows === 0) {
+        // Clean up file if reservation not found
+        await fs.unlink(uploadPath).catch(() => {});
+        return res.status(404).json({
+          success: false,
+          message: "Reservation not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Proof of payment uploaded successfully",
+        data: { proofOfPayment: relativePath },
+      });
+    } catch (error) {
+      console.error("Upload proof of payment error:", error);
+      res.status(500).json({
+        success: false,
+        message: "An error occurred while uploading proof of payment",
+      });
+    }
+  },
+
   cancelReservationByStudent: async (req, res) => {
     const connection = await pool.getConnection();
 

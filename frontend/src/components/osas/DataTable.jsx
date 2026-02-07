@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import CountdownTimer from "./CountdownTimer";
 import PDFViewerModal from "./PDFViewerModal";
 import "../../assets/css/dataTable.css";
+import { API_BASE_URL } from "../../config/api";
 
 const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
   const [sortConfig, setSortConfig] = useState({
@@ -200,29 +201,43 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
           "N/A"
         );
       case "proofOfPayment":
-        return reservation.dropboxReceipt ? (
-          <button
-            className="btn-view-doc"
-            onClick={() => window.open(reservation.dropboxReceipt, "_blank")}
-          >
-            View
-          </button>
-        ) : (
-          "N/A"
-        );
+        if (reservation.proofOfPayment || reservation.dropboxReceipt) {
+          const proofPath =
+            reservation.proofOfPayment || reservation.dropboxReceipt;
+          const uploadsBaseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
+          return (
+            <button
+              className="btn-view-doc"
+              onClick={() =>
+                window.open(`${uploadsBaseUrl}/uploads/${proofPath}`, "_blank")
+              }
+            >
+              View
+            </button>
+          );
+        }
+        return "N/A";
       case "paymentAdviceSlip":
-        return reservation.pdfPaymentAdviceSlip ? (
-          <button
-            className="btn-view-doc"
-            onClick={() =>
-              window.open(reservation.pdfPaymentAdviceSlip, "_blank")
-            }
-          >
-            View
-          </button>
-        ) : (
-          "N/A"
-        );
+        if (
+          reservation.pdfPaymentAdviceSlip ||
+          reservation.pdfPaymentAdviceSlipOSAS
+        ) {
+          const slipPath =
+            reservation.pdfPaymentAdviceSlipOSAS ||
+            reservation.pdfPaymentAdviceSlip;
+          const uploadsBaseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
+          return (
+            <button
+              className="btn-view-doc"
+              onClick={() =>
+                window.open(`${uploadsBaseUrl}/uploads/${slipPath}`, "_blank")
+              }
+            >
+              View
+            </button>
+          );
+        }
+        return "N/A";
       case "agreementDuration":
         return formatDuration(
           reservation.agreementDateStart,

@@ -20,7 +20,8 @@ const PDFViewerModal = ({
     const encodedParts = pathParts.map((part) => encodeURIComponent(part));
     const encodedPath = encodedParts.join("/");
 
-    fullPdfUrl = `${API_BASE_URL}/uploads/${encodedPath}`;
+    const baseURL = API_BASE_URL.replace(/\/api\/?$/, "");
+    fullPdfUrl = `${baseURL}/uploads/${encodedPath}`;
   }
 
   console.log("PDF URL Debug:", {

@@ -142,14 +142,25 @@ const adminController = {
       const student = studentRows[0];
 
       await connection.commit();
+      console.log(
+        "[APPROVE ENDORSEMENT] Transaction committed for referral:",
+        id,
+      );
 
       // Generate Payment Advice Slip and send email
+      console.log(
+        "[APPROVE ENDORSEMENT] Registering setImmediate for PDF/email...",
+      );
       setImmediate(async () => {
+        console.log("[APPROVE ENDORSEMENT] setImmediate fired");
+        const emailService = require("../services/emailService");
+        let studentCopyBuffer = null;
+
+        // Step 1: Try to generate PDF (failure does not block email)
         try {
           const {
             generatePaymentAdviceSlipWithCopy,
           } = require("../utils/pdfGenerator");
-          const emailService = require("../services/emailService");
 
           const paymentAdviceData = {
             ...reservation,
@@ -159,15 +170,32 @@ const adminController = {
             endorsedByName: employeeFullName,
           };
 
-          const { studentCopyPath, osasCopyPath, studentCopyBuffer } =
-            await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
+          const {
+            studentCopyPath,
+            osasCopyPath,
+            studentCopyBuffer: pdfBuffer,
+          } = await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
 
-          // Update reservation with OSAS copy path
+          studentCopyBuffer = pdfBuffer;
+
           await reservationModel.update(parseInt(id), {
+            pdfPaymentAdviceSlip: studentCopyPath,
             pdfPaymentAdviceSlipOSAS: osasCopyPath,
           });
 
-          // Send email to student with Payment Advice Slip
+          console.log(
+            "Payment Advice Slip PDF generated for referral:",
+            reservation.referralSlipNo,
+          );
+        } catch (pdfError) {
+          console.error(
+            "PDF generation failed (email will still be sent):",
+            pdfError.message,
+          );
+        }
+
+        // Step 2: Always send the email, with or without PDF attachment
+        try {
           await emailService.sendEndorsementApprovalEmail(
             student.studentEmail,
             student.firstName,
@@ -175,13 +203,15 @@ const adminController = {
             employeeFullName,
             studentCopyBuffer,
           );
-
           console.log(
             "Endorsement approval email sent successfully to:",
             student.studentEmail,
           );
         } catch (emailError) {
-          console.error("Email/PDF generation error:", emailError);
+          console.error(
+            "Failed to send endorsement approval email:",
+            emailError.message,
+          );
         }
       });
 

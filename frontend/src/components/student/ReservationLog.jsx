@@ -14,7 +14,6 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
   const [expandedAuditTrail, setExpandedAuditTrail] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
   const fileInputRef = useRef(null);
 
   const [currentReservations, setCurrentReservations] = useState(reservations);
@@ -45,7 +44,6 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
 
         if (response.ok && data.data) {
           setCurrentReservations(data.data);
-          setLastUpdated(new Date());
         }
       } catch (error) {
         console.error("Error fetching latest reservations:", error);
@@ -179,7 +177,7 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
       );
       return;
     }
-    const baseURL = API_BASE_URL;
+    const baseURL = API_BASE_URL.replace(/\/api\/?$/, "");
     window.open(`${baseURL}/uploads/${docPath}`, "_blank");
   };
 
@@ -256,21 +254,30 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
       setUploading(true);
       showLoading("Uploading", "Please wait...");
 
-      const formData = new FormData();
-      formData.append("proofOfPayment", file);
-      formData.append("referralSlipNo", activeReservation.referralSlipNo);
-
       const token = localStorage.getItem("token");
-      const phpBaseUrl =
-        window.location.hostname === "localhost"
-          ? "http://localhost:8080"
-          : "https://api.lockr.fit/php";
+
+      // Read file as base64
+      const fileBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
 
       const response = await fetch(
-        `${phpBaseUrl}/upload-proof-of-payment.php`,
+        `${API_BASE_URL}/reservations/upload-proof-of-payment`,
         {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            referralSlipNo: activeReservation.referralSlipNo,
+            file: fileBase64,
+            fileName: file.name,
+            fileType: file.type,
+          }),
         },
       );
 

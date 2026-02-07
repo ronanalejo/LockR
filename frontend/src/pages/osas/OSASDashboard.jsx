@@ -40,6 +40,17 @@ const OSASDashboard = () => {
     }
   }, [user, navigate]);
 
+  const updateStats = useCallback((data) => {
+    setStats({
+      total: data.length,
+      pendingEndorsements: data.filter(
+        (r) => r.forEndorsement && !r.forApproval,
+      ).length,
+      pendingApprovals: data.filter((r) => r.forApproval && !r.isActive).length,
+      occupied: data.filter((r) => r.isActive).length,
+    });
+  }, []);
+
   const fetchData = useCallback(
     async (showLoadingIndicator = false) => {
       try {
@@ -82,7 +93,7 @@ const OSASDashboard = () => {
         setIsRefreshing(false);
       }
     },
-    [activeTab],
+    [activeTab, updateStats],
   );
 
   useEffect(() => {
@@ -90,17 +101,6 @@ const OSASDashboard = () => {
     const interval = setInterval(() => fetchData(false), 10000);
     return () => clearInterval(interval);
   }, [fetchData]);
-
-  const updateStats = useCallback((data) => {
-    setStats({
-      total: data.length,
-      pendingEndorsements: data.filter(
-        (r) => r.forEndorsement && !r.forApproval,
-      ).length,
-      pendingApprovals: data.filter((r) => r.forApproval && !r.isActive).length,
-      occupied: data.filter((r) => r.isActive).length,
-    });
-  }, []);
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
@@ -160,6 +160,40 @@ const OSASDashboard = () => {
   };
 
   const handleAction = async (action, reservationId) => {
+    // For approve-reservation, check if proof of payment exists
+    if (action === "approve-reservation") {
+      const reservation = reservations.find(
+        (r) => r.referralSlipNo === reservationId,
+      );
+      if (
+        reservation &&
+        !reservation.proofOfPayment &&
+        !reservation.dropboxReceipt
+      ) {
+        showError(
+          "Reservation Approval Failed",
+          "Proof of Payment is required before approval.",
+        );
+        return;
+      }
+    }
+
+    // SweetAlert2 confirmation before any approve/reject action
+    const confirmMessages = {
+      "approve-endorsement":
+        "Are you sure you want to approve this endorsement?",
+      "reject-endorsement": "Are you sure you want to reject this endorsement?",
+      "approve-reservation":
+        "Are you sure you want to approve this reservation?",
+      "reject-reservation": "Are you sure you want to reject this reservation?",
+    };
+
+    const confirmMsg = confirmMessages[action];
+    if (confirmMsg) {
+      const result = await showConfirm(confirmMsg);
+      if (!result.isConfirmed) return;
+    }
+
     try {
       showLoading("Processing...", "Please wait");
       let response;

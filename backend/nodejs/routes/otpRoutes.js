@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const otpController = require("../controllers/otpController");
-const authMiddleware = require("../middleware/authMiddleWare");
+const authMiddleware = require("../middleware/authMiddleware");
 
 router.post(
   "/send",

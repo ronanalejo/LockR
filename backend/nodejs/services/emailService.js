@@ -196,12 +196,14 @@ class EmailService {
         </body>
         </html>
       `,
-      attachments: [
-        {
-          filename: `Payment Advice Slip - ${referralSlipNo}.pdf`,
-          content: pdfBuffer,
-        },
-      ],
+      attachments: pdfBuffer
+        ? [
+            {
+              filename: `Payment Advice Slip - ${referralSlipNo}.pdf`,
+              content: pdfBuffer,
+            },
+          ]
+        : [],
     };
 
     await this.transporter.sendMail(mailOptions);

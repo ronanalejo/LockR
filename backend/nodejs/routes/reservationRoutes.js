@@ -1,13 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const reservationController = require("../controllers/reservationController");
-const authMiddleware = require("../middleware/authMiddleWare");
+const authMiddleware = require("../middleware/authMiddleware");
 
 router.post(
   "/",
   authMiddleware.verifyToken,
   authMiddleware.isStudent,
   reservationController.createReservation,
+);
+
+router.post(
+  "/upload-proof-of-payment",
+  authMiddleware.verifyToken,
+  authMiddleware.isStudent,
+  reservationController.uploadProofOfPayment,
 );
 
 router.get(

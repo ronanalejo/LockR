@@ -62,7 +62,7 @@ app.use(
     crossOriginOpenerPolicy: false, // Disable helmet's COOP to use custom
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 const path = require("path");
@@ -70,11 +70,21 @@ const path = require("path");
 // Serve uploaded files statically
 app.use(
   "/uploads",
+  (req, res, next) => {
+    // Remove X-Frame-Options for PDF files so they can be displayed in iframes
+    if (req.path.toLowerCase().endsWith(".pdf")) {
+      res.removeHeader("X-Frame-Options");
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "inline");
+    }
+    next();
+  },
   express.static(path.join(__dirname, "../uploads"), {
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".pdf")) {
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", "inline");
+        res.removeHeader("X-Frame-Options");
       }
     },
   }),
