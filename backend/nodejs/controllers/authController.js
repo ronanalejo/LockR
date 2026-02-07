@@ -32,11 +32,14 @@ const authController = {
               : result.user.employeeID,
           email: result.user.email,
           userType: result.user.userType,
+          role: result.user.role,
+          department: result.user.department,
           branchID: result.user.branchID,
         },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN },
       );
+      
 
       res.json({
         success: true,
@@ -113,11 +116,14 @@ const authController = {
               : result.user.employeeID,
           email: result.user.email,
           userType: result.user.userType,
+          role: result.user.role,
+          department: result.user.department,
           branchID: result.user.branchID,
         },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN },
       );
+      
 
       res.json({
         success: true,
@@ -242,11 +248,13 @@ const authController = {
             id: studentID,
             email: email,
             userType: "student",
+            role: "Student",
             branchID: req.body.branchID,
           },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES_IN },
         );
+        
 
         return res.json({
           success: true,
@@ -297,11 +305,13 @@ const authController = {
             id: employeeID,
             email: email,
             userType: "admin",
+            role: "OSAS",
+            department: "OSAS",
             branchID: req.body.branchID,
           },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES_IN },
-        );
+        );        
 
         return res.json({
           success: true,

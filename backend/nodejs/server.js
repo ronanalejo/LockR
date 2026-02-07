@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const financeRoutes = require("./routes/financeRoutes");
+
 
 // Initialize Express app
 const app = express();
@@ -116,6 +118,7 @@ const adminRoutes = require("./routes/adminRoutes");
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
+app.use("/api/finance", financeRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
@@ -161,6 +164,7 @@ app.use((err, req, res, next) => {
     message: err.message,
   });
 });
+
 
 // Start server
 app.listen(PORT, () => {

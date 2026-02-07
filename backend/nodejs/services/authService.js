@@ -3,14 +3,30 @@ const studentModel = require("../models/studentModel");
 const adminModel = require("../models/adminModel");
 const db = require("../config/database");
 
+const mapAdminDepartmentToRole = (department) => {
+  if (!department) return "Admin";
+
+  const normalized = department.toLowerCase();
+
+  if (normalized === "finance") return "Finance";
+  if (normalized === "osas") return "OSAS";
+
+  return "Admin";
+};
+
 const authService = {
   authenticateUser: async (email, password) => {
     let user = await studentModel.findByEmail(email);
     let userType = "student";
+    let role = "Student";
 
     if (!user) {
       user = await adminModel.findByEmail(email);
       userType = "admin";
+
+      if (user) {
+        role = mapAdminDepartmentToRole(user.department);
+      }
     }
 
     if (!user) {
@@ -24,8 +40,9 @@ const authService = {
     }
 
     const userData = {
-      email: email,
-      userType: userType,
+      email,
+      userType,
+      role,
     };
 
     if (userType === "student") {
@@ -66,26 +83,28 @@ const authService = {
           [email],
         );
 
-        if (students.length > 0) {
-          const student = students[0];
-          return {
-            success: true,
-            user: {
-              studentID: student.studentID,
-              email: student.studentEmail,
-              firstName: student.firstName,
-              lastName: student.lastName,
-              userType: "student",
-              studentType: student.student_type,
-              branchID: student.branchID,
-            },
-          };
-        } else {
+        if (students.length === 0) {
           return {
             success: false,
             message: "Student account not found in system",
           };
         }
+
+        const student = students[0];
+
+        return {
+          success: true,
+          user: {
+            studentID: student.studentID,
+            email: student.studentEmail,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            userType: "student",
+            role: "Student",
+            studentType: student.student_type,
+            branchID: student.branchID,
+          },
+        };
       }
 
       if (identifiedRole === "admin") {
@@ -94,26 +113,28 @@ const authService = {
           [email],
         );
 
-        if (admins.length > 0) {
-          const admin = admins[0];
-          return {
-            success: true,
-            user: {
-              employeeID: admin.employeeID,
-              email: admin.employeeEmail,
-              firstName: admin.firstName,
-              lastName: admin.lastName,
-              userType: "admin",
-              department: admin.department,
-              branchID: admin.branchID,
-            },
-          };
-        } else {
+        if (admins.length === 0) {
           return {
             success: false,
             message: "Admin account not found in system",
           };
         }
+
+        const admin = admins[0];
+
+        return {
+          success: true,
+          user: {
+            employeeID: admin.employeeID,
+            email: admin.employeeEmail,
+            firstName: admin.firstName,
+            lastName: admin.lastName,
+            userType: "admin",
+            role: mapAdminDepartmentToRole(admin.department),
+            department: admin.department,
+            branchID: admin.branchID,
+          },
+        };
       }
 
       return {
