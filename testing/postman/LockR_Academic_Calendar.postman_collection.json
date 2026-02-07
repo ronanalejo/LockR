@@ -1,0 +1,209 @@
+{
+    "info": {
+      "name": "LockR Academic Calendar API",
+      "_postman_id": "lockr-academic-calendar-2026",
+      "description": "Academic Calendar API tests aligned with LockR standards and auth flow",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:5000/api",
+        "type": "string"
+      },
+      {
+        "key": "admin_token",
+        "value": "",
+        "type": "string"
+      },
+      {
+        "key": "academic_calendar_id",
+        "value": "",
+        "type": "string"
+      }
+    ],
+    "item": [
+      {
+        "name": "0. Setup - Admin Login",
+        "item": [
+          {
+            "name": "Admin Login",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"email\": \"finance.admin@iacademy.edu.ph\",\n  \"password\": \"financepass123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/auth/login",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "login"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Login OK', () => pm.response.to.have.status(200));",
+                    "const res = pm.response.json();",
+                    "pm.expect(res.success).to.be.true;",
+                    "pm.collectionVariables.set('admin_token', res.token);"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Academic Calendar",
+        "item": [
+          {
+            "name": "Check Configuration",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/academic-calendar/check",
+                "host": ["{{base_url}}"],
+                "path": ["academic-calendar", "check"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                    "const res = pm.response.json();",
+                    "pm.expect(res.success).to.be.true;",
+                    "pm.expect(res.data).to.have.property('configured');"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Create Academic Calendar",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"semester\": \"AY 2025-2026 Semester 1\",\n  \"startDate\": \"2025-08-15\",\n  \"endDate\": \"2025-12-20\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/academic-calendar",
+                "host": ["{{base_url}}"],
+                "path": ["academic-calendar"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Created', () => pm.response.to.have.status(200));",
+                    "pm.expect(pm.response.json().success).to.be.true;"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Get Current Academic Calendar",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/academic-calendar",
+                "host": ["{{base_url}}"],
+                "path": ["academic-calendar"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                    "const res = pm.response.json();",
+                    "pm.expect(res.success).to.be.true;",
+                    "if (res.data) { pm.collectionVariables.set('academic_calendar_id', res.data.calendarID); }"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Update Academic Calendar",
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{admin_token}}"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"calendarID\": \"{{academic_calendar_id}}\",\n  \"semester\": \"AY 2025-2026 Semester 1\",\n  \"startDate\": \"2025-08-20\",\n  \"endDate\": \"2025-12-22\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/academic-calendar",
+                "host": ["{{base_url}}"],
+                "path": ["academic-calendar"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "pm.test('Updated', () => pm.response.to.have.status(200));",
+                    "pm.expect(pm.response.json().success).to.be.true;"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  
