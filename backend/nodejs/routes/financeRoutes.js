@@ -2,34 +2,34 @@ const express = require("express");
 const router = express.Router();
 
 const financeController = require("../controllers/financeController");
-const authMiddleware = require("../middleware/authMiddleWare");
+const authMiddleware = require("../middleware/authMiddleware");
 
 router.get(
   "/payments/pending",
   authMiddleware.verifyToken,
   authMiddleware.isFinance,
-  financeController.getPendingPayments
+  financeController.getPendingPayments,
 );
 
 router.get(
   "/payments/history",
   authMiddleware.verifyToken,
   authMiddleware.isFinance,
-  financeController.getPaymentHistory
+  financeController.getPaymentHistory,
 );
 
 router.post(
   "/payments/:id/verify",
   authMiddleware.verifyToken,
   authMiddleware.isFinance,
-  financeController.verifyPayment
+  financeController.verifyPayment,
 );
 
 router.get(
   "/stats",
   authMiddleware.verifyToken,
   authMiddleware.isFinance,
-  financeController.getFinanceStats
+  financeController.getFinanceStats,
 );
 
 module.exports = router;

@@ -8,7 +8,7 @@ const {
   isConfigured,
 } = require("../controllers/academicCalendarController");
 
-const { verifyToken, isAdmin } = require("../middleware/authMiddleWare");
+const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 
 router.get("/", verifyToken, isAdmin, getCurrentCalendar);
 router.post("/", verifyToken, isAdmin, createCalendar);
