@@ -273,6 +273,148 @@ const reservationModel = {
     const [result] = await executor.execute(query, [status, lockerID]);
     return result.affectedRows;
   },
+
+  // Find all active (approved) reservations for Finance dashboard
+  findActiveForFinance: async (limit = null, offset = 0) => {
+    let query = `
+      SELECT
+        r.referralSlipNo,
+        r.lockerID,
+        r.floorNumber,
+        s.firstName as studentFirstName,
+        s.lastName as studentLastName,
+        s.studentID,
+        r.agreement,
+        r.agreementDateStart,
+        r.agreementDateEnd,
+        r.dropboxReceipt,
+        r.pdfPaymentAdviceSlip,
+        r.approvalDate,
+        a.firstName as endorsedByFirstName,
+        a.lastName as endorsedByLastName,
+        l.lockerNumber,
+        l.branchID,
+        b.branchName,
+        b.buildingName
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      INNER JOIN student s ON r.studentID = s.studentID
+      LEFT JOIN admin a ON r.employeeID = a.employeeID
+      LEFT JOIN branch b ON l.branchID = b.branchID
+      WHERE r.isActive = TRUE
+      ORDER BY r.approvalDate DESC
+    `;
+
+    const queryParams = [];
+
+    // Add pagination if limit is provided
+    if (limit !== null) {
+      query += " LIMIT ? OFFSET ?";
+      queryParams.push(limit, offset);
+    }
+
+    const [rows] = await pool.execute(query, queryParams);
+    return rows;
+  },
+
+  // Find payment history (all records that have been processed)
+  findPaymentHistory: async (filters = {}, limit = null, offset = 0) => {
+    let query = `
+      SELECT
+        r.referralSlipNo,
+        r.lockerID,
+        r.floorNumber,
+        s.firstName as studentFirstName,
+        s.lastName as studentLastName,
+        s.middleName as studentMiddleName,
+        s.studentID,
+        s.studentEmail,
+        r.agreement,
+        r.agreementDateStart,
+        r.agreementDateEnd,
+        r.dropboxReceipt,
+        r.pdfPaymentAdviceSlip,
+        r.approvalDate,
+        r.isActive,
+        r.forApproval,
+        r.forEndorsement,
+        r.createdAt as reservationCreatedAt,
+        r.updatedAt as reservationUpdatedAt,
+        a.firstName as endorsedByFirstName,
+        a.lastName as endorsedByLastName,
+        a.employeeID,
+        l.lockerNumber,
+        l.branchID,
+        b.branchName,
+        b.buildingName
+      FROM reservation r
+      INNER JOIN locker l ON r.lockerID = l.lockerID
+      INNER JOIN student s ON r.studentID = s.studentID
+      LEFT JOIN admin a ON r.employeeID = a.employeeID
+      LEFT JOIN branch b ON l.branchID = b.branchID
+      WHERE (r.isActive = TRUE OR r.forApproval = TRUE OR r.approvalDate IS NOT NULL)
+    `;
+
+    const queryParams = [];
+
+    // Apply filters
+    if (filters.branchID) {
+      query += " AND l.branchID = ?";
+      queryParams.push(filters.branchID);
+    }
+
+    if (filters.floorNumber) {
+      query += " AND r.floorNumber = ?";
+      queryParams.push(filters.floorNumber);
+    }
+
+    if (filters.startDate) {
+      query += " AND DATE(r.approvalDate) >= ?";
+      queryParams.push(filters.startDate);
+    }
+
+    if (filters.endDate) {
+      query += " AND DATE(r.approvalDate) <= ?";
+      queryParams.push(filters.endDate);
+    }
+
+    if (filters.studentID) {
+      query += " AND s.studentID = ?";
+      queryParams.push(filters.studentID);
+    }
+
+    if (filters.isActive !== undefined) {
+      query += " AND r.isActive = ?";
+      queryParams.push(filters.isActive);
+    }
+
+    // Order by most recent approval date
+    query += " ORDER BY r.approvalDate DESC";
+
+    // Get total count for pagination
+    if (limit !== null) {
+      const countQuery = query.replace(
+        /SELECT[\s\S]*?FROM/,
+        "SELECT COUNT(*) as total FROM",
+      );
+      const [countResult] = await pool.execute(countQuery, queryParams);
+      const totalCount = countResult[0].total;
+
+      // Add pagination
+      query += " LIMIT ? OFFSET ?";
+      queryParams.push(limit, offset);
+
+      const [rows] = await pool.execute(query, queryParams);
+
+      return {
+        payments: rows,
+        totalCount: totalCount,
+      };
+    }
+
+    const [rows] = await pool.execute(query, queryParams);
+    return rows;
+  },
 };
 
 module.exports = reservationModel;
