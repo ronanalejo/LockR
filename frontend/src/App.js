@@ -17,6 +17,8 @@ import EndorsementApproval from "./components/student/EndorsementApproval.jsx";
 import DepartmentRoute from "./components/common/DepartmentRoute";
 import Unauthorized from "./pages/common/Unauthorized.jsx";
 import OSASDashboard from "./pages/osas/OSASDashboard.jsx";
+import FinanceDashboard from "./pages/finance/FinanceDashboard.jsx";
+
 
 function AppRoutes() {
   return (
@@ -45,6 +47,18 @@ function AppRoutes() {
           </DepartmentRoute>
         }
       />
+
+      <Route
+        path="/finance/dashboard"
+        element={
+          <DepartmentRoute
+          allowedRoles={["admin"]}
+          allowedDepartments={["Finance"]}>
+            <FinanceDashboard />
+          </DepartmentRoute>
+        }
+      />
+
 
       <Route path="/unauthorized" element={<Unauthorized />} />
 
