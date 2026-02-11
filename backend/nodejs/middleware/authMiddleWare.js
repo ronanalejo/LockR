@@ -44,7 +44,7 @@ const authMiddleware = {
   },
 
   isFinance: (req, res, next) => {
-    if (req.user.role !== "Finance") {
+    if (req.user.userType !== "admin" || req.user.department !== "Finance") {
       return res.status(403).json({
         success: false,
         message: "Access denied. Finance department access required.",

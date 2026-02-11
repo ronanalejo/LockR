@@ -34,7 +34,9 @@ exports.getAllSemesterPeriods = async (req, res) => {
 
     res.json({ success: true, data: rows });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch semesters" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch semesters" });
   }
 };
 
@@ -59,10 +61,12 @@ exports.getCurrentSemester = async (req, res) => {
 
     res.json({
       success: true,
-      data: rows.length ? rows[0] : null
+      data: rows.length ? rows[0] : null,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch current semester" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch current semester" });
   }
 };
 
@@ -77,10 +81,12 @@ exports.isConfigured = async (req, res) => {
 
     res.json({
       success: true,
-      configured: rows[0].count > 0
+      configured: rows[0].count > 0,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to check configuration" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to check configuration" });
   }
 };
 
@@ -88,16 +94,20 @@ exports.getSemesterById = async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT * FROM semester_periods WHERE id = ? AND is_active = 1`,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (!rows.length) {
-      return res.status(404).json({ success: false, message: "Semester not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Semester not found" });
     }
 
     res.json({ success: true, data: rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch semester" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch semester" });
   }
 };
 
@@ -109,18 +119,42 @@ exports.createSemesterPeriod = async (req, res) => {
       semester_name,
       start_date,
       end_date,
-      status
+      status,
     } = req.body;
 
-    if (!academic_level || !academic_year || !semester_name || !start_date || !end_date) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+    if (
+      !academic_level ||
+      !academic_year ||
+      !semester_name ||
+      !start_date ||
+      !end_date
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    if (!["SHS", "COLLEGE"].includes(academic_level)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid academic level. Must be SHS or COLLEGE",
+      });
+    }
+
+    if (status && !["UPCOMING", "ACTIVE", "COMPLETED"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be UPCOMING, ACTIVE, or COMPLETED",
+      });
     }
 
     if (new Date(start_date) >= new Date(end_date)) {
-      return res.status(400).json({ success: false, message: "Invalid date range" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid date range" });
     }
 
-    await db.query(
+    const [result] = await db.query(
       `
       INSERT INTO semester_periods
       (academic_level, academic_year, semester_name, start_date, end_date, status, is_active)
@@ -132,27 +166,38 @@ exports.createSemesterPeriod = async (req, res) => {
         semester_name,
         start_date,
         end_date,
-        status || "UPCOMING"
-      ]
+        status || "UPCOMING",
+      ],
     );
 
-    res.status(201).json({ success: true, message: "Semester created" });
+    res.status(201).json({
+      success: true,
+      message: "Semester period created successfully",
+      data: {
+        id: result.insertId,
+        academic_level,
+        academic_year,
+        semester_name,
+        start_date,
+        end_date,
+        status: status || "UPCOMING",
+      },
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to create semester" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to create semester" });
   }
 };
 
 exports.updateSemesterPeriod = async (req, res) => {
   try {
-    const {
-      academic_year,
-      semester_name,
-      start_date,
-      end_date
-    } = req.body;
+    const { academic_year, semester_name, start_date, end_date } = req.body;
 
     if (start_date && end_date && new Date(start_date) >= new Date(end_date)) {
-      return res.status(400).json({ success: false, message: "Invalid date range" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid date range" });
     }
 
     await db.query(
@@ -164,58 +209,80 @@ exports.updateSemesterPeriod = async (req, res) => {
           end_date = COALESCE(?, end_date)
       WHERE id = ? AND is_active = 1
       `,
-      [academic_year, semester_name, start_date, end_date, req.params.id]
+      [academic_year, semester_name, start_date, end_date, req.params.id],
     );
 
     res.json({ success: true, message: "Semester updated" });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to update semester" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update semester" });
   }
 };
 
 exports.updateSemesterStatus = async (req, res) => {
+  const connection = await db.getConnection();
+
   try {
     const { status } = req.body;
     const semesterId = req.params.id;
 
     if (!["UPCOMING", "ACTIVE", "COMPLETED"].includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status" });
+      connection.release();
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status" });
     }
 
+    await connection.beginTransaction();
+
     if (status === "ACTIVE") {
-      const [rows] = await db.query(
-        `SELECT academic_level FROM semester_periods WHERE id = ?`,
-        [semesterId]
+      const [rows] = await connection.query(
+        `SELECT academic_level FROM semester_periods WHERE id = ? AND is_active = 1`,
+        [semesterId],
       );
 
       if (!rows.length) {
-        return res.status(404).json({ success: false, message: "Semester not found" });
+        await connection.rollback();
+        connection.release();
+        return res
+          .status(404)
+          .json({ success: false, message: "Semester not found" });
       }
 
-      await db.query(
+      await connection.query(
         `
         UPDATE semester_periods
         SET status = 'COMPLETED'
         WHERE academic_level = ?
           AND status = 'ACTIVE'
           AND is_active = 1
+          AND id != ?
         `,
-        [rows[0].academic_level]
+        [rows[0].academic_level, semesterId],
       );
     }
 
-    await db.query(
+    await connection.query(
       `
       UPDATE semester_periods
       SET status = ?
       WHERE id = ? AND is_active = 1
       `,
-      [status, semesterId]
+      [status, semesterId],
     );
+
+    await connection.commit();
 
     res.json({ success: true, message: "Status updated" });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to update status" });
+    await connection.rollback();
+    console.error("updateSemesterStatus:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update status" });
+  } finally {
+    connection.release();
   }
 };
 
@@ -227,11 +294,13 @@ exports.deleteSemesterPeriod = async (req, res) => {
       SET is_active = 0
       WHERE id = ?
       `,
-      [req.params.id]
+      [req.params.id],
     );
 
     res.json({ success: true, message: "Semester deleted" });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to delete semester" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to delete semester" });
   }
 };

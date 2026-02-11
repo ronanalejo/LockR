@@ -50,7 +50,6 @@ exports.getPendingPayments = async (req, res) => {
   }
 };
 
-
 /**
  * GET /api/finance/payments/history
  */
@@ -93,7 +92,6 @@ exports.getPaymentHistory = async (req, res) => {
   }
 };
 
-
 /**
  * POST /api/finance/payments/:id/verify
  */
@@ -114,7 +112,7 @@ exports.verifyPayment = async (req, res) => {
         verifiedBy = ?
       WHERE referralSlipNo = ?
       `,
-      [financeEmployeeID, referralSlipNo]
+      [financeEmployeeID, referralSlipNo],
     );
 
     if (result.affectedRows === 0) {
@@ -124,6 +122,24 @@ exports.verifyPayment = async (req, res) => {
         message: "Reservation not found",
       });
     }
+
+    // Audit trail logging
+    await connection.execute(
+      `
+      INSERT INTO audit_log (action, tableName, recordID, performedBy, details, createdAt)
+      VALUES (?, ?, ?, ?, ?, NOW())
+      `,
+      [
+        "PAYMENT_VERIFIED",
+        "reservation",
+        referralSlipNo,
+        financeEmployeeID,
+        JSON.stringify({
+          referralSlipNo,
+          action: "Payment verified by Finance",
+        }),
+      ],
+    );
 
     await connection.commit();
 
@@ -143,7 +159,6 @@ exports.verifyPayment = async (req, res) => {
     connection.release();
   }
 };
-
 
 /**
  * GET /api/finance/stats
