@@ -1,0 +1,151 @@
+{
+    "info": {
+      "name": "LockR - Semester Periods API",
+      "_postman_id": "f52c2f18-9c72-4e9b-9b91-1f8a7a88a901",
+      "description": "Semester Periods endpoints for LockR",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Get All Semester Periods",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods?academicLevel=SHS&status=ACTIVE",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods"],
+            "query": [
+              { "key": "academicLevel", "value": "SHS" },
+              { "key": "status", "value": "ACTIVE" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "Get Current Semester",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods/current?academicLevel=SHS",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods", "current"],
+            "query": [
+              { "key": "academicLevel", "value": "SHS" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "Check Semester Configuration",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods/check",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods", "check"]
+          }
+        }
+      },
+      {
+        "name": "Get Semester By ID",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods/1",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods", "1"]
+          }
+        }
+      },
+      {
+        "name": "Create Semester Period",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"academic_level\": \"SHS\",\n  \"academic_year\": \"2025-2026\",\n  \"semester_name\": \"1st Semester\",\n  \"start_date\": \"2025-08-01\",\n  \"end_date\": \"2025-12-15\",\n  \"status\": \"UPCOMING\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods"]
+          }
+        }
+      },
+      {
+        "name": "Update Semester Period",
+        "request": {
+          "method": "PUT",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"semester_name\": \"Updated Semester\",\n  \"start_date\": \"2025-08-05\",\n  \"end_date\": \"2025-12-20\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods/1",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods", "1"]
+          }
+        }
+      },
+      {
+        "name": "Update Semester Status",
+        "request": {
+          "method": "PATCH",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods/1/status",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods", "1", "status"]
+          }
+        }
+      },
+      {
+        "name": "Delete Semester Period",
+        "request": {
+          "method": "DELETE",
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods/1",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods", "1"]
+          }
+        }
+      },
+      {
+        "name": "Negative Test - Invalid Date Range",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"academic_level\": \"SHS\",\n  \"academic_year\": \"2025-2026\",\n  \"semester_name\": \"Bad Dates\",\n  \"start_date\": \"2025-12-01\",\n  \"end_date\": \"2025-08-01\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/semester-periods",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "semester-periods"]
+          }
+        }
+      }
+    ],
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "http://localhost:3000"
+      }
+    ]
+  }
+  

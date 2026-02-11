@@ -110,6 +110,7 @@ const lockerRoutes = require("./routes/lockerRoutes");
 const otpRoutes = require("./routes/otpRoutes");
 const financeRoutes = require("./routes/financeRoutes");
 const academicCalendarRoutes = require("./routes/academicCalendarRoutes");
+const semesterPeriodsRoutes = require("./routes/semesterPeriodsRoutes");
 
 // Register routes
 app.use("/api/auth", authRoutes);
@@ -121,6 +122,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/finance", financeRoutes);
 app.use("/api/academic-calendar", academicCalendarRoutes);
+app.use("/api/semester-periods", semesterPeriodsRoutes);
 
 // Root endpoint
 app.get("/", (req, res) => {
