@@ -55,7 +55,12 @@ const LoginPage = () => {
       if (userType === "student") {
         navigate("/student/dashboard");
       } else if (userType === "admin") {
-        navigate("/admin/dashboard");
+        const department = response.user.department;
+        if (department === "Finance") {
+          navigate("/finance/dashboard");
+        } else {
+          navigate("/admin/dashboard");
+        }
       }
     } catch (err) {
       closeAlert();
@@ -109,7 +114,12 @@ const LoginPage = () => {
       if (userType === "student") {
         navigate("/student/dashboard");
       } else if (userType === "admin") {
-        navigate("/admin/dashboard");
+        const department = response.user.department;
+        if (department === "Finance") {
+          navigate("/finance/dashboard");
+        } else {
+          navigate("/admin/dashboard");
+        }
       }
     } catch (err) {
       closeAlert();

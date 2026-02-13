@@ -28,7 +28,10 @@ const DepartmentRoute = ({
   if (!allowedRoles.includes(userType)) {
     const redirectMap = {
       student: "/student/dashboard",
-      admin: "/admin/dashboard",
+      admin:
+        userDepartment === "Finance"
+          ? "/finance/dashboard"
+          : "/admin/dashboard",
     };
     return <Navigate to={redirectMap[userType] || "/login"} replace />;
   }

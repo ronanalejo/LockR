@@ -12,7 +12,7 @@ import {
   showSuccess,
 } from "../../utils/notifications";
 import "../../assets/css/financeDashboard.css";
-
+import useSocket from "../../hooks/useSocket";
 
 const FinanceDashboard = () => {
   const [activeTab, setActiveTab] = useState("for-payment");
@@ -59,13 +59,13 @@ const FinanceDashboard = () => {
 
         switch (activeTab) {
           case "for-payment":
-            response = await financeService.getForPayment();
+            response = await financeService.getPendingPayments();
             break;
           case "history":
             response = await financeService.getPaymentHistory();
             break;
           default:
-            response = await financeService.getForPayment();
+            response = await financeService.getPendingPayments();
         }
 
         if (response?.success) {
@@ -85,8 +85,16 @@ const FinanceDashboard = () => {
     [activeTab],
   );
 
+  // Real-time WebSocket updates from other dashboards
+  useSocket(
+    "finance",
+    useCallback(() => {
+      fetchData(false);
+    }, [fetchData]),
+  );
+
   /**
-   * Initial load + 10s polling (OSAS pattern)
+   * Initial load + 10s polling (fallback if WebSocket disconnects)
    */
   useEffect(() => {
     fetchData(true);
@@ -101,11 +109,9 @@ const FinanceDashboard = () => {
     setStats({
       total: data.length,
       pendingPayments: data.filter(
-        (r) => r.paymentStatus === "PENDING",
+        (r) => r.paymentVerified === 0 || !r.paymentVerified,
       ).length,
-      verifiedPayments: data.filter(
-        (r) => r.paymentStatus === "VERIFIED",
-      ).length,
+      verifiedPayments: data.filter((r) => r.paymentVerified === 1).length,
     });
   }, []);
 
@@ -128,8 +134,7 @@ const FinanceDashboard = () => {
         const referenceNo = reservation.referenceNo?.toString() || "";
 
         return (
-          studentName.includes(searchLower) ||
-          referenceNo.includes(searchLower)
+          studentName.includes(searchLower) || referenceNo.includes(searchLower)
         );
       }
 
@@ -228,36 +233,34 @@ const FinanceDashboard = () => {
   ];
 
   return (
-    <div className="osas-dashboard">
+    <div className="finance-dashboard">
       {/* Sidebar */}
-      <div className="osas-sidebar">
-        <div className="osas-sidebar-logo">
-          <div className="osas-logo-container">
-            <div className="osas-logo-icon">
-              <div className="osas-logo-icon-inner"></div>
+      <div className="finance-sidebar">
+        <div className="finance-sidebar-logo">
+          <div className="finance-logo-container">
+            <div className="finance-logo-icon">
+              <div className="finance-logo-icon-inner"></div>
             </div>
-            <div className="osas-logo-text">LockR Finance</div>
+            <div className="finance-logo-text">LockR Finance</div>
           </div>
         </div>
 
-        <div className="osas-user-info">
-          <p className="osas-user-name">
+        <div className="finance-user-info">
+          <p className="finance-user-name">
             {user?.firstName} {user?.lastName}
           </p>
-          <p className="osas-user-role">Finance Administrator</p>
+          <p className="finance-user-role">Finance Administrator</p>
         </div>
 
-        <button className="osas-logout-button" onClick={handleLogout}>
+        <button className="finance-logout-button" onClick={handleLogout}>
           Log Out
         </button>
       </div>
 
       {/* Main */}
-      <div className="osas-main-content">
-        <div className="osas-header">
-          <h1 className="osas-header-title">
-            Finance Payment Management
-          </h1>
+      <div className="finance-main-content">
+        <div className="finance-header">
+          <h1 className="finance-header-title">Finance Payment Management</h1>
 
           {isRefreshing && (
             <div className="refresh-indicator">
@@ -268,7 +271,7 @@ const FinanceDashboard = () => {
         </div>
 
         {/* Stats */}
-        <div className="osas-stats-cards">
+        <div className="finance-stats-cards">
           <div className="stat-card">
             <div className="stat-icon total"></div>
             <div className="stat-content">
@@ -278,7 +281,7 @@ const FinanceDashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon endorsement"></div>
+            <div className="stat-icon pending"></div>
             <div className="stat-content">
               <p className="stat-label">Pending Payments</p>
               <p className="stat-value">{stats.pendingPayments}</p>
@@ -286,7 +289,7 @@ const FinanceDashboard = () => {
           </div>
 
           <div className="stat-card">
-            <div className="stat-icon approval"></div>
+            <div className="stat-icon verified"></div>
             <div className="stat-content">
               <p className="stat-label">Verified Payments</p>
               <p className="stat-value">{stats.verifiedPayments}</p>
@@ -295,17 +298,15 @@ const FinanceDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="osas-tabs">
+        <div className="finance-tabs">
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`osas-tab ${activeTab === tab.id ? "active" : ""}`}
+              className={`finance-tab ${activeTab === tab.id ? "active" : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
-              {tab.count > 0 && (
-                <span className="tab-badge">{tab.count}</span>
-              )}
+              {tab.count > 0 && <span className="tab-badge">{tab.count}</span>}
             </button>
           ))}
         </div>
@@ -316,7 +317,7 @@ const FinanceDashboard = () => {
           onClearFilters={clearFilters}
         />
 
-        <div className="osas-content-area">
+        <div className="finance-content-area">
           <FinanceDataTable
             data={filteredReservations}
             loading={loading}

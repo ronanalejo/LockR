@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import PDFViewerModal from "../common/PDFViewerModal";
+import PDFViewerModal from "../osas/PDFViewerModal";
 import "../../assets/css/dataTable.css";
 
 const ITEMS_PER_PAGE = 10;
@@ -32,7 +32,7 @@ const FinanceDataTable = ({
       {
         key: "agreementDuration",
         label: "Agreement Duration",
-        sortable: true,
+        sortable: false,
       },
       { key: "receipt", label: "Receipt", sortable: false },
       {
@@ -153,9 +153,7 @@ const FinanceDataTable = ({
         return row.paymentAdviceSlipUrl ? (
           <button
             className="btn-view-doc"
-            onClick={() =>
-              setSelectedDocument(row.paymentAdviceSlipUrl)
-            }
+            onClick={() => setSelectedDocument(row.paymentAdviceSlipUrl)}
           >
             View
           </button>
@@ -240,9 +238,7 @@ const FinanceDataTable = ({
             {paginatedData.map((row) => (
               <tr key={row.id}>
                 {columns.map((col) => (
-                  <td key={col.key}>
-                    {renderCell(row, col.key)}
-                  </td>
+                  <td key={col.key}>{renderCell(row, col.key)}</td>
                 ))}
               </tr>
             ))}

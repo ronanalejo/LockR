@@ -1,3 +1,9 @@
+-- ========================================================================
+-- LockR Reservation System
+-- Migration: 005_create_reservation_table.sql
+-- Updated: Includes finance payment verification columns
+-- ========================================================================
+
 -- Create Reservation table
 CREATE TABLE IF NOT EXISTS `reservation` (
   `referralSlipNo` INT PRIMARY KEY AUTO_INCREMENT,
@@ -18,6 +24,12 @@ CREATE TABLE IF NOT EXISTS `reservation` (
   `pdfPaymentAdviceSlip` VARCHAR(255) DEFAULT NULL COMMENT 'File path to generated PDF slip (Student Copy)',
   `pdfPaymentAdviceSlipOSAS` VARCHAR(255) DEFAULT NULL COMMENT 'File path to OSAS copy of payment advice slip',
   `proofOfPayment` VARCHAR(255) DEFAULT NULL COMMENT 'File path to uploaded proof of payment',
+
+  -- Finance payment verification columns
+  `paymentVerified` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Whether Finance has verified the payment',
+  `paymentVerifiedAt` DATETIME DEFAULT NULL COMMENT 'Timestamp when Finance verified payment',
+  `verifiedBy` INT DEFAULT NULL COMMENT 'employeeID of Finance staff who verified',
+
   `modeOfPayment` VARCHAR(50) DEFAULT NULL COMMENT 'Payment method selected by student (Cash, Card, Bank Transfer, Online)',
   `accountNumber` VARCHAR(100) DEFAULT NULL COMMENT 'Account number for non-cash payments',
   `endorsedByName` VARCHAR(200) DEFAULT NULL COMMENT 'Full name of OSAS employee who endorsed',
@@ -34,8 +46,6 @@ CREATE TABLE IF NOT EXISTS `reservation` (
   `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   
   -- Computed column for enforcing single active reservation per student
-  -- Returns 1 if reservation is active (in any pending or approved state), NULL otherwise
-  -- This enables a unique constraint that only applies to active reservations
   `activeFlag` TINYINT(1) GENERATED ALWAYS AS (
     CASE 
       WHEN `forEndorsement` = 1 OR `forApproval` = 1 OR `isActive` = 1 
@@ -61,6 +71,12 @@ CREATE TABLE IF NOT EXISTS `reservation` (
     FOREIGN KEY (`employeeID`) 
     REFERENCES `admin`(`employeeID`) 
     ON DELETE SET NULL 
+    ON UPDATE CASCADE,
+
+  CONSTRAINT `fk_reservation_verifiedBy`
+    FOREIGN KEY (`verifiedBy`)
+    REFERENCES `admin`(`employeeID`)
+    ON DELETE SET NULL
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -80,13 +96,13 @@ CREATE INDEX idx_reservation_active ON `reservation`(`isActive`, `agreementDateE
 -- Date range indexes
 CREATE INDEX idx_reservation_dates ON `reservation`(`reservationTimeStart`, `reservationTimeEnd`);
 
+-- Finance payment verification index
+CREATE INDEX idx_reservation_payment ON `reservation`(`paymentVerified`, `isActive`);
+CREATE INDEX idx_reservation_verifiedBy ON `reservation`(`verifiedBy`);
+
 -- ========================================================================
 -- CRITICAL: Single Active Reservation Constraint
 -- ========================================================================
--- This unique index enforces the business rule: one active reservation per student
--- Because activeFlag is NULL for inactive reservations, this constraint only applies
--- when activeFlag = 1 (i.e., when forEndorsement OR forApproval OR isActive is TRUE)
--- Multiple NULL values are allowed (inactive reservations don't conflict)
 CREATE UNIQUE INDEX idx_unique_active_reservation 
 ON `reservation` (`studentID`, `activeFlag`);
 
@@ -101,7 +117,4 @@ ON `reservation` (`studentID`, `activeFlag`);
 -- Active (Approved)      | FALSE          | FALSE       | TRUE     | 1
 -- Rejected/Completed     | FALSE          | FALSE       | FALSE    | NULL
 -- Cancelled/Expired      | FALSE          | FALSE       | FALSE    | NULL
--- 
--- The unique index on (studentID, activeFlag) ensures only ONE row per student
--- can have activeFlag = 1, preventing duplicate active reservations at DB level.
 -- ========================================================================

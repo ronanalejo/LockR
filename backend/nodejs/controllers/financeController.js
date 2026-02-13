@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const socketService = require("../services/socketService");
 
 const formatSuccess = (data, message = "Success") => ({
   success: true,
@@ -15,7 +16,7 @@ exports.getPendingPayments = async (req, res) => {
   try {
     const [rows] = await pool.execute(`
       SELECT
-        r.referralSlipNo,            -- ✅ correct PK
+        r.referralSlipNo,
         r.lockerID,
         r.floorNumber,
         s.firstName AS studentFirstName,
@@ -142,6 +143,10 @@ exports.verifyPayment = async (req, res) => {
     );
 
     await connection.commit();
+
+    socketService.emitReservationUpdate("payment-verified", {
+      referralSlipNo,
+    });
 
     return res.json({
       success: true,

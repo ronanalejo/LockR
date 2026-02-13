@@ -1,6 +1,7 @@
 const reservationModel = require("../models/reservationModel");
 const pool = require("../config/database");
 const { generatePaymentAdviceSlip } = require("../utils/pdfGenerator");
+const socketService = require("../services/socketService");
 
 const adminController = {
   // Get reservations pending endorsement
@@ -148,15 +149,36 @@ const adminController = {
       );
 
       // Generate Payment Advice Slip and send email
-      console.log(
-        "[APPROVE ENDORSEMENT] Registering setImmediate for PDF/email...",
-      );
-      setImmediate(async () => {
-        console.log("[APPROVE ENDORSEMENT] setImmediate fired");
-        const emailService = require("../services/emailService");
-        let studentCopyBuffer = null;
+      // Emit real-time update to connected dashboards
+      socketService.emitReservationUpdate("endorsement-approved", {
+        referralSlipNo: reservation.referralSlipNo,
+      });
 
-        // Step 1: Try to generate PDF (failure does not block email)
+      // Send email immediately without PDF (instant delivery)
+      const emailService = require("../services/emailService");
+      emailService
+        .sendEndorsementApprovalEmail(
+          student.studentEmail,
+          student.firstName,
+          reservation.referralSlipNo,
+          employeeFullName,
+          null,
+        )
+        .then(() => {
+          console.log(
+            "Endorsement approval email sent to:",
+            student.studentEmail,
+          );
+        })
+        .catch((emailError) => {
+          console.error(
+            "Failed to send endorsement approval email:",
+            emailError.message,
+          );
+        });
+
+      // Generate PDF in background (does not block response or email)
+      (async () => {
         try {
           const {
             generatePaymentAdviceSlipWithCopy,
@@ -170,13 +192,8 @@ const adminController = {
             endorsedByName: employeeFullName,
           };
 
-          const {
-            studentCopyPath,
-            osasCopyPath,
-            studentCopyBuffer: pdfBuffer,
-          } = await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
-
-          studentCopyBuffer = pdfBuffer;
+          const { studentCopyPath, osasCopyPath } =
+            await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
 
           await reservationModel.update(parseInt(id), {
             pdfPaymentAdviceSlip: studentCopyPath,
@@ -188,32 +205,9 @@ const adminController = {
             reservation.referralSlipNo,
           );
         } catch (pdfError) {
-          console.error(
-            "PDF generation failed (email will still be sent):",
-            pdfError.message,
-          );
+          console.error("PDF generation failed:", pdfError.message);
         }
-
-        // Step 2: Always send the email, with or without PDF attachment
-        try {
-          await emailService.sendEndorsementApprovalEmail(
-            student.studentEmail,
-            student.firstName,
-            reservation.referralSlipNo,
-            employeeFullName,
-            studentCopyBuffer,
-          );
-          console.log(
-            "Endorsement approval email sent successfully to:",
-            student.studentEmail,
-          );
-        } catch (emailError) {
-          console.error(
-            "Failed to send endorsement approval email:",
-            emailError.message,
-          );
-        }
-      });
+      })();
 
       const updatedReservation = await reservationModel.findById(parseInt(id));
 
@@ -300,6 +294,10 @@ const adminController = {
       );
 
       await connection.commit();
+
+      socketService.emitReservationUpdate("endorsement-rejected", {
+        referralSlipNo: reservation.referralSlipNo,
+      });
 
       const updatedReservation = await reservationModel.findById(parseInt(id));
 
@@ -484,6 +482,10 @@ const adminController = {
 
       await connection.commit();
 
+      socketService.emitReservationUpdate("reservation-approved", {
+        referralSlipNo: reservation.referralSlipNo,
+      });
+
       const updatedReservation = await reservationModel.findById(parseInt(id));
 
       res.json({
@@ -593,6 +595,10 @@ const adminController = {
       );
 
       await connection.commit();
+
+      socketService.emitReservationUpdate("reservation-rejected", {
+        referralSlipNo: reservation.referralSlipNo,
+      });
 
       const updatedReservation = await reservationModel.findById(parseInt(id));
 

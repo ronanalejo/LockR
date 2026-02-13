@@ -10,7 +10,14 @@ const Unauthorized = () => {
   };
 
   const handleGoHome = () => {
-    navigate("/admin/dashboard");
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.department === "Finance") {
+      navigate("/finance/dashboard");
+    } else if (user?.userType === "student") {
+      navigate("/student/dashboard");
+    } else {
+      navigate("/admin/dashboard");
+    }
   };
 
   return (

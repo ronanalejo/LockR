@@ -12,6 +12,7 @@ import {
   showSuccess,
 } from "../../utils/notifications";
 import "../../assets/css/osasDashboard.css";
+import useSocket from "../../hooks/useSocket";
 
 const OSASDashboard = () => {
   const [activeTab, setActiveTab] = useState("endorsement");
@@ -94,6 +95,14 @@ const OSASDashboard = () => {
       }
     },
     [activeTab, updateStats],
+  );
+
+  // Real-time WebSocket updates from other dashboards
+  useSocket(
+    "osas",
+    useCallback(() => {
+      fetchData(false);
+    }, [fetchData]),
   );
 
   useEffect(() => {
