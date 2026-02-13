@@ -179,7 +179,7 @@ const reservationModel = {
     };
   },
 
-  update: async (referralSlipNo, updateData) => {
+  update: async (referralSlipNo, updateData, connection = null) => {
     const fields = [];
     const values = [];
 
@@ -257,11 +257,11 @@ const reservationModel = {
     }
 
     values.push(referralSlipNo);
-    const query = `UPDATE reservation SET ${fields.join(
-      ", ",
-    )} WHERE referralSlipNo = ?`;
+    const query = `UPDATE reservation SET ${fields.join(", ")} WHERE referralSlipNo = ?`;
 
-    const [result] = await pool.execute(query, values);
+    // Use provided connection for transaction support, or pool for standalone updates
+    const executor = connection || pool;
+    const [result] = await executor.execute(query, values);
     return result.affectedRows;
   },
 

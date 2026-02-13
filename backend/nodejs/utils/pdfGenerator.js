@@ -66,7 +66,10 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
       accountNumber,
       "Student's Copy",
     );
-    await page.setContent(studentHtml, { waitUntil: "networkidle0" });
+    await page.setContent(studentHtml, {
+      waitUntil: "domcontentloaded",
+      timeout: 10000,
+    });
     await page.pdf({
       path: studentOutputPath,
       format: "A4",
@@ -76,6 +79,7 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
 
     // Read student copy buffer for email attachment
     const studentCopyBuffer = await fs.readFile(studentOutputPath);
+    console.log("[PDF] Student copy generated successfully");
 
     // Generate OSAS Copy
     const osasHtml = generatePaymentAdviceHTML(
@@ -83,15 +87,19 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
       amount,
       paymentMethod,
       accountNumber,
-      "OSAS Copy",
+      "OSAS' Copy",
     );
-    await page.setContent(osasHtml, { waitUntil: "networkidle0" });
+    await page.setContent(osasHtml, {
+      waitUntil: "domcontentloaded",
+      timeout: 10000,
+    });
     await page.pdf({
       path: osasOutputPath,
       format: "A4",
       printBackground: true,
       margin: { top: "20px", right: "20px", bottom: "20px", left: "20px" },
     });
+    console.log("[PDF] OSAS copy generated successfully");
 
     // Generate Finance Copy
     const financeHtml = generatePaymentAdviceHTML(
@@ -99,15 +107,19 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
       amount,
       paymentMethod,
       accountNumber,
-      "Finance Copy",
+      "Finance's Copy",
     );
-    await page.setContent(financeHtml, { waitUntil: "networkidle0" });
+    await page.setContent(financeHtml, {
+      waitUntil: "domcontentloaded",
+      timeout: 10000,
+    });
     await page.pdf({
       path: financeOutputPath,
       format: "A4",
       printBackground: true,
       margin: { top: "20px", right: "20px", bottom: "20px", left: "20px" },
     });
+    console.log("[PDF] Finance copy generated successfully");
 
     await browser.close();
 
@@ -118,7 +130,20 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
       studentCopyBuffer: studentCopyBuffer,
     };
   } catch (error) {
-    console.error("PDF Generation Error:", error);
+    console.error("=== PDF GENERATION ERROR DETAILS ===");
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("Reservation data:", {
+      referralSlipNo: reservation.referralSlipNo,
+      studentFirstName: reservation.studentFirstName,
+      studentLastName: reservation.studentLastName,
+      student_type: reservation.student_type,
+      lockerID: reservation.lockerID,
+      floorNumber: reservation.floorNumber,
+      agreement: reservation.agreement,
+    });
+    console.error("=====================================");
+
     if (browser) {
       await browser.close();
     }

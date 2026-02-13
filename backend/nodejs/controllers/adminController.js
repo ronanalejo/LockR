@@ -112,12 +112,16 @@ const adminController = {
         });
       }
 
-      await reservationModel.update(parseInt(id), {
-        forEndorsement: false,
-        forApproval: true,
-        isActive: false,
-        employeeID: employeeID,
-      });
+      await reservationModel.update(
+        parseInt(id),
+        {
+          forEndorsement: false,
+          forApproval: true,
+          isActive: false,
+          employeeID: employeeID,
+        },
+        connection,
+      );
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
@@ -142,6 +146,70 @@ const adminController = {
       );
       const student = studentRows[0];
 
+      // Generate all 3 PDFs BEFORE committing transaction
+      // This ensures status transition only happens if PDFs succeed
+      let pdfResult;
+      let studentCopyBuffer;
+      try {
+        const {
+          generatePaymentAdviceSlipWithCopy,
+        } = require("../utils/pdfGenerator");
+
+        const paymentAdviceData = {
+          ...reservation,
+          studentFirstName: student.firstName,
+          studentLastName: student.lastName,
+          student_type: student.student_type,
+          endorsedByName: employeeFullName,
+        };
+        console.log("[DEBUG] Payment Advice Data:", {
+          referralSlipNo: paymentAdviceData.referralSlipNo,
+          studentFirstName: paymentAdviceData.studentFirstName,
+          studentLastName: paymentAdviceData.studentLastName,
+          student_type: paymentAdviceData.student_type,
+          lockerID: paymentAdviceData.lockerID,
+          floorNumber: paymentAdviceData.floorNumber,
+          agreement: paymentAdviceData.agreement,
+          agreementDateStart: paymentAdviceData.agreementDateStart,
+          agreementDateEnd: paymentAdviceData.agreementDateEnd,
+          modeOfPayment: paymentAdviceData.modeOfPayment,
+          accountNumber: paymentAdviceData.accountNumber,
+        });
+
+        pdfResult = await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
+        studentCopyBuffer = pdfResult.studentCopyBuffer;
+
+        // Update DB with PDF paths INSIDE transaction
+        await reservationModel.update(
+          parseInt(id),
+          {
+            pdfPaymentAdviceSlip: pdfResult.studentCopyPath,
+            pdfPaymentAdviceSlipOSAS: pdfResult.osasCopyPath,
+            pdfPaymentAdviceSlipFinance: pdfResult.financeCopyPath,
+          },
+          connection,
+        );
+
+        console.log(
+          "[PDF GENERATION SUCCESS] All 3 PDFs generated for referral:",
+          reservation.referralSlipNo,
+        );
+      } catch (pdfError) {
+        console.error(
+          "[PDF GENERATION FAILED] Rolling back transaction:",
+          pdfError.message,
+        );
+        await connection.rollback();
+        connection.release();
+        return res.status(500).json({
+          success: false,
+          message:
+            "Failed to generate Payment Advice Slip PDFs. Endorsement was not approved.",
+          error: pdfError.message,
+        });
+      }
+
+      // Only commit if PDF generation succeeded
       await connection.commit();
       console.log(
         "[APPROVE ENDORSEMENT] Transaction committed for referral:",
@@ -153,43 +221,10 @@ const adminController = {
         referralSlipNo: reservation.referralSlipNo,
       });
 
-      // Generate PDF first, then send email with attachment (non-blocking to HTTP response)
-      (async () => {
-        let studentCopyBuffer = null;
+      const updatedReservation = await reservationModel.findById(parseInt(id));
 
-        // Step 1: Generate all 3 PDF copies
-        try {
-          const {
-            generatePaymentAdviceSlipWithCopy,
-          } = require("../utils/pdfGenerator");
-
-          const paymentAdviceData = {
-            ...reservation,
-            studentFirstName: student.firstName,
-            studentLastName: student.lastName,
-            student_type: student.student_type,
-            endorsedByName: employeeFullName,
-          };
-
-          const result =
-            await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
-          studentCopyBuffer = result.studentCopyBuffer;
-
-          await reservationModel.update(parseInt(id), {
-            pdfPaymentAdviceSlip: result.studentCopyPath,
-            pdfPaymentAdviceSlipOSAS: result.osasCopyPath,
-            pdfPaymentAdviceSlipFinance: result.financeCopyPath,
-          });
-
-          console.log(
-            "Payment Advice Slip PDFs generated for referral:",
-            reservation.referralSlipNo,
-          );
-        } catch (pdfError) {
-          console.error("PDF generation failed:", pdfError.message);
-        }
-
-        // Step 2: Send email with Student's Copy attached (or without if PDF failed)
+      // Send email with Student's Copy attached (non-blocking, post-commit)
+      setImmediate(async () => {
         try {
           const emailService = require("../services/emailService");
           await emailService.sendEndorsementApprovalEmail(
@@ -209,9 +244,7 @@ const adminController = {
             emailError.message,
           );
         }
-      })();
-
-      const updatedReservation = await reservationModel.findById(parseInt(id));
+      });
 
       res.json({
         success: true,
@@ -787,12 +820,16 @@ const adminController = {
         });
       }
 
-      await reservationModel.update(parseInt(id), {
-        isActive: false,
-        forEndorsement: false,
-        forApproval: false,
-        employeeID: employeeID,
-      });
+      await reservationModel.update(
+        parseInt(id),
+        {
+          isActive: false,
+          forEndorsement: false,
+          forApproval: false,
+          employeeID: employeeID,
+        },
+        connection,
+      );
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
