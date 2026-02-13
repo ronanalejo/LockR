@@ -53,6 +53,11 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
             label: "Application Form",
             sortable: false,
           },
+          {
+            key: "paymentAdviceSlip",
+            label: "Payment Advice Slip",
+            sortable: false,
+          },
           { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
           { key: "actions", label: "Approve?", sortable: false },
         ];

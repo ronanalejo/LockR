@@ -106,6 +106,7 @@ const reservationController = {
       const agreementData = {
         referralSlipNo: referralSlipNo,
         studentName: `${student.firstName} ${student.lastName}`,
+        studentID: student.studentID,
         program: program,
         lockerID: lockerID,
         duration: duration,

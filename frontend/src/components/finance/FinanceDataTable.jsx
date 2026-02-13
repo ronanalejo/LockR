@@ -24,26 +24,48 @@ const FinanceDataTable = ({
   =============================== */
 
   const columns = useMemo(() => {
-    const baseColumns = [
-      { key: "lockerID", label: "Locker ID", sortable: true },
+    if (activeTab === "for-payment") {
+      return [
+        { key: "referralSlipNo", label: "Referral No.", sortable: true },
+        { key: "lockerID", label: "Locker ID", sortable: true },
+        { key: "floorNumber", label: "Floor No.", sortable: true },
+        { key: "studentName", label: "Student Name", sortable: true },
+        { key: "agreement", label: "Agreement", sortable: true },
+        {
+          key: "agreementPeriod",
+          label: "Start and End of Agreement",
+          sortable: false,
+        },
+        {
+          key: "paymentAdviceSlip",
+          label: "Payment Advice Slip",
+          sortable: false,
+        },
+        { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
+        { key: "endorsedBy", label: "Endorsed By", sortable: false },
+      ];
+    }
+
+    // History tab
+    return [
       { key: "referralSlipNo", label: "Referral No.", sortable: true },
+      { key: "lockerID", label: "Locker ID", sortable: true },
+      { key: "floorNumber", label: "Floor No.", sortable: true },
       { key: "studentName", label: "Student Name", sortable: true },
       { key: "agreement", label: "Agreement", sortable: true },
       {
-        key: "agreementDuration",
-        label: "Agreement Duration",
+        key: "agreementPeriod",
+        label: "Start and End of Agreement",
         sortable: false,
       },
-      { key: "receipt", label: "Receipt", sortable: false },
       {
         key: "paymentAdviceSlip",
         label: "Payment Advice Slip",
         sortable: false,
       },
+      { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
       { key: "endorsedBy", label: "Endorsed By", sortable: false },
     ];
-
-    return baseColumns;
   }, [activeTab]);
 
   /* ===============================
@@ -108,61 +130,89 @@ const FinanceDataTable = ({
   function getCellValue(row, key) {
     switch (key) {
       case "studentName":
-        return `${row.studentFirstName || ""} ${
-          row.studentLastName || ""
-        }`.toLowerCase();
+        return `${row.studentFirstName || ""} ${row.studentLastName || ""}`.toLowerCase();
 
-      case "agreementDuration":
-        return getAgreementDuration(
-          row.agreementDateStart,
-          row.agreementDateEnd,
-        );
+      case "floorNumber":
+        return parseInt(row.floorNumber) || 0;
 
       default:
         return row[key] || "";
     }
   }
 
+  const API_BASE_URL =
+    process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+  const uploadsBaseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
+
   const renderCell = (row, columnKey) => {
     switch (columnKey) {
       case "studentName":
-        return `${row.studentFirstName} ${row.studentLastName}`;
+        return `${row.studentFirstName || ""} ${row.studentLastName || ""}`;
+
+      case "floorNumber":
+        return row.floorNumber || "-";
 
       case "agreement":
-        return row.agreementType || "Standard";
+        return row.agreement || "-";
 
-      case "agreementDuration":
-        return getAgreementDuration(
-          row.agreementDateStart,
-          row.agreementDateEnd,
-        );
+      case "agreementPeriod": {
+        const start = row.agreementDateStart
+          ? new Date(row.agreementDateStart).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "N/A";
+        const end = row.agreementDateEnd
+          ? new Date(row.agreementDateEnd).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "N/A";
+        return `${start} - ${end}`;
+      }
 
-      case "receipt":
-        return row.receiptUrl ? (
-          <button
-            className="btn-view-doc"
-            onClick={() => setSelectedDocument(row.receiptUrl)}
-          >
-            View
-          </button>
-        ) : (
-          "-"
-        );
+      case "paymentAdviceSlip": {
+        const slipPath =
+          row.pdfPaymentAdviceSlipFinance || row.pdfPaymentAdviceSlip;
+        if (slipPath) {
+          return (
+            <button
+              className="btn-view-doc"
+              onClick={() =>
+                window.open(`${uploadsBaseUrl}/uploads/${slipPath}`, "_blank")
+              }
+            >
+              View
+            </button>
+          );
+        }
+        return "-";
+      }
 
-      case "paymentAdviceSlip":
-        return row.paymentAdviceSlipUrl ? (
-          <button
-            className="btn-view-doc"
-            onClick={() => setSelectedDocument(row.paymentAdviceSlipUrl)}
-          >
-            View
-          </button>
-        ) : (
-          "-"
-        );
+      case "proofOfPayment": {
+        const proofPath = row.proofOfPayment || row.dropboxReceipt;
+        if (proofPath) {
+          return (
+            <button
+              className="btn-view-doc"
+              onClick={() =>
+                window.open(`${uploadsBaseUrl}/uploads/${proofPath}`, "_blank")
+              }
+            >
+              View
+            </button>
+          );
+        }
+        return "-";
+      }
 
       case "endorsedBy":
-        return row.endorsedByName || "-";
+        if (row.endorsedByFirstName && row.endorsedByLastName) {
+          return `${row.endorsedByFirstName} ${row.endorsedByLastName}`;
+        }
+        return "-";
 
       default:
         return row[columnKey] || "-";

@@ -148,6 +148,14 @@ async function generateAgreementPDF(agreementData) {
             margin-bottom: 5px;
             display: block;
         }
+        .signature-details {
+            text-align: left;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+        .signature-details p {
+            margin: 3px 0;
+        }
         .signature-label {
             font-size: 11px;
             color: #666;
@@ -287,13 +295,17 @@ async function generateAgreementPDF(agreementData) {
     <div class="signature-section">
         <div class="signature-box">
             <img src="${agreementData.signature}" class="signature-image" alt="Student Signature" />
+            <div class="signature-details">
+                <p><strong>Student Name:</strong> ${agreementData.studentName}</p>
+                <p><strong>Student ID:</strong> ${agreementData.studentID || "N/A"}</p>
+                <p><strong>Date Signed:</strong> ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
+            </div>
             <div class="signature-label">Student's Signature</div>
         </div>
     </div>
 
     <div class="footer">
         <p><strong>Document Reference:</strong> ${agreementData.referralSlipNo}</p>
-        <p><strong>Date Signed:</strong> ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
         <p>This is an electronically signed document. For verification, contact OSAS.</p>
     </div>
 </body>

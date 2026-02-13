@@ -148,37 +148,16 @@ const adminController = {
         id,
       );
 
-      // Generate Payment Advice Slip and send email
       // Emit real-time update to connected dashboards
       socketService.emitReservationUpdate("endorsement-approved", {
         referralSlipNo: reservation.referralSlipNo,
       });
 
-      // Send email immediately without PDF (instant delivery)
-      const emailService = require("../services/emailService");
-      emailService
-        .sendEndorsementApprovalEmail(
-          student.studentEmail,
-          student.firstName,
-          reservation.referralSlipNo,
-          employeeFullName,
-          null,
-        )
-        .then(() => {
-          console.log(
-            "Endorsement approval email sent to:",
-            student.studentEmail,
-          );
-        })
-        .catch((emailError) => {
-          console.error(
-            "Failed to send endorsement approval email:",
-            emailError.message,
-          );
-        });
-
-      // Generate PDF in background (does not block response or email)
+      // Generate PDF first, then send email with attachment (non-blocking to HTTP response)
       (async () => {
+        let studentCopyBuffer = null;
+
+        // Step 1: Generate all 3 PDF copies
         try {
           const {
             generatePaymentAdviceSlipWithCopy,
@@ -192,20 +171,43 @@ const adminController = {
             endorsedByName: employeeFullName,
           };
 
-          const { studentCopyPath, osasCopyPath } =
+          const result =
             await generatePaymentAdviceSlipWithCopy(paymentAdviceData);
+          studentCopyBuffer = result.studentCopyBuffer;
 
           await reservationModel.update(parseInt(id), {
-            pdfPaymentAdviceSlip: studentCopyPath,
-            pdfPaymentAdviceSlipOSAS: osasCopyPath,
+            pdfPaymentAdviceSlip: result.studentCopyPath,
+            pdfPaymentAdviceSlipOSAS: result.osasCopyPath,
+            pdfPaymentAdviceSlipFinance: result.financeCopyPath,
           });
 
           console.log(
-            "Payment Advice Slip PDF generated for referral:",
+            "Payment Advice Slip PDFs generated for referral:",
             reservation.referralSlipNo,
           );
         } catch (pdfError) {
           console.error("PDF generation failed:", pdfError.message);
+        }
+
+        // Step 2: Send email with Student's Copy attached (or without if PDF failed)
+        try {
+          const emailService = require("../services/emailService");
+          await emailService.sendEndorsementApprovalEmail(
+            student.studentEmail,
+            student.firstName,
+            reservation.referralSlipNo,
+            employeeFullName,
+            studentCopyBuffer,
+          );
+          console.log(
+            "Endorsement approval email sent to:",
+            student.studentEmail,
+          );
+        } catch (emailError) {
+          console.error(
+            "Failed to send endorsement approval email:",
+            emailError.message,
+          );
         }
       })();
 

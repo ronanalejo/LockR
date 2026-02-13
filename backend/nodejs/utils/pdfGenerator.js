@@ -41,8 +41,10 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
     const timestamp = Date.now();
     const studentFilename = `${reservation.referralSlipNo} - Payment Advice Slip - Student - ${timestamp}.pdf`;
     const osasFilename = `${reservation.referralSlipNo} - Payment Advice Slip - OSAS - ${timestamp}.pdf`;
+    const financeFilename = `${reservation.referralSlipNo} - Payment Advice Slip - Finance - ${timestamp}.pdf`;
     const studentOutputPath = path.join(outputDir, studentFilename);
     const osasOutputPath = path.join(outputDir, osasFilename);
+    const financeOutputPath = path.join(outputDir, financeFilename);
 
     browser = await puppeteer.launch({
       headless: true,
@@ -91,11 +93,28 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
       margin: { top: "20px", right: "20px", bottom: "20px", left: "20px" },
     });
 
+    // Generate Finance Copy
+    const financeHtml = generatePaymentAdviceHTML(
+      reservation,
+      amount,
+      paymentMethod,
+      accountNumber,
+      "Finance Copy",
+    );
+    await page.setContent(financeHtml, { waitUntil: "networkidle0" });
+    await page.pdf({
+      path: financeOutputPath,
+      format: "A4",
+      printBackground: true,
+      margin: { top: "20px", right: "20px", bottom: "20px", left: "20px" },
+    });
+
     await browser.close();
 
     return {
       studentCopyPath: `payment-advice-slips/${studentFilename}`,
       osasCopyPath: `payment-advice-slips/${osasFilename}`,
+      financeCopyPath: `payment-advice-slips/${financeFilename}`,
       studentCopyBuffer: studentCopyBuffer,
     };
   } catch (error) {

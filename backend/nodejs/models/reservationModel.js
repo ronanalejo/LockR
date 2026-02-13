@@ -242,6 +242,11 @@ const reservationModel = {
       values.push(updateData.pdfPaymentAdviceSlipOSAS);
     }
 
+    if (updateData.pdfPaymentAdviceSlipFinance !== undefined) {
+      fields.push("pdfPaymentAdviceSlipFinance = ?");
+      values.push(updateData.pdfPaymentAdviceSlipFinance);
+    }
+
     if (updateData.proofOfPayment !== undefined) {
       fields.push("proofOfPayment = ?");
       values.push(updateData.proofOfPayment);

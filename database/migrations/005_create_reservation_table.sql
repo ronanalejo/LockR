@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `reservation` (
   `lockerApplicationFormAgreement` VARCHAR(255) DEFAULT NULL COMMENT 'File path to signed agreement form',
   `dropboxReceipt` VARCHAR(255) DEFAULT NULL COMMENT 'File path to Proof of Payment file',
   `pdfPaymentAdviceSlip` VARCHAR(255) DEFAULT NULL COMMENT 'File path to generated PDF slip (Student Copy)',
-  `pdfPaymentAdviceSlipOSAS` VARCHAR(255) DEFAULT NULL COMMENT 'File path to OSAS copy of payment advice slip',
+  `pdfPaymentAdviceSlipFinance` VARCHAR(255) DEFAULT NULL COMMENT 'File path to Finance copy of payment advice slip',
   `proofOfPayment` VARCHAR(255) DEFAULT NULL COMMENT 'File path to uploaded proof of payment',
 
   -- Finance payment verification columns

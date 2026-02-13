@@ -370,6 +370,42 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
                   {formatDate(activeReservation.createdAt)}
                 </span>
               </div>
+              <div className="detail-row">
+                <span className="detail-label">Reservation Timer:</span>
+                <span className="detail-value">
+                  {activeReservation.reservationTimeEnd
+                    ? (() => {
+                        const now = new Date();
+                        const end = new Date(
+                          activeReservation.reservationTimeEnd,
+                        );
+                        const diff = end - now;
+                        if (diff <= 0) return "Expired";
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const minutes = Math.floor(
+                          (diff % (1000 * 60 * 60)) / (1000 * 60),
+                        );
+                        return `${hours}h ${minutes}m remaining`;
+                      })()
+                    : "N/A"}
+                </span>
+              </div>
+              {(activeReservation.forApproval ||
+                activeReservation.forEndorsement) && (
+                <div className="detail-row instruction-text">
+                  <span
+                    className="detail-value"
+                    style={{
+                      fontStyle: "italic",
+                      color: "#1d4ed8",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    Download the Payment Advice Slip and present it to the
+                    Finance Department to proceed with the payment.
+                  </span>
+                </div>
+              )}
               {activeReservation.agreementDateStart && (
                 <div className="detail-row">
                   <span className="detail-label">Agreement Period:</span>
@@ -475,14 +511,24 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
                   <span>Locker Agreement</span>
                 </button>
                 <button
-                  className={`document-button ${activeReservation.pdfPaymentAdviceSlip ? "" : "disabled"}`}
-                  onClick={() =>
-                    handleDownloadDocument(
-                      activeReservation.pdfPaymentAdviceSlip,
-                      "Payment Advice Slip",
-                    )
+                  className={`document-button ${activeReservation.forApproval || activeReservation.pdfPaymentAdviceSlip ? "" : "disabled"}`}
+                  onClick={() => {
+                    if (activeReservation.pdfPaymentAdviceSlip) {
+                      handleDownloadDocument(
+                        activeReservation.pdfPaymentAdviceSlip,
+                        "Payment Advice Slip",
+                      );
+                    } else if (activeReservation.forApproval) {
+                      showError(
+                        "Generating",
+                        "Your Payment Advice Slip is being generated. Please try again in a few seconds.",
+                      );
+                    }
+                  }}
+                  disabled={
+                    !activeReservation.forApproval &&
+                    !activeReservation.pdfPaymentAdviceSlip
                   }
-                  disabled={!activeReservation.pdfPaymentAdviceSlip}
                 >
                   <svg
                     width="20"
