@@ -3,6 +3,7 @@ const pool = require("../config/database");
 const { generatePaymentAdviceSlip } = require("../utils/pdfGenerator");
 const socketService = require("../services/socketService");
 const semesterPeriodCheckService = require("../services/semesterPeriodCheckService");
+const semesterPeriodsModel = require("../models/semesterPeriodsModel");
 
 const adminController = {
   // Get reservations pending endorsement
@@ -171,6 +172,29 @@ const adminController = {
         });
       }
 
+      // Fetch active semester period for this student's academic level
+      const activeSemester =
+        await semesterPeriodsModel.findCurrentActive(academicLevel);
+
+      if (!activeSemester) {
+        await connection.rollback();
+        console.error(
+          "[ENDORSEMENT] No active semester period found for academic level:",
+          academicLevel,
+        );
+        return res.status(400).json({
+          success: false,
+          message: `No active semester period found for ${academicLevel}. Cannot approve endorsement.`,
+        });
+      }
+
+      console.log("[ENDORSEMENT] Active semester period fetched:", {
+        id: activeSemester.id,
+        academic_level: activeSemester.academic_level,
+        start_date: activeSemester.start_date,
+        end_date: activeSemester.end_date,
+      });
+
       await reservationModel.update(
         parseInt(id),
         {
@@ -178,9 +202,17 @@ const adminController = {
           forApproval: true,
           isActive: false,
           employeeID: employeeID,
+          agreementDateStart: activeSemester.start_date,
+          agreementDateEnd: activeSemester.end_date,
         },
         connection,
       );
+
+      console.log("[ENDORSEMENT] Reservation updated with semester dates:", {
+        referralSlipNo: reservation.referralSlipNo,
+        agreementDateStart: activeSemester.start_date,
+        agreementDateEnd: activeSemester.end_date,
+      });
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
@@ -219,6 +251,8 @@ const adminController = {
           studentLastName: student.lastName,
           student_type: student.student_type,
           endorsedByName: employeeFullName,
+          agreementDateStart: activeSemester.start_date,
+          agreementDateEnd: activeSemester.end_date,
         };
         console.log("[DEBUG] Payment Advice Data:", {
           referralSlipNo: paymentAdviceData.referralSlipNo,
