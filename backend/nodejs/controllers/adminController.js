@@ -2,6 +2,7 @@ const reservationModel = require("../models/reservationModel");
 const pool = require("../config/database");
 const { generatePaymentAdviceSlip } = require("../utils/pdfGenerator");
 const socketService = require("../services/socketService");
+const semesterPeriodCheckService = require("../services/semesterPeriodCheckService");
 
 const adminController = {
   // Get reservations pending endorsement
@@ -67,17 +68,75 @@ const adminController = {
         });
       }
 
-      await connection.beginTransaction();
-
+      // Fetch reservation and student details BEFORE transaction to determine academic level
       const reservation = await reservationModel.findById(parseInt(id));
 
       if (!reservation) {
-        await connection.rollback();
         return res.status(404).json({
           success: false,
           message: "Reservation not found",
         });
       }
+
+      // Fetch student to get academic level (student_type)
+      const [studentRows] = await pool.query(
+        "SELECT student_type FROM student WHERE studentID = ?",
+        [reservation.studentID],
+      );
+
+      if (!studentRows || studentRows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Student not found",
+        });
+      }
+
+      const studentType = studentRows[0].student_type;
+
+      // Map student_type to academic level for semester period check
+      // Assuming student_type is 'SHS' or 'COLLEGE' - adjust mapping if different
+      let academicLevel = studentType;
+
+      // Normalize to match semester_periods table enum values
+      if (studentType && studentType.toUpperCase() === "SHS") {
+        academicLevel = "SHS";
+      } else if (
+        studentType &&
+        (studentType.toUpperCase() === "COLLEGE" ||
+          studentType.toUpperCase() === "TERTIARY")
+      ) {
+        academicLevel = "COLLEGE";
+      } else {
+        // Default to COLLEGE if student_type is unclear
+        academicLevel = "COLLEGE";
+      }
+
+      // VALIDATE SEMESTER PERIOD REQUIREMENT BEFORE TRANSACTION
+      try {
+        const validation =
+          await semesterPeriodCheckService.validateForEndorsement(
+            academicLevel,
+            employeeID,
+          );
+
+        if (!validation.canEndorse) {
+          return res.status(400).json({
+            success: false,
+            message: validation.message,
+            showSemesterPeriodModal: validation.showModal,
+            requiresSemesterPeriod: true,
+            missingLevels: validation.missingLevels,
+          });
+        }
+      } catch (validationError) {
+        console.error("Semester period validation error:", validationError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to validate semester period requirement",
+        });
+      }
+
+      await connection.beginTransaction();
 
       if (
         !reservation.forEndorsement ||
@@ -139,15 +198,14 @@ const adminController = {
         ? `${employee.firstName} ${employee.lastName}`
         : "OSAS Staff";
 
-      // Fetch student details
-      const [studentRows] = await connection.query(
+      // Fetch full student details
+      const [fullStudentRows] = await connection.query(
         "SELECT studentEmail, firstName, lastName, student_type FROM student WHERE studentID = ?",
         [reservation.studentID],
       );
-      const student = studentRows[0];
+      const student = fullStudentRows[0];
 
       // Generate all 3 PDFs BEFORE committing transaction
-      // This ensures status transition only happens if PDFs succeed
       let pdfResult;
       let studentCopyBuffer;
       try {
@@ -209,14 +267,12 @@ const adminController = {
         });
       }
 
-      // Only commit if PDF generation succeeded
       await connection.commit();
       console.log(
         "[APPROVE ENDORSEMENT] Transaction committed for referral:",
         id,
       );
 
-      // Emit real-time update to connected dashboards
       socketService.emitReservationUpdate("endorsement-approved", {
         referralSlipNo: reservation.referralSlipNo,
       });
@@ -412,7 +468,7 @@ const adminController = {
     }
   },
 
-  // Approve reservation (final approval - activates reservation)
+  /// Approve reservation (final approval - activates reservation)
   approveReservation: async (req, res) => {
     const connection = await pool.getConnection();
 
@@ -434,6 +490,8 @@ const adminController = {
           message: "Admin employee ID not found in token",
         });
       }
+
+      // SEMESTER PERIOD VALIDATION REMOVED - NOW HAPPENS AT ENDORSEMENT STAGE
 
       await connection.beginTransaction();
 
@@ -612,16 +670,20 @@ const adminController = {
         return res.status(400).json({
           success: false,
           message:
-            "Cannot reject reservation. Reservation must be in 'For Approval' status (forApproval=TRUE, forEndorsement=FALSE, isActive=FALSE)",
+            "Cannot reject reservation. Reservation must be in 'For Approval' status",
         });
       }
 
-      await reservationModel.update(parseInt(id), {
-        forApproval: false,
-        forEndorsement: true,
-        isActive: false,
-        employeeID: employeeID,
-      });
+      await reservationModel.update(
+        parseInt(id),
+        {
+          forApproval: false,
+          forEndorsement: true,
+          isActive: false,
+          employeeID: employeeID,
+        },
+        connection,
+      );
 
       await reservationModel.updateLockerStatus(
         reservation.lockerID,
@@ -639,7 +701,8 @@ const adminController = {
 
       res.json({
         success: true,
-        message: "Reservation rejected successfully",
+        message:
+          "Reservation rejected successfully. Returned to endorsement queue.",
         data: updatedReservation,
         reason: reason || null,
       });
@@ -856,86 +919,6 @@ const adminController = {
       });
     } finally {
       connection.release();
-    }
-  },
-
-  // Get occupied lockers (active reservations)
-  getOccupiedLockers: async (req, res) => {
-    try {
-      const query = `
-        SELECT 
-          r.*,
-          l.branchID as lockerBranchID,
-          l.status as lockerStatus,
-          l.floorNumber as lockerFloor,
-          s.studentEmail,
-          s.firstName as studentFirstName,
-          s.lastName as studentLastName,
-          s.student_type,
-          s.branchID as studentBranchID,
-          a.firstName as endorsedByFirstName,
-          a.lastName as endorsedByLastName
-        FROM reservation r
-        INNER JOIN locker l ON r.lockerID = l.lockerID
-        INNER JOIN student s ON r.studentID = s.studentID
-        LEFT JOIN admin a ON r.employeeID = a.employeeID
-        WHERE r.isActive = TRUE
-        ORDER BY r.agreementDateStart DESC
-      `;
-
-      const [reservations] = await pool.execute(query);
-
-      res.json({
-        success: true,
-        data: reservations,
-        count: reservations.length,
-      });
-    } catch (error) {
-      console.error("Get occupied lockers error:", error);
-      res.status(500).json({
-        success: false,
-        message: "An error occurred while fetching occupied lockers",
-      });
-    }
-  },
-
-  // Get reservation history (all past and current reservations)
-  getReservationHistory: async (req, res) => {
-    try {
-      const query = `
-        SELECT 
-          r.*,
-          l.branchID as lockerBranchID,
-          l.status as lockerStatus,
-          l.floorNumber as lockerFloor,
-          s.studentEmail,
-          s.firstName as studentFirstName,
-          s.lastName as studentLastName,
-          s.student_type,
-          s.branchID as studentBranchID,
-          a.firstName as endorsedByFirstName,
-          a.lastName as endorsedByLastName
-        FROM reservation r
-        INNER JOIN locker l ON r.lockerID = l.lockerID
-        INNER JOIN student s ON r.studentID = s.studentID
-        LEFT JOIN admin a ON r.employeeID = a.employeeID
-        WHERE (r.isActive = TRUE OR r.forEndorsement = FALSE OR r.forApproval = FALSE)
-        ORDER BY r.updatedAt DESC
-      `;
-
-      const [reservations] = await pool.execute(query);
-
-      res.json({
-        success: true,
-        data: reservations,
-        count: reservations.length,
-      });
-    } catch (error) {
-      console.error("Get reservation history error:", error);
-      res.status(500).json({
-        success: false,
-        message: "An error occurred while fetching reservation history",
-      });
     }
   },
 

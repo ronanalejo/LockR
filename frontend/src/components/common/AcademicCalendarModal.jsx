@@ -52,7 +52,7 @@ const AcademicCalendarModal = ({ isOpen, onClose, onSaved }) => {
       closeAlert();
       showError(
         "Error",
-        error?.response?.data?.message || "Failed to save academic calendar."
+        error?.response?.data?.message || "Failed to save academic calendar.",
       );
     }
   };
@@ -84,7 +84,7 @@ const AcademicCalendarModal = ({ isOpen, onClose, onSaved }) => {
               <option value="">Select Semester</option>
               <option value="1st Semester">1st Semester</option>
               <option value="2nd Semester">2nd Semester</option>
-              <option value="Summer/3rd Term">Summer/3rd Term</option>
+              <option value="3rd Semester">3rd Semester</option>
             </select>
             {errors.semester && (
               <span className="error-text">{errors.semester}</span>

@@ -6,7 +6,7 @@ CREATE TABLE semester_periods (
     
     -- Academic year and semester identification
     academic_year VARCHAR(20) NOT NULL COMMENT 'Format: YYYY-YYYY (e.g., 2024-2025)',
-    semester_name VARCHAR(50) NOT NULL COMMENT 'Semester identifier (e.g., 1st Semester, 2nd Semester, Summer)',
+    semester_name VARCHAR(50) NOT NULL COMMENT 'Semester identifier (SHS: 1st Term, 2nd Term | College: 1st Semester, 2nd Semester, 3rd Semester)',
     
     -- Date range for the semester
     start_date DATE NOT NULL COMMENT 'First day of the semester',

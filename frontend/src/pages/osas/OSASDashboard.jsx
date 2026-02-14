@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import DataTable from "../../components/osas/DataTable";
 import FilterButtons from "../../components/osas/FilterButtons";
+import SemesterPeriodModal from "../../components/common/SemesterPeriodModal";
 import adminService from "../../services/adminService";
 import {
   showError,
@@ -19,6 +20,9 @@ const OSASDashboard = () => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showSemesterModal, setShowSemesterModal] = useState(false);
+  const [modalAcademicLevel, setModalAcademicLevel] = useState("");
+  const [missingLevels, setMissingLevels] = useState([]);
   const [filters, setFilters] = useState({
     floor: "",
     dateRange: { start: "", end: "" },
@@ -97,7 +101,6 @@ const OSASDashboard = () => {
     [activeTab, updateStats],
   );
 
-  // Real-time WebSocket updates from other dashboards
   useSocket(
     "osas",
     useCallback(() => {
@@ -169,7 +172,6 @@ const OSASDashboard = () => {
   };
 
   const handleAction = async (action, reservationId) => {
-    // For approve-reservation, check if proof of payment exists
     if (action === "approve-reservation") {
       const reservation = reservations.find(
         (r) => r.referralSlipNo === reservationId,
@@ -187,7 +189,6 @@ const OSASDashboard = () => {
       }
     }
 
-    // SweetAlert2 confirmation before any approve/reject action
     const confirmMessages = {
       "approve-endorsement":
         "Are you sure you want to approve this endorsement?",
@@ -232,6 +233,20 @@ const OSASDashboard = () => {
 
       closeAlert();
 
+      // Handle semester period requirement responses
+      if (response && response.requiresSemesterPeriod) {
+        if (response.showSemesterPeriodModal) {
+          setModalAcademicLevel(response.academicLevel || "");
+          setMissingLevels(response.missingLevels || []);
+          setShowSemesterModal(true);
+          await showError("Setup Required", response.message);
+          return;
+        }
+
+        await showError("Cannot Approve", response.message);
+        return;
+      }
+
       if (response && response.success) {
         showSuccess(
           "Success",
@@ -241,7 +256,15 @@ const OSASDashboard = () => {
       }
     } catch (error) {
       closeAlert();
-      showError("Error", error.message || "Action failed");
+
+      if (error.response?.data?.requiresSemesterPeriod) {
+        if (error.response.data.showSemesterPeriodModal) {
+          setShowSemesterModal(true);
+        }
+        showError("Setup Required", error.response.data.message);
+      } else {
+        showError("Error", error.message || "Action failed");
+      }
     }
   };
 
@@ -360,6 +383,23 @@ const OSASDashboard = () => {
           )}
         </div>
       </div>
+
+      <SemesterPeriodModal
+        isOpen={showSemesterModal}
+        onClose={() => {
+          setShowSemesterModal(false);
+          setModalAcademicLevel("");
+          setMissingLevels([]);
+        }}
+        onSave={() => {
+          setShowSemesterModal(false);
+          setModalAcademicLevel("");
+          setMissingLevels([]);
+          fetchData(true);
+        }}
+        academicLevel={modalAcademicLevel}
+        missingLevels={missingLevels}
+      />
     </div>
   );
 };
