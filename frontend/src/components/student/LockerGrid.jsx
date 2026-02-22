@@ -146,7 +146,7 @@ const LockerGrid = ({
         <div className="grid-header">
           <div className="grid-title-section">
             <button onClick={onBack} className="back-button">
-              Back to Floor Plan
+              <p> Back to Floor Plan</p>
             </button>
             <h2 className="grid-title">
               Floor {floor} - Side {side}
