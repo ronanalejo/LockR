@@ -19,8 +19,14 @@ const allowedOrigins =
         "https://api.lockr.fit",
         "http://lockr.fit",
         "http://www.lockr.fit",
+        "lockr.fit",
       ]
-    : ["https://lockr.fit", "https://www.lockr.fit", "https://api.lockr.fit"];
+    : [
+        "https://lockr.fit",
+        "https://www.lockr.fit",
+        "https://api.lockr.fit",
+        "lockr.fit",
+      ];
 
 const corsOptions = {
   origin: function (origin, callback) {
