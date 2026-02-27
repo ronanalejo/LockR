@@ -59,8 +59,8 @@ const LockerSelection = ({ floor, onSelectSide }) => {
                     <div className="locker-row"></div>
                   </div>
                 </div>
-                <h3 className="side-label">Side A</h3>
-                <p className="side-description">Left wing lockers</p>
+                <h3 className="side-label">Left Wing</h3>
+                {/* <p className="side-description">Left wing lockers</p> */}
                 <div className="side-arrow">→</div>
               </button>
 
@@ -76,8 +76,8 @@ const LockerSelection = ({ floor, onSelectSide }) => {
                     <div className="locker-row"></div>
                   </div>
                 </div>
-                <h3 className="side-label">Side B</h3>
-                <p className="side-description">Right wing lockers</p>
+                <h3 className="side-label">Right Wing</h3>
+                {/* <p className="side-description">Right wing lockers</p> */}
                 <div className="side-arrow">→</div>
               </button>
             </div>
