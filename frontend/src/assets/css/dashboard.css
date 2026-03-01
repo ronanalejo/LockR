@@ -128,13 +128,13 @@ body {
 }
 
 .locker-logout-button {
-    background-color: #dc2626;
-    color: white;
+    background: transparent;
+    color: rgb(255, 30, 0);
     font-size: 14px;
     font-weight: 500;
     padding: 10px 0;
-    border-radius: 4px;
-    border: none;
+    border-radius: 7px;
+    border: solid 1px rgb(255, 30, 0);
     cursor: pointer;
     transition: background-color 0.2s;
     width: 100%;
@@ -143,6 +143,7 @@ body {
     
 .locker-logout-button:hover {
     background-color: #b91c1c;
+    color: white;
 }
 
 /* Main Content Styles */
@@ -187,16 +188,19 @@ body {
 }
 
 .reservation-log-button {
+    background-color: transparent;
     height: 40px;
     margin: 10px 10px 2px 10px;
-    border: none;
-    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.349);
+    color: white;
+    border-radius: 6px;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: 0.2s;
 }
 .reservation-log-button:hover {
-    opacity: 0.9;
+    border-color: rgb(67, 180, 255);
+    color: rgb(67, 180, 255);
 }
 .reservation-log-button:active {
     background-color: #2563eb;
@@ -208,7 +212,78 @@ body {
 .reservation-log-button.inactive:hover {
     background-color: #6b7280;
 }
+
+.mobile-logout-btn {
+    margin-left: auto;
+    margin-right: 15px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    color: white;
+    font-size: 15px;
+    transition: 0.2s;
+}
+.mobile-logout-btn:active {
+    color: #b91c1c;
+}
+
+.mobile-floor-menu {
+    margin-left: 5px;
+    margin-right: 20px;
+    cursor: pointer;
+}
+svg {
+    height: 30px;
+}
+
+.burger-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.burger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 22px;
+}
+
+.burger-icon span {
+  display: block;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: center;
+}
+
+.burger-icon.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.burger-icon.open span:nth-child(2) { opacity: 0; }
+.burger-icon.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.sidebar-overlay {
+  display: none;
+}
+
 /* Responsive Design */
+
+/* Desktop */
+@media (min-width: 640px) {
+    .mobile-logout-btn {
+        display: none;
+    }
+
+    .mobile-floor-menu {
+        display: none;
+    }
+
+    .burger-menu-btn {
+        display: none;
+    }
+}
 
 /* Large Tablets and Small Laptops (1024px and below) */
 @media (max-width: 1024px) {
@@ -280,74 +355,79 @@ body {
 
 /* Mobile Landscape and Small Tablets (640px and below) */
 @media (max-width: 640px) {
+    .burger-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
     .locker-dashboard {
-        flex-direction: column;
+        flex-direction: row !important;
     }
 
     .locker-sidebar {
-        width: 100%;
-        flex-direction: row;
-        height: auto;
-        overflow-x: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200px !important;
+        height: 100% !important;
+        flex-direction: column !important;
+        overflow-x: unset !important;
+        z-index: 1050;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .locker-sidebar.sidebar-open {
+        transform: translateX(0);
+        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
     }
 
     .locker-sidebar-logo {
-        min-width: 80px;
-        height: 50px;
-    }
-
-    .locker-logo-text {
-        font-size: 14px;
-        writing-mode: horizontal-tb;
-        text-orientation: mixed;
-    }
-
-    .locker-search-container {
-        display: none; /* Hide search on mobile */
+        display: flex !important;
     }
 
     .locker-floor-nav {
-        flex-direction: row;
-        padding: 0;
-        overflow-x: auto;
+        flex-direction: column !important;
+        overflow-x: unset !important;
     }
 
     .locker-floor-button {
-        min-width: 80px;
-        padding: 12px 16px;
-        font-size: 13px;
+        display: block !important;
+        min-width: unset !important;
+        padding: 16px 0 !important;
+        font-size: 13px !important;
     }
 
-    .locker-logout-container {
-        padding: 0;
-        display: flex;
-        align-items: center;
+    .reservation-log-button {
+        display: block !important;
     }
 
     .locker-logout-button {
-        min-width: 80px;
-        height: 50px;
-        border-radius: 0;
-        font-size: 12px;
+        display: block !important;
+    }
+
+    .locker-logout-container {
+        padding: 12px !important;
+        display: block !important;
+        align-items: unset !important;
     }
 
     .locker-main-content {
-        height: calc(100vh - 50px);
+        margin-left: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
     }
 
-    .locker-header {
-        height: 50px;
-        padding: 0 12px;
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
     }
 
-    .locker-header-title {
-        font-size: 13px;
-    }
-
-    .locker-floor-display {
-        font-size: 18px;
-        padding: 1rem;
-    }
 }
 
 /* Mobile Portrait (480px and below) */
