@@ -334,12 +334,7 @@ useEffect(() => {
       <div className={`locker-sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         {/* Logo */}
         <div className="locker-sidebar-logo">
-          <div className="locker-logo-container">
-            <div className="locker-logo-icon">
-              <div className="locker-logo-icon-inner"></div>
-            </div>
-            <div className="locker-logo-text">iACADEMY</div>
-          </div>
+          <img id="iac-logo" src="../../WHITE_iACADEMY Long Logo_Makati.png" alt="iACADEMY" />
         </div>
 
         <button
@@ -389,8 +384,6 @@ useEffect(() => {
             </span>
             </button>
 
-
-            <div className="sidebar-overlay" id="overlay"></div>
 
             <h1 className="locker-header-title">
               Welcome, {user?.firstName} {user?.lastName || "Student"}
