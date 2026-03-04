@@ -390,8 +390,17 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
                     : "N/A"}
                 </span>
               </div>
-              {(activeReservation.forApproval ||
-                activeReservation.forEndorsement) && (
+              {activeReservation.agreementDateStart && (
+                <div className="detail-row">
+                  <span className="detail-label">Agreement Period:</span>
+                  <span className="detail-value">
+                    {formatDate(activeReservation.agreementDateStart)} -{" "}
+                    {formatDate(activeReservation.agreementDateEnd)}
+                  </span>
+                </div>
+              )}
+              {(activeReservation.forEndorsement ||
+                activeReservation.forApproval) && (
                 <div className="detail-row instruction-text">
                   <span
                     className="detail-value"
@@ -401,17 +410,9 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
                       fontSize: "0.875rem",
                     }}
                   >
-                    Download the Payment Advice Slip and present it to the
-                    Finance Department to proceed with the payment.
-                  </span>
-                </div>
-              )}
-              {activeReservation.agreementDateStart && (
-                <div className="detail-row">
-                  <span className="detail-label">Agreement Period:</span>
-                  <span className="detail-value">
-                    {formatDate(activeReservation.agreementDateStart)} -{" "}
-                    {formatDate(activeReservation.agreementDateEnd)}
+                    {activeReservation.forEndorsement
+                      ? "Wait for the endorsement approval of OSAS."
+                      : "Download the Payment Advice Slip and present it to the Finance Department to proceed with the payment."}
                   </span>
                 </div>
               )}

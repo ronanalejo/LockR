@@ -76,23 +76,29 @@ const StudentDashboard = () => {
   }, []);
 
   useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (menuOpen && !e.target.closest(".locker-sidebar") && !e.target.closest(".burger-menu-btn")) {
-      setMenuOpen(false);
-    }
-  };
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => document.removeEventListener("mousedown", handleClickOutside);
-}, [menuOpen]);
+    const handleClickOutside = (e) => {
+      if (
+        menuOpen &&
+        !e.target.closest(".locker-sidebar") &&
+        !e.target.closest(".burger-menu-btn")
+      ) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
 
-useEffect(() => {
-  if (menuOpen) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
-  return () => { document.body.style.overflow = ""; };
-}, [menuOpen]);
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   const getBackgroundStyle = () => {
     if (!selectedFloor) return {};
@@ -180,6 +186,8 @@ useEffect(() => {
         floorNumber: tempReservationData.floorNumber,
         shsTerm: tempReservationData.shsTerm,
         collegeTerm: tempReservationData.collegeTerm,
+        paymentMode: tempReservationData.paymentMode,
+        accountNumber: tempReservationData.accountNumber || null,
         program: pendingAgreementData.program,
         signature: pendingAgreementData.signature,
       };
@@ -325,20 +333,23 @@ useEffect(() => {
 
   return (
     <div className="locker-dashboard">
-
       {menuOpen && (
-              <div
-                className="sidebar-overlay"
-                onClick={() => setMenuOpen(false)}
-                aria-hidden="true"
-              />
-            )}
+        <div
+          className="sidebar-overlay"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       {/* Sidebar */}
       <div className={`locker-sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         {/* Logo */}
         <div className="locker-sidebar-logo">
-          <img id="iac-logo" src="../../WHITE_iACADEMY Long Logo_Makati.png" alt="iACADEMY" />
+          <img
+            id="iac-logo"
+            src="../../WHITE_iACADEMY Long Logo_Makati.png"
+            alt="iACADEMY"
+          />
         </div>
 
         <button
@@ -371,7 +382,7 @@ useEffect(() => {
         {/* Log Out Button */}
         <div className="locker-logout-container">
           <button className="locker-logout-button" onClick={handleLogout}>
-            Log Out 
+            Log Out
           </button>
         </div>
       </div>
@@ -381,20 +392,55 @@ useEffect(() => {
         {/* Header */}
         <div className="content-overlay">
           <div className="locker-header">
-
-            <button className="burger-menu-btn" onClick={() => setMenuOpen((prev) => !prev)} aria-label={menuOpen ? "Close menu" : "Open menu"}>
+            <button
+              className="burger-menu-btn"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+            >
               <span className="mobile-floor-menu" aria-label="Toggle menu">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 18L20 18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path> <path d="M4 12L20 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path> <path d="M4 6L20 6" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path> </g></svg>
-            </span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g
+                    id="SVGRepo_tracerCarrier"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></g>
+                  <g id="SVGRepo_iconCarrier">
+                    {" "}
+                    <path
+                      d="M4 18L20 18"
+                      stroke="#ffffff"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    ></path>{" "}
+                    <path
+                      d="M4 12L20 12"
+                      stroke="#ffffff"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    ></path>{" "}
+                    <path
+                      d="M4 6L20 6"
+                      stroke="#ffffff"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    ></path>{" "}
+                  </g>
+                </svg>
+              </span>
             </button>
-
 
             <h1 className="locker-header-title">
               Welcome, {user?.firstName} {user?.lastName || "Student"}
             </h1>
 
-            <button className="mobile-logout-btn" onClick={handleLogout}>Log Out</button>
-
+            <button className="mobile-logout-btn" onClick={handleLogout}>
+              Log Out
+            </button>
           </div>
 
           <div className="locker-content-area">

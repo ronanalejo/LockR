@@ -6,8 +6,8 @@ const reservationModel = {
       INSERT INTO reservation (
         lockerID, studentID, floorNumber, shsTerm, collegeTerm, 
         agreement, duplicate, forEndorsement, forApproval, isActive,
-        agreementDateStart, agreementDateEnd
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        agreementDateStart, agreementDateEnd, modeOfPayment, accountNumber
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const executor = connection || pool;
@@ -26,6 +26,8 @@ const reservationModel = {
       reservationData.isActive || false,
       reservationData.agreementDateStart || null,
       reservationData.agreementDateEnd || null,
+      reservationData.modeOfPayment || null,
+      reservationData.accountNumber || null,
     ]);
 
     return result.insertId;

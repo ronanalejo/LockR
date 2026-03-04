@@ -15,6 +15,8 @@ const reservationController = {
         floorNumber,
         shsTerm,
         collegeTerm,
+        paymentMode,
+        accountNumber,
         program,
         signature,
       } = req.body;
@@ -113,6 +115,9 @@ const reservationController = {
         forEndorsement: true,
         forApproval: false,
         isActive: false,
+        modeOfPayment: paymentMode || null,
+        accountNumber:
+          paymentMode && paymentMode !== "Cash" ? accountNumber || null : null,
       };
 
       const referralSlipNo = await reservationModel.create(

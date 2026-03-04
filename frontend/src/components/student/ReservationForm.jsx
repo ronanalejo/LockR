@@ -93,7 +93,7 @@ const ReservationForm = ({
     }
 
     // Validate account number for non-cash payments
-    if (paymentMode.toLowerCase() !== "cash" && !accountNumber.trim()) {
+    if (paymentMode !== "Cash" && !accountNumber.trim()) {
       showError(
         "Account Number Required",
         "Please enter your account number for the selected payment method",
@@ -136,8 +136,7 @@ const ReservationForm = ({
       },
       duration,
       paymentMode,
-      accountNumber:
-        paymentMode.toLowerCase() !== "cash" ? accountNumber : null,
+      accountNumber: paymentMode !== "Cash" ? accountNumber : null,
       floor,
       lockerID: locker.number,
       agreement: duration,
@@ -250,21 +249,21 @@ const ReservationForm = ({
               value={paymentMode}
               onChange={(e) => {
                 setPaymentMode(e.target.value);
-                if (e.target.value.toLowerCase() === "cash") {
+                if (e.target.value === "Cash") {
                   setAccountNumber("");
                 }
               }}
               className="select-input"
             >
               <option value="">Select Payment...</option>
-              <option value="cash">Cash</option>
-              <option value="card">Credit/Debit Card</option>
-              <option value="bank">Bank Transfer</option>
-              <option value="online">Online Payment</option>
+              <option value="Cash">Cash</option>
+              <option value="Credit/Debit Card">Credit/Debit Card</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Online Payment">Online Payment</option>
             </select>
           </div>
 
-          {paymentMode && paymentMode.toLowerCase() !== "cash" && (
+          {paymentMode && paymentMode !== "Cash" && (
             <div className="form-group">
               <label className="form-label">Account Number</label>
               <input
