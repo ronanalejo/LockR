@@ -11,6 +11,13 @@ router.post(
 );
 
 router.post(
+  "/validate-agreement",
+  authMiddleware.verifyToken,
+  authMiddleware.isStudent,
+  reservationController.validateAgreement,
+);
+
+router.post(
   "/upload-proof-of-payment",
   authMiddleware.verifyToken,
   authMiddleware.isStudent,

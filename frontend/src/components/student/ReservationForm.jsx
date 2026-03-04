@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../assets/css/reservationForm.css";
 import {
   showLoading,
@@ -18,10 +18,77 @@ const ReservationForm = ({
   const [duration, setDuration] = useState("1 Semester/Term");
   const [paymentMode, setPaymentMode] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
+  const [agreementAllowed, setAgreementAllowed] = useState(true);
+  const [agreementMessage, setAgreementMessage] = useState("");
+  const [validatingAgreement, setValidatingAgreement] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const validateAgreement = async () => {
+      setValidatingAgreement(true);
+      setAgreementAllowed(true);
+      setAgreementMessage("");
+
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          API_ENDPOINTS.reservations.validateAgreement,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ agreement: duration }),
+          },
+        );
+
+        const data = await response.json();
+
+        if (cancelled) return;
+
+        if (!response.ok || !data.success) {
+          setAgreementAllowed(false);
+          setAgreementMessage(data.message || "Validation failed.");
+          return;
+        }
+
+        setAgreementAllowed(data.allowed);
+        if (!data.allowed) {
+          setAgreementMessage(data.message);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        console.error("[ReservationForm] Agreement validation error:", error);
+        // On network error, allow by default to not block UX - backend will still validate
+        setAgreementAllowed(true);
+        setAgreementMessage("");
+      } finally {
+        if (!cancelled) {
+          setValidatingAgreement(false);
+        }
+      }
+    };
+
+    validateAgreement();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [duration]);
 
   const handleConfirm = () => {
-    if (!paymentMode) {
-      showError("Payment Required", "Please select a mode of payment");
+    if (!agreementAllowed) {
+      showError(
+        "Agreement Not Allowed",
+        agreementMessage || `${duration} is currently not allowed.`,
+      );
+      return;
+    }
+
+    if (validatingAgreement) {
+      showError("Please Wait", "Agreement validation is still in progress.");
       return;
     }
 
@@ -151,6 +218,30 @@ const ReservationForm = ({
                 1 School Year
               </label>
             </div>
+            {!agreementAllowed && !validatingAgreement && (
+              <p
+                style={{
+                  color: "#dc2626",
+                  fontSize: "0.875rem",
+                  marginTop: "8px",
+                  fontWeight: "500",
+                }}
+              >
+                {agreementMessage}
+              </p>
+            )}
+            {validatingAgreement && (
+              <p
+                style={{
+                  color: "#6b7280",
+                  fontSize: "0.875rem",
+                  marginTop: "8px",
+                  fontStyle: "italic",
+                }}
+              >
+                Checking agreement availability...
+              </p>
+            )}
           </div>
 
           <div className="form-group">
@@ -188,8 +279,17 @@ const ReservationForm = ({
         </div>
 
         <div className="button-group">
-          <button onClick={handleConfirm} className="btn btn-confirm">
-            Confirm
+          <button
+            onClick={handleConfirm}
+            className="btn btn-confirm"
+            disabled={!agreementAllowed || validatingAgreement}
+            style={
+              !agreementAllowed || validatingAgreement
+                ? { opacity: 0.5, cursor: "not-allowed" }
+                : {}
+            }
+          >
+            {validatingAgreement ? "Validating..." : "Confirm"}
           </button>
           <button onClick={onCancel} className="btn btn-cancel">
             Cancel

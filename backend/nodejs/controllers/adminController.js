@@ -172,45 +172,39 @@ const adminController = {
         });
       }
 
-      // Fetch CURRENT semester period based on today's date for this academic level
-      // Use CURDATE() in SQL to avoid JS timezone conversion issues
-      const [currentSemesters] = await connection.query(
-        `SELECT * FROM semester_periods
-         WHERE academic_level = ? AND is_active = 1
-         AND start_date <= CURDATE() AND end_date >= CURDATE()
-         ORDER BY start_date DESC LIMIT 1`,
-        [academicLevel],
-      );
-
-      const activeSemester = currentSemesters[0] || null;
-
-      if (!activeSemester) {
-        await connection.rollback();
-        console.error(
-          "[ENDORSEMENT] No CURRENT academic period found for academic level:",
+      // Use agreementValidationService to dynamically calculate agreement date range
+      const agreementValidationService = require("../services/agreementValidationService");
+      const agreementDateRange =
+        await agreementValidationService.calculateAgreementDateRange(
+          reservation.agreement,
           academicLevel,
         );
+
+      if (!agreementDateRange) {
+        await connection.rollback();
+        console.error("[ENDORSEMENT] Agreement period validation failed for:", {
+          agreement: reservation.agreement,
+          academicLevel,
+        });
         return res.status(400).json({
           success: false,
-          message: `No current Academic Period found for ${academicLevel}. Please configure one in the Academic Period tab before approving endorsements.`,
+          message: `${reservation.agreement} is currently not allowed. Required Academic Periods are not fully configured for ${academicLevel}.`,
         });
       }
 
-      console.log("[ENDORSEMENT] Current academic period fetched:", {
-        id: activeSemester.id,
-        academic_level: activeSemester.academic_level,
-        start_date: activeSemester.start_date,
-        end_date: activeSemester.end_date,
+      console.log("[ENDORSEMENT] Agreement date range calculated:", {
+        agreement: reservation.agreement,
+        academicLevel,
+        start: agreementDateRange.start,
+        end: agreementDateRange.end,
       });
 
-      // agreementStart = current server datetime (NOW)
-      // agreementEnd = last day of academic period at 23:59:59
-      // Use MySQL NOW() and DATE_FORMAT to avoid JS timezone issues
+      // agreementStart = NOW(), agreementEnd = end of the last spanned period at 23:59:59
       const [serverDates] = await connection.query(
         `SELECT
            NOW() AS agreementStart,
            CONCAT(DATE(?), ' 23:59:59') AS agreementEnd`,
-        [activeSemester.end_date],
+        [agreementDateRange.end],
       );
       const agreementStart = serverDates[0].agreementStart;
       const agreementEnd = serverDates[0].agreementEnd;

@@ -45,6 +45,7 @@ const API_ENDPOINTS = {
   },
   reservations: {
     create: `${API_BASE_URL}/reservations`,
+    validateAgreement: `${API_BASE_URL}/reservations/validate-agreement`,
     byId: (id) => `${API_BASE_URL}/reservations/${id}`,
     update: (id) => `${API_BASE_URL}/reservations/${id}`,
     uploadReceipt: `${API_BASE_URL}/reservations/upload-proofOfPayment`,

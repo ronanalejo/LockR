@@ -75,6 +75,34 @@ const reservationController = {
 
       const student = students[0];
 
+      // Determine academic level from student_type
+      const [studentTypeRows] = await connection.query(
+        "SELECT student_type FROM student WHERE studentID = ?",
+        [studentID],
+      );
+      let academicLevel = "COLLEGE";
+      if (studentTypeRows.length > 0 && studentTypeRows[0].student_type) {
+        academicLevel =
+          studentTypeRows[0].student_type.toUpperCase() === "SHS"
+            ? "SHS"
+            : "COLLEGE";
+      }
+
+      // Validate agreement against configured Academic Periods
+      const agreementValidationService = require("../services/agreementValidationService");
+      const agreementCheck = await agreementValidationService.validate(
+        duration,
+        academicLevel,
+      );
+
+      if (!agreementCheck.allowed) {
+        await connection.rollback();
+        return res.status(400).json({
+          success: false,
+          message: agreementCheck.message,
+        });
+      }
+
       const reservationData = {
         lockerID: lockerID,
         studentID: studentID,
@@ -518,26 +546,79 @@ const reservationController = {
       connection.release();
     }
   },
+
+  validateAgreement: async (req, res) => {
+    try {
+      const studentID = req.user.id;
+      const { agreement } = req.body;
+
+      if (!agreement) {
+        return res.status(400).json({
+          success: false,
+          message: "Agreement type is required.",
+        });
+      }
+
+      const validAgreements = [
+        "1 Semester/Term",
+        "2 Semesters/Terms",
+        "1 School Year",
+      ];
+      if (!validAgreements.includes(agreement)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid agreement type.",
+        });
+      }
+
+      const [studentRows] = await pool.query(
+        "SELECT student_type FROM student WHERE studentID = ?",
+        [studentID],
+      );
+
+      if (!studentRows || studentRows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Student not found.",
+        });
+      }
+
+      let academicLevel = studentRows[0].student_type;
+      if (academicLevel && academicLevel.toUpperCase() === "SHS") {
+        academicLevel = "SHS";
+      } else {
+        academicLevel = "COLLEGE";
+      }
+
+      const agreementValidationService = require("../services/agreementValidationService");
+      const result = await agreementValidationService.validate(
+        agreement,
+        academicLevel,
+      );
+
+      return res.json({
+        success: true,
+        allowed: result.allowed,
+        message: result.message,
+        academicLevel,
+        periods: result.allowed
+          ? result.periods.map((p) => ({
+              id: p.id,
+              semester_name: p.semester_name,
+              academic_year: p.academic_year,
+              start_date: p.start_date,
+              end_date: p.end_date,
+            }))
+          : [],
+      });
+    } catch (error) {
+      console.error("[VALIDATE_AGREEMENT] Error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to validate agreement.",
+      });
+    }
+  },
 };
-
-function calculateAgreementDateEnd(startDate, agreementType) {
-  const endDate = new Date(startDate);
-
-  switch (agreementType) {
-    case "1 Semester/Term":
-      endDate.setMonth(endDate.getMonth() + 5);
-      break;
-    case "2 Semesters/Terms":
-      endDate.setMonth(endDate.getMonth() + 10);
-      break;
-    case "1 School Year":
-      endDate.setMonth(endDate.getMonth() + 12);
-      break;
-    default:
-      throw new Error("Invalid agreement type");
-  }
-
-  return endDate;
-}
 
 module.exports = reservationController;
