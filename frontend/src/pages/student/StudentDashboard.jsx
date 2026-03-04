@@ -35,6 +35,7 @@ const StudentDashboard = () => {
   const [showReservationLog, setShowReservationLog] = useState(false);
   const [userReservations, setUserReservations] = useState([]);
   const [hasActiveReservation, setHasActiveReservation] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const floors = [6, 7, 9, 10];
 
@@ -74,6 +75,25 @@ const StudentDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (menuOpen && !e.target.closest(".locker-sidebar") && !e.target.closest(".burger-menu-btn")) {
+      setMenuOpen(false);
+    }
+  };
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, [menuOpen]);
+
+useEffect(() => {
+  if (menuOpen) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+  return () => { document.body.style.overflow = ""; };
+}, [menuOpen]);
+
   const getBackgroundStyle = () => {
     if (!selectedFloor) return {};
   };
@@ -81,6 +101,7 @@ const StudentDashboard = () => {
   const handleFloorSelect = (floor) => {
     setSelectedFloor(floor);
     setSelectedSide(null);
+    setMenuOpen(false);
   };
 
   const handleSideSelect = (side) => {
@@ -261,6 +282,7 @@ const StudentDashboard = () => {
   };
 
   const handleOpenReservationLog = async () => {
+    setMenuOpen(false);
     try {
       showLoading("Loading Reservations", "Please wait...");
 
@@ -303,23 +325,27 @@ const StudentDashboard = () => {
 
   return (
     <div className="locker-dashboard">
+
+      {menuOpen && (
+              <div
+                className="sidebar-overlay"
+                onClick={() => setMenuOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+
       {/* Sidebar */}
-      <div className="locker-sidebar">
+      <div className={`locker-sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         {/* Logo */}
         <div className="locker-sidebar-logo">
-          <div className="locker-logo-container">
-            <div className="locker-logo-icon">
-              <div className="locker-logo-icon-inner"></div>
-            </div>
-            <div className="locker-logo-text">iACADEMY</div>
-          </div>
+          <img id="iac-logo" src="../../WHITE_iACADEMY Long Logo_Makati.png" alt="iACADEMY" />
         </div>
 
         <button
           className="reservation-log-button"
           onClick={handleOpenReservationLog}
         >
-          <span>My Reservations</span>
+          <span> 📋 My Reservations</span>
         </button>
 
         {/* Floor Navigation */}
@@ -345,7 +371,7 @@ const StudentDashboard = () => {
         {/* Log Out Button */}
         <div className="locker-logout-container">
           <button className="locker-logout-button" onClick={handleLogout}>
-            Log Out
+            Log Out 
           </button>
         </div>
       </div>
@@ -355,9 +381,20 @@ const StudentDashboard = () => {
         {/* Header */}
         <div className="content-overlay">
           <div className="locker-header">
+
+            <button className="burger-menu-btn" onClick={() => setMenuOpen((prev) => !prev)} aria-label={menuOpen ? "Close menu" : "Open menu"}>
+              <span className="mobile-floor-menu" aria-label="Toggle menu">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 18L20 18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path> <path d="M4 12L20 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path> <path d="M4 6L20 6" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path> </g></svg>
+            </span>
+            </button>
+
+
             <h1 className="locker-header-title">
               Welcome, {user?.firstName} {user?.lastName || "Student"}
             </h1>
+
+            <button className="mobile-logout-btn" onClick={handleLogout}>Log Out</button>
+
           </div>
 
           <div className="locker-content-area">
