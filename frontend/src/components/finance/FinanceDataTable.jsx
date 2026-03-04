@@ -118,13 +118,19 @@ const FinanceDataTable = ({
      Helpers
   =============================== */
 
-  function getAgreementDuration(start, end) {
+  function formatAgreementPeriod(start, end) {
     if (!start || !end) return "-";
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = endDate - startDate;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return `${diffDays} days`;
+    const opts = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    };
+    const s = new Date(start).toLocaleString("en-US", opts);
+    const e = new Date(end).toLocaleString("en-US", opts);
+    return `${s} - ${e}`;
   }
 
   function getCellValue(row, key) {
@@ -157,23 +163,11 @@ const FinanceDataTable = ({
       case "agreement":
         return row.agreement || "-";
 
-      case "agreementPeriod": {
-        const start = row.agreementDateStart
-          ? new Date(row.agreementDateStart).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
-          : "N/A";
-        const end = row.agreementDateEnd
-          ? new Date(row.agreementDateEnd).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
-          : "N/A";
-        return `${start} - ${end}`;
-      }
+      case "agreementPeriod":
+        return formatAgreementPeriod(
+          row.agreementDateStart,
+          row.agreementDateEnd,
+        );
 
       case "paymentAdviceSlip": {
         const slipPath =

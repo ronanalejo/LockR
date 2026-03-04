@@ -5,6 +5,12 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 // Public routes (any authenticated user)
 router.get(
+  "/server-time",
+  authMiddleware.verifyToken,
+  controller.getServerTime,
+);
+
+router.get(
   "/current",
   authMiddleware.verifyToken,
   controller.getCurrentSemester,

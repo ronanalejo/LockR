@@ -61,7 +61,7 @@ const reservationController = {
       }
 
       const [students] = await connection.query(
-        "SELECT studentEmail, firstName, lastName FROM student WHERE studentID = ?",
+        "SELECT studentID, studentEmail, firstName, lastName FROM student WHERE studentID = ?",
         [studentID],
       );
 

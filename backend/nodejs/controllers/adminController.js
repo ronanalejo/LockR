@@ -172,28 +172,48 @@ const adminController = {
         });
       }
 
-      // Fetch active semester period for this student's academic level
-      const activeSemester =
-        await semesterPeriodsModel.findCurrentActive(academicLevel);
+      // Fetch CURRENT semester period based on today's date for this academic level
+      // Use CURDATE() in SQL to avoid JS timezone conversion issues
+      const [currentSemesters] = await connection.query(
+        `SELECT * FROM semester_periods
+         WHERE academic_level = ? AND is_active = 1
+         AND start_date <= CURDATE() AND end_date >= CURDATE()
+         ORDER BY start_date DESC LIMIT 1`,
+        [academicLevel],
+      );
+
+      const activeSemester = currentSemesters[0] || null;
 
       if (!activeSemester) {
         await connection.rollback();
         console.error(
-          "[ENDORSEMENT] No active semester period found for academic level:",
+          "[ENDORSEMENT] No CURRENT academic period found for academic level:",
           academicLevel,
         );
         return res.status(400).json({
           success: false,
-          message: `No active semester period found for ${academicLevel}. Cannot approve endorsement.`,
+          message: `No current Academic Period found for ${academicLevel}. Please configure one in the Academic Period tab before approving endorsements.`,
         });
       }
 
-      console.log("[ENDORSEMENT] Active semester period fetched:", {
+      console.log("[ENDORSEMENT] Current academic period fetched:", {
         id: activeSemester.id,
         academic_level: activeSemester.academic_level,
         start_date: activeSemester.start_date,
         end_date: activeSemester.end_date,
       });
+
+      // agreementStart = current server datetime (NOW)
+      // agreementEnd = last day of academic period at 23:59:59
+      // Use MySQL NOW() and DATE_FORMAT to avoid JS timezone issues
+      const [serverDates] = await connection.query(
+        `SELECT
+           NOW() AS agreementStart,
+           CONCAT(DATE(?), ' 23:59:59') AS agreementEnd`,
+        [activeSemester.end_date],
+      );
+      const agreementStart = serverDates[0].agreementStart;
+      const agreementEnd = serverDates[0].agreementEnd;
 
       await reservationModel.update(
         parseInt(id),
@@ -202,16 +222,16 @@ const adminController = {
           forApproval: true,
           isActive: false,
           employeeID: employeeID,
-          agreementDateStart: activeSemester.start_date,
-          agreementDateEnd: activeSemester.end_date,
+          agreementDateStart: agreementStart,
+          agreementDateEnd: agreementEnd,
         },
         connection,
       );
 
-      console.log("[ENDORSEMENT] Reservation updated with semester dates:", {
+      console.log("[ENDORSEMENT] Reservation updated with agreement period:", {
         referralSlipNo: reservation.referralSlipNo,
-        agreementDateStart: activeSemester.start_date,
-        agreementDateEnd: activeSemester.end_date,
+        agreementDateStart: agreementStart,
+        agreementDateEnd: agreementEnd,
       });
 
       await reservationModel.updateLockerStatus(
@@ -251,8 +271,8 @@ const adminController = {
           studentLastName: student.lastName,
           student_type: student.student_type,
           endorsedByName: employeeFullName,
-          agreementDateStart: activeSemester.start_date,
-          agreementDateEnd: activeSemester.end_date,
+          agreementDateStart: agreementStart,
+          agreementDateEnd: agreementEnd,
         };
         console.log("[DEBUG] Payment Advice Data:", {
           referralSlipNo: paymentAdviceData.referralSlipNo,

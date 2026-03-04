@@ -12,6 +12,8 @@ import {
   showConfirm,
   showSuccess,
 } from "../../utils/notifications";
+import AcademicPeriodList from "../../components/osas/AcademicPeriodList";
+import "../../assets/css/academicPeriodList.css";
 import "../../assets/css/osasDashboard.css";
 import useSocket from "../../hooks/useSocket";
 
@@ -23,6 +25,8 @@ const OSASDashboard = () => {
   const [showSemesterModal, setShowSemesterModal] = useState(false);
   const [modalAcademicLevel, setModalAcademicLevel] = useState("");
   const [missingLevels, setMissingLevels] = useState([]);
+  const [editSemesterData, setEditSemesterData] = useState(null);
+  const [apRefreshKey, setApRefreshKey] = useState(0);
   const [filters, setFilters] = useState({
     floor: "",
     dateRange: { start: "", end: "" },
@@ -253,14 +257,6 @@ const OSASDashboard = () => {
 
       // Handle semester period requirement responses
       if (response && response.requiresSemesterPeriod) {
-        if (response.showSemesterPeriodModal) {
-          setModalAcademicLevel(response.academicLevel || "");
-          setMissingLevels(response.missingLevels || []);
-          setShowSemesterModal(true);
-          await showError("Setup Required", response.message);
-          return;
-        }
-
         await showError("Cannot Approve", response.message);
         return;
       }
@@ -276,10 +272,7 @@ const OSASDashboard = () => {
       closeAlert();
 
       if (error.response?.data?.requiresSemesterPeriod) {
-        if (error.response.data.showSemesterPeriodModal) {
-          setShowSemesterModal(true);
-        }
-        showError("Setup Required", error.response.data.message);
+        showError("Cannot Approve", error.response.data.message);
       } else {
         showError("Error", error.message || "Action failed");
       }
@@ -296,6 +289,7 @@ const OSASDashboard = () => {
     { id: "occupied", label: "Occupied", count: stats.occupied },
     { id: "history", label: "History", count: 0 },
     { id: "floorplan", label: "Floor Plan", count: 0 },
+    { id: "academic-period", label: "Academic Period", count: 0 },
   ];
 
   return (
@@ -377,7 +371,7 @@ const OSASDashboard = () => {
           ))}
         </div>
 
-        {activeTab !== "floorplan" && (
+        {activeTab !== "floorplan" && activeTab !== "academic-period" && (
           <FilterButtons
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -386,7 +380,30 @@ const OSASDashboard = () => {
         )}
 
         <div className="osas-content-area">
-          {activeTab === "floorplan" ? (
+          {activeTab === "academic-period" ? (
+            <>
+              <div className="ap-header-bar">
+                <button
+                  className="ap-add-btn"
+                  onClick={() => {
+                    setEditSemesterData(null);
+                    setModalAcademicLevel("");
+                    setMissingLevels([]);
+                    setShowSemesterModal(true);
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+              <AcademicPeriodList
+                onEdit={(record) => {
+                  setEditSemesterData(record);
+                  setShowSemesterModal(true);
+                }}
+                onRefreshKey={apRefreshKey}
+              />
+            </>
+          ) : activeTab === "floorplan" ? (
             <div className="floor-plan-placeholder">
               <p>Floor Plan view coming soon</p>
             </div>
@@ -408,13 +425,17 @@ const OSASDashboard = () => {
           setShowSemesterModal(false);
           setModalAcademicLevel("");
           setMissingLevels([]);
+          setEditSemesterData(null);
         }}
         onSave={() => {
           setShowSemesterModal(false);
           setModalAcademicLevel("");
           setMissingLevels([]);
+          setEditSemesterData(null);
+          setApRefreshKey((prev) => prev + 1);
           fetchData(true);
         }}
+        editData={editSemesterData}
         academicLevel={modalAcademicLevel}
         missingLevels={missingLevels}
       />

@@ -65,8 +65,8 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
         return [
           ...commonColumns,
           {
-            key: "agreementDuration",
-            label: "Agreement Duration",
+            key: "agreementPeriod",
+            label: "Agreement Period",
             sortable: false,
           },
           { key: "endorsedBy", label: "Endorsed By", sortable: false },
@@ -87,8 +87,8 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
         return [
           ...commonColumns,
           {
-            key: "agreementDuration",
-            label: "Agreement Duration",
+            key: "agreementPeriod",
+            label: "Agreement Period",
             sortable: false,
           },
           { key: "endorsedBy", label: "Endorsed By", sortable: false },
@@ -160,12 +160,19 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
     return agreementMap[agreement] || agreement;
   };
 
-  const formatDuration = (startDate, endDate) => {
+  const formatPeriod = (startDate, endDate) => {
     if (!startDate || !endDate) return "N/A";
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    return `${diffDays} days`;
+    const opts = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    };
+    const start = new Date(startDate).toLocaleString("en-US", opts);
+    const end = new Date(endDate).toLocaleString("en-US", opts);
+    return `${start} - ${end}`;
   };
 
   const renderCellContent = (reservation, column) => {
@@ -243,8 +250,8 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
           );
         }
         return "N/A";
-      case "agreementDuration":
-        return formatDuration(
+      case "agreementPeriod":
+        return formatPeriod(
           reservation.agreementDateStart,
           reservation.agreementDateEnd,
         );

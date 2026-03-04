@@ -32,7 +32,25 @@ exports.getAllSemesterPeriods = async (req, res) => {
 
     const [rows] = await db.query(query, params);
 
-    res.json({ success: true, data: rows });
+    // Let MySQL compute is_current to avoid JS timezone issues entirely
+    if (rows.length > 0) {
+      const ids = rows.map((r) => r.id);
+      const [currentRows] = await db.query(
+        `SELECT id FROM semester_periods
+         WHERE id IN (?) AND start_date <= CURDATE() AND end_date >= CURDATE()`,
+        [ids],
+      );
+      const currentIds = new Set(currentRows.map((r) => r.id));
+
+      const enriched = rows.map((row) => ({
+        ...row,
+        is_current: currentIds.has(row.id),
+      }));
+
+      res.json({ success: true, data: enriched });
+    } else {
+      res.json({ success: true, data: rows });
+    }
   } catch (err) {
     res
       .status(500)
@@ -154,6 +172,49 @@ exports.createSemesterPeriod = async (req, res) => {
         .json({ success: false, message: "Invalid date range" });
     }
 
+    // Validate max periods per academic_level + academic_year
+    const maxPeriods = academic_level === "SHS" ? 2 : 3;
+    const levelLabel = academic_level === "SHS" ? "SHS" : "College";
+    const [existingPeriods] = await db.query(
+      `SELECT COUNT(*) AS cnt FROM semester_periods
+       WHERE academic_level = ? AND academic_year = ? AND is_active = 1`,
+      [academic_level, academic_year],
+    );
+    if (existingPeriods[0].cnt >= maxPeriods) {
+      return res.status(400).json({
+        success: false,
+        message: `${levelLabel} Academic Year ${academic_year} already has the maximum of ${maxPeriods} Academic Period${maxPeriods > 1 ? "s" : ""}.`,
+      });
+    }
+
+    // Check for duplicate semester_name within same level + year
+    const [dupCheck] = await db.query(
+      `SELECT id FROM semester_periods
+       WHERE academic_level = ? AND academic_year = ? AND semester_name = ? AND is_active = 1`,
+      [academic_level, academic_year, semester_name],
+    );
+    if (dupCheck.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${semester_name} already exists for ${levelLabel} Academic Year ${academic_year}.`,
+      });
+    }
+
+    // Check for date overlap within same academic_level
+    const [overlapCheck] = await db.query(
+      `SELECT id, semester_name, academic_year FROM semester_periods
+       WHERE academic_level = ? AND is_active = 1
+       AND start_date < ? AND end_date > ?`,
+      [academic_level, end_date, start_date],
+    );
+    if (overlapCheck.length > 0) {
+      const ov = overlapCheck[0];
+      return res.status(400).json({
+        success: false,
+        message: `An Academic Period already exists within the selected date range (${ov.semester_name} - ${ov.academic_year}).`,
+      });
+    }
+
     const [result] = await db.query(
       `
       INSERT INTO semester_periods
@@ -217,6 +278,23 @@ exports.updateSemesterPeriod = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Failed to update semester" });
+  }
+};
+
+exports.getServerTime = async (req, res) => {
+  try {
+    const now = new Date();
+    res.json({
+      success: true,
+      data: {
+        year: now.getFullYear(),
+        iso: now.toISOString(),
+      },
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to get server time" });
   }
 };
 

@@ -49,6 +49,15 @@ class SemesterPeriodsService {
    * Get all semester periods (optionally filtered)
    * @param {Object} filters - { academicLevel: 'SHS'|'COLLEGE', status: 'UPCOMING'|'ACTIVE'|'COMPLETED' }
    */
+  async getServerTime() {
+    try {
+      const response = await this.client.get("/semester-periods/server-time");
+      return this.formatSuccess(response, "Server time fetched");
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getAllSemesterPeriods(filters = {}) {
     try {
       const params = new URLSearchParams();
