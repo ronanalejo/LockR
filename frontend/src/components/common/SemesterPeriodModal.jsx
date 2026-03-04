@@ -18,7 +18,7 @@ const SemesterPeriodModal = ({
   missingLevels = [],
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [setStep1Data] = useState(null);
+  const [step1Data, setStep1Data] = useState(null);
 
   const [formData, setFormData] = useState({
     academicLevel: "",
