@@ -30,10 +30,10 @@ const OSASDashboard = () => {
     status: "",
   });
   const [stats, setStats] = useState({
-    total: 0,
     pendingEndorsements: 0,
     pendingApprovals: 0,
     occupied: 0,
+    resolved: 0,
   });
 
   const { user, logout } = useAuth();
@@ -45,15 +45,29 @@ const OSASDashboard = () => {
     }
   }, [user, navigate]);
 
-  const updateStats = useCallback((data) => {
-    setStats({
-      total: data.length,
-      pendingEndorsements: data.filter(
-        (r) => r.forEndorsement && !r.forApproval,
-      ).length,
-      pendingApprovals: data.filter((r) => r.forApproval && !r.isActive).length,
-      occupied: data.filter((r) => r.isActive).length,
-    });
+  const fetchStats = useCallback(async () => {
+    try {
+      const [endorsementRes, approvalRes, occupiedRes, historyRes] =
+        await Promise.all([
+          adminService.getEndorsementQueue(),
+          adminService.getApprovalQueue(),
+          adminService.getOccupiedLockers(),
+          adminService.getReservationHistory(),
+        ]);
+
+      setStats({
+        pendingEndorsements: endorsementRes.success
+          ? (endorsementRes.data || []).length
+          : 0,
+        pendingApprovals: approvalRes.success
+          ? (approvalRes.data || []).length
+          : 0,
+        occupied: occupiedRes.success ? (occupiedRes.data || []).length : 0,
+        resolved: historyRes.success ? (historyRes.data || []).length : 0,
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
   }, []);
 
   const fetchData = useCallback(
@@ -86,7 +100,6 @@ const OSASDashboard = () => {
 
         if (response.success) {
           setReservations(response.data || []);
-          updateStats(response.data || []);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -98,21 +111,26 @@ const OSASDashboard = () => {
         setIsRefreshing(false);
       }
     },
-    [activeTab, updateStats],
+    [activeTab],
   );
 
   useSocket(
     "osas",
     useCallback(() => {
       fetchData(false);
-    }, [fetchData]),
+      fetchStats();
+    }, [fetchData, fetchStats]),
   );
 
   useEffect(() => {
     fetchData(true);
-    const interval = setInterval(() => fetchData(false), 10000);
+    fetchStats();
+    const interval = setInterval(() => {
+      fetchData(false);
+      fetchStats();
+    }, 10000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, fetchStats]);
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
@@ -317,13 +335,6 @@ const OSASDashboard = () => {
 
         <div className="osas-stats-cards">
           <div className="stat-card">
-            <div className="stat-icon total"></div>
-            <div className="stat-content">
-              <p className="stat-label">Total Reservations</p>
-              <p className="stat-value">{stats.total}</p>
-            </div>
-          </div>
-          <div className="stat-card">
             <div className="stat-icon endorsement"></div>
             <div className="stat-content">
               <p className="stat-label">Pending Endorsements</p>
@@ -342,6 +353,13 @@ const OSASDashboard = () => {
             <div className="stat-content">
               <p className="stat-label">Occupied Lockers</p>
               <p className="stat-value">{stats.occupied}</p>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon resolved"></div>
+            <div className="stat-content">
+              <p className="stat-label">Resolved Reservations</p>
+              <p className="stat-value">{stats.resolved}</p>
             </div>
           </div>
         </div>
