@@ -15,11 +15,11 @@
 
 /* Status colors */
 .locker-card.occupied {
-  background-color: #1c56d1;
+  background-color: #dc2626;
 }
 
 .locker-card.reserved {
-  background-color: #dc2626;
+  background-color: #1c56d1;
 }
 
 .locker-card.unavailable {
@@ -115,7 +115,7 @@
 
 /* Status icon at top */
 .locker-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 12px;
   right: 12px;
@@ -158,7 +158,7 @@
 }
 
 .locker-lock::before {
-  content: '🔒';
+  content: "🔒";
   filter: grayscale(100%);
 }
 
@@ -167,7 +167,7 @@
 }
 
 .locker-card.available .locker-lock::before {
-  content: '🔓';
+  content: "🔓";
 }
 
 .locker-card.occupied .locker-lock,
