@@ -18,7 +18,7 @@ const SemesterPeriodModal = ({
   missingLevels = [],
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [step1Data, setStep1Data] = useState(null);
+  const [setStep1Data] = useState(null);
 
   const [formData, setFormData] = useState({
     academicLevel: "",
@@ -154,7 +154,7 @@ const SemesterPeriodModal = ({
       setStep1Data(null);
       setErrors({});
     }
-  }, [editData, academicLevel, missingLevels, isOpen]);
+  }, [editData, academicLevel, missingLevels, isOpen, setStep1Data]);
 
   useEffect(() => {
     if (formData.startYear && formData.endYear) {
@@ -165,6 +165,7 @@ const SemesterPeriodModal = ({
         setFormData((prev) => ({ ...prev, endYear: "" }));
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.startYear]);
 
   useEffect(() => {
@@ -183,6 +184,7 @@ const SemesterPeriodModal = ({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.academicLevel]);
 
   useEffect(() => {
@@ -203,6 +205,7 @@ const SemesterPeriodModal = ({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.startYear]);
 
   useEffect(() => {
@@ -223,6 +226,7 @@ const SemesterPeriodModal = ({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.endYear]);
 
   if (!isOpen) return null;
