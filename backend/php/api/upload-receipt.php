@@ -77,7 +77,7 @@ try {
         http_response_code(200);
         echo json_encode([
             'success' => true,
-            'message' => 'Proof of Payment uploaded successfully',
+            'message' => 'Receipt uploaded successfully',
             'data' => $result['data']
         ]);
     } else {
@@ -89,7 +89,7 @@ try {
     }
 
 } catch (Exception $e) {
-    error_log('Proof of Payment upload API error: ' . $e->getMessage());
+    error_log('Receipt upload API error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,

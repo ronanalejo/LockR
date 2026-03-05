@@ -35,7 +35,6 @@ exports.getPendingPayments = async (req, res) => {
       LEFT JOIN admin a ON r.employeeID = a.employeeID
       WHERE r.forApproval = TRUE
         AND r.forEndorsement = FALSE
-        AND r.paymentVerified = 0
       ORDER BY r.updatedAt DESC
     `);
 
@@ -68,17 +67,22 @@ exports.getPaymentHistory = async (req, res) => {
         r.agreement,
         r.agreementDateStart,
         r.agreementDateEnd,
-        r.dropboxReceipt,
         r.pdfPaymentAdviceSlip,
+        r.pdfPaymentAdviceSlipFinance,
+        r.dropboxReceipt,
+        r.proofOfPayment,
+        r.paymentVerified,
         r.paymentVerifiedAt,
-        a.firstName AS verifiedByFirstName,
-        a.lastName AS verifiedByLastName
+        endorsed.firstName AS endorsedByFirstName,
+        endorsed.lastName AS endorsedByLastName,
+        verified.firstName AS verifiedByFirstName,
+        verified.lastName AS verifiedByLastName
       FROM reservation r
       INNER JOIN student s ON r.studentID = s.studentID
-      LEFT JOIN admin a ON r.verifiedBy = a.employeeID
-      WHERE r.isActive = 1
-        AND r.paymentVerified = 1
-      ORDER BY r.paymentVerifiedAt DESC
+      LEFT JOIN admin endorsed ON r.employeeID = endorsed.employeeID
+      LEFT JOIN admin verified ON r.verifiedBy = verified.employeeID
+      WHERE r.isActive = TRUE
+      ORDER BY r.updatedAt DESC
     `);
 
     return res.json({
@@ -174,20 +178,18 @@ exports.getFinanceStats = async (req, res) => {
   try {
     const [[stats]] = await pool.execute(`
       SELECT
-        COUNT(*) AS total,
-        SUM(CASE WHEN forApproval = TRUE AND forEndorsement = FALSE AND paymentVerified = 0 THEN 1 ELSE 0 END) AS pending,
-        SUM(CASE WHEN paymentVerified = 1 THEN 1 ELSE 0 END) AS verified
+        SUM(CASE WHEN forApproval = TRUE AND forEndorsement = FALSE THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN isActive = TRUE THEN 1 ELSE 0 END) AS verified
       FROM reservation
-      WHERE forApproval = TRUE OR isActive = TRUE
+      WHERE (forApproval = TRUE AND forEndorsement = FALSE) OR isActive = TRUE
     `);
 
     return res.json({
       success: true,
       message: "Finance stats retrieved",
       data: {
-        total: Number(stats.total),
-        pending: Number(stats.pending),
-        verified: Number(stats.verified),
+        pending: Number(stats.pending) || 0,
+        verified: Number(stats.verified) || 0,
       },
     });
   } catch (err) {

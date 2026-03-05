@@ -70,7 +70,6 @@ const FinanceDashboard = () => {
 
         if (response?.success) {
           setReservations(response.data || []);
-          updateStats(response.data || []);
         }
       } catch (error) {
         console.error("Finance fetch error:", error);
@@ -85,12 +84,29 @@ const FinanceDashboard = () => {
     [activeTab],
   );
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await financeService.getDashboardStats();
+      if (response.success && response.data) {
+        const data = response.data;
+        setStats({
+          total: (Number(data.pending) || 0) + (Number(data.verified) || 0),
+          pendingPayments: Number(data.pending) || 0,
+          verifiedPayments: Number(data.verified) || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching finance stats:", error);
+    }
+  }, []);
+
   // Real-time WebSocket updates from other dashboards
   useSocket(
     "finance",
     useCallback(() => {
       fetchData(false);
-    }, [fetchData]),
+      fetchStats();
+    }, [fetchData, fetchStats]),
   );
 
   /**
@@ -98,22 +114,14 @@ const FinanceDashboard = () => {
    */
   useEffect(() => {
     fetchData(true);
-    const interval = setInterval(() => fetchData(false), 10000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
-
-  /**
-   * Update dashboard stats
-   */
-  const updateStats = useCallback((data) => {
-    setStats({
-      total: data.length,
-      pendingPayments: data.filter(
-        (r) => r.paymentVerified === 0 || !r.paymentVerified,
-      ).length,
-      verifiedPayments: data.filter((r) => r.paymentVerified === 1).length,
-    });
-  }, []);
+    fetchStats();
+    const dataInterval = setInterval(() => fetchData(false), 10000);
+    const statsInterval = setInterval(() => fetchStats(), 10000);
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(statsInterval);
+    };
+  }, [fetchData, fetchStats]);
 
   /**
    * Apply filters

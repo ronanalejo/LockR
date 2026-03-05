@@ -211,7 +211,7 @@ const reservationService = {
 
       await Swal.fire({
         icon: "success",
-        title: "Proof of Payment Uploaded",
+        title: "Receipt Uploaded",
         text: "Your payment proofOfPayment has been uploaded successfully",
         confirmButtonColor: "#3085d6",
         timer: 2000,

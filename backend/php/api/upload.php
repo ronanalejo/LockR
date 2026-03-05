@@ -86,7 +86,7 @@ try {
         errorResponse('Reservation not found or unauthorized', 404);
     }
 
-    successResponse(['filename' => $filename], 'Proof of Payment uploaded successfully');
+    successResponse(['filename' => $filename], 'Receipt uploaded successfully');
 
 } catch (PDOException $e) {
     if (file_exists($filepath)) {

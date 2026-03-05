@@ -1030,8 +1030,9 @@ const adminController = {
         INNER JOIN locker l ON r.lockerID = l.lockerID
         INNER JOIN student s ON r.studentID = s.studentID
         LEFT JOIN admin a ON r.employeeID = a.employeeID
-        WHERE (r.isActive = TRUE OR r.forEndorsement = FALSE OR r.forApproval = FALSE)
-        ORDER BY r.updatedAt DESC
+        WHERE r.agreementDateEnd IS NOT NULL
+          AND r.agreementDateEnd < NOW()
+        ORDER BY r.agreementDateEnd DESC
       `;
 
       const [reservations] = await pool.execute(query);

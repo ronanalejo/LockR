@@ -58,7 +58,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
             label: "Payment Advice Slip",
             sortable: false,
           },
-          { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
+          { key: "proofOfPayment", label: "Receipt", sortable: false },
           { key: "actions", label: "Approve?", sortable: false },
         ];
       case "occupied":
@@ -80,7 +80,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
             label: "Payment Advice Slip",
             sortable: false,
           },
-          { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
+          { key: "proofOfPayment", label: "Receipt", sortable: false },
           { key: "duplicate", label: "Duplicate?", sortable: false },
         ];
       case "history":

@@ -896,7 +896,7 @@
           }
         },
         {
-          "name": "Update Reservation - Student Upload Proof of Payment (Success)",
+          "name": "Update Reservation - Student Upload Receipt (Success)",
           "event": [
             {
               "listen": "test",

@@ -34,6 +34,7 @@ const OSASDashboard = () => {
     status: "",
   });
   const [stats, setStats] = useState({
+    total: 0,
     pendingEndorsements: 0,
     pendingApprovals: 0,
     occupied: 0,
@@ -205,7 +206,7 @@ const OSASDashboard = () => {
       ) {
         showError(
           "Reservation Approval Failed",
-          "Proof of Payment is required before approval.",
+          "Receipt is required before approval.",
         );
         return;
       }

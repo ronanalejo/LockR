@@ -215,7 +215,7 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
         description: `Your endorsement has been approved by ${activeReservation.endorsedByName || "OSAS Staff"}. Kindly proceed to the Finance office to complete the payment.`,
       },
     activeReservation.proofOfPayment && {
-      action: "Proof of Payment Uploaded",
+      action: "Receipt Uploaded",
       timestamp: activeReservation.updatedAt,
       description: "Student uploaded proof of payment",
     },
@@ -418,14 +418,13 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
               )}
             </div>
 
-            {/* Proof of Payment Upload Section */}
+            {/* Receipt Upload Section */}
             {(activeReservation.forApproval || activeReservation.isActive) &&
               !activeReservation.proofOfPayment && (
                 <div className="proof-of-payment-section">
-                  <h4 className="section-title">Proof of Payment</h4>
+                  <h4 className="section-title">Receipt</h4>
                   <p className="upload-instruction">
-                    Please upload your proof of payment (receipt, screenshot, or
-                    bank confirmation).
+                    Please upload the receipt issued by the Finance Department.
                   </p>
                   <input
                     type="file"
@@ -454,16 +453,14 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                       />
                     </svg>
-                    <span>
-                      {uploading ? "Uploading..." : "Upload Proof of Payment"}
-                    </span>
+                    <span>{uploading ? "Uploading..." : "Upload Receipt"}</span>
                   </button>
                 </div>
               )}
 
             {activeReservation.proofOfPayment && (
               <div className="proof-of-payment-section uploaded">
-                <h4 className="section-title">Proof of Payment</h4>
+                <h4 className="section-title">Receipt</h4>
                 <div className="upload-success">
                   <svg
                     width="20"

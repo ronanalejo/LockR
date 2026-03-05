@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `reservation` (
   `forApproval` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Pending final admin approval',
   `isActive` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Reservation is currently active',
   `lockerApplicationFormAgreement` VARCHAR(255) DEFAULT NULL COMMENT 'File path to signed agreement form',
-  `dropboxReceipt` VARCHAR(255) DEFAULT NULL COMMENT 'File path to Proof of Payment file',
+  `dropboxReceipt` VARCHAR(255) DEFAULT NULL COMMENT 'File path to Receipt file',
   `pdfPaymentAdviceSlip` VARCHAR(255) DEFAULT NULL COMMENT 'File path to generated PDF slip (Student Copy)',
   `pdfPaymentAdviceSlipOSAS` VARCHAR(255) DEFAULT NULL COMMENT 'File path to OSAS copy of payment advice slip',
   `pdfPaymentAdviceSlipFinance` VARCHAR(255) DEFAULT NULL COMMENT 'File path to Finance copy of payment advice slip',

@@ -121,7 +121,7 @@
       "name": "2. Upload Tests",
       "item": [
         {
-          "name": "TC5.1 - Upload Proof of Payment (Success)",
+          "name": "TC5.1 - Upload Receipt (Success)",
           "event": [
             {
               "listen": "test",
@@ -178,7 +178,7 @@
           }
         },
         {
-          "name": "TC5.2 - Upload Proof of Payment - No File (400)",
+          "name": "TC5.2 - Upload Receipt - No File (400)",
           "event": [
             {
               "listen": "test",

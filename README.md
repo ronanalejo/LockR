@@ -26,7 +26,7 @@ LockR is a modern locker reservation system that streamlines the process of lock
 - Real-time locker availability display
 - Digital payment advice slip generation
 - Administrative dashboard for reservation management
-- Proof of Payment upload and verification system
+- Receipt upload and verification system
 - Floor plan management for locker locations
 
 **Limitations:**
@@ -261,7 +261,7 @@ Import Postman collection from `/testing/postman/lockr-api.postman_collection.js
 - **Dashboard:** Overview of current reservations
 - **Locker Selection:** Interactive floor plan with real-time availability
 - **Reservation Form:** Agreement selection and booking confirmation
-- **Proof of Payment Upload:** Drag-and-drop proofOfPayment submission with SweetAlert2 confirmations
+- **Receipt Upload:** Drag-and-drop proofOfPayment submission with SweetAlert2 confirmations
 
 ### OSAS Admin Panel Features
 

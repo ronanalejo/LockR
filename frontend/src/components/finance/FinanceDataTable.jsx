@@ -33,7 +33,7 @@ const FinanceDataTable = ({
         { key: "agreement", label: "Agreement", sortable: true },
         {
           key: "agreementPeriod",
-          label: "Start and End of Agreement",
+          label: "Agreement Period",
           sortable: false,
         },
         {
@@ -41,7 +41,7 @@ const FinanceDataTable = ({
           label: "Payment Advice Slip",
           sortable: false,
         },
-        { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
+        { key: "proofOfPayment", label: "Receipt", sortable: false },
         { key: "endorsedBy", label: "Endorsed By", sortable: false },
       ];
     }
@@ -55,7 +55,7 @@ const FinanceDataTable = ({
       { key: "agreement", label: "Agreement", sortable: true },
       {
         key: "agreementPeriod",
-        label: "Start and End of Agreement",
+        label: "Agreement Period",
         sortable: false,
       },
       {
@@ -63,7 +63,7 @@ const FinanceDataTable = ({
         label: "Payment Advice Slip",
         sortable: false,
       },
-      { key: "proofOfPayment", label: "Proof of Payment", sortable: false },
+      { key: "proofOfPayment", label: "Receipt", sortable: false },
       { key: "endorsedBy", label: "Endorsed By", sortable: false },
     ];
   }, [activeTab]);
