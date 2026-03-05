@@ -16,6 +16,7 @@ import AcademicPeriodList from "../../components/osas/AcademicPeriodList";
 import "../../assets/css/academicPeriodList.css";
 import "../../assets/css/osasDashboard.css";
 import useSocket from "../../hooks/useSocket";
+import iACLogo from "../../assets/images/logos/Logo DARKBLUE.png";
 
 const OSASDashboard = () => {
   const [activeTab, setActiveTab] = useState("endorsement");
@@ -298,9 +299,7 @@ const OSASDashboard = () => {
       <div className="osas-sidebar">
         <div className="osas-sidebar-logo">
           <div className="osas-logo-container">
-            <div className="osas-logo-icon">
-              <div className="osas-logo-icon-inner"></div>
-            </div>
+            <img src={iACLogo} alt="" />
             <div className="osas-logo-text">iACADEMY OSAS</div>
           </div>
         </div>

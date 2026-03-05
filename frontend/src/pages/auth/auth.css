@@ -38,7 +38,7 @@ input:focus {
     margin-top: 10%;
 }
 
-#google-btn {
+/* #google-btn {
     border-radius: 6px;
     border: 1px solid;
     padding: 10px 0px 10px 0px;
@@ -50,7 +50,7 @@ input:focus {
 }
 #google-btn:hover {
     box-shadow: 0px 2px 2px rgb(160, 160, 160);
-}
+} */
 
 #login-btn {
     border-radius: 6px;
@@ -65,7 +65,7 @@ input:focus {
     cursor: pointer;
 }
 #login-btn:hover {
-    background-color: rgb(45, 75, 165);
+    background-color: rgb(0, 183, 255);
 }
 
 #ireserve-logo {
@@ -81,12 +81,12 @@ input:focus {
 @media (max-width: 1024px) {
     #ireserve-logo {
         display: none;
+        height: 100vh;
     }
 
     #logo-mobile {
         position: relative;
         height: 20rem;
-        
     }
 
     form {
@@ -115,6 +115,7 @@ input:focus {
 @media (min-width: 1025px) {
     #logo-mobile {
         display: none;
+        height: 100vh;
     }
 
     form {

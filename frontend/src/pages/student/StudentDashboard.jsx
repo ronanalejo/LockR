@@ -21,7 +21,7 @@ import ReservationLog from "../../components/student/ReservationLog";
 const StudentDashboard = () => {
   const [selectedFloor, setSelectedFloor] = useState(() => {
     const savedFloor = localStorage.getItem("selectedFloor");
-    return savedFloor ? parseInt(savedFloor, 10) : null;
+    return savedFloor ? parseInt(savedFloor, 10) : 6;
   });
 
   const [selectedSide, setSelectedSide] = useState(null);
@@ -35,7 +35,7 @@ const StudentDashboard = () => {
   const [showReservationLog, setShowReservationLog] = useState(false);
   const [userReservations, setUserReservations] = useState([]);
   const [hasActiveReservation, setHasActiveReservation] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(window.innerWidth <= 640);
 
   const floors = [6, 7, 9, 10];
 
@@ -331,12 +331,20 @@ const StudentDashboard = () => {
     setShowReservationLog(false);
   };
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <div className="locker-dashboard">
       {menuOpen && (
         <div
           className="sidebar-overlay"
-          onClick={() => setMenuOpen(false)}
+          onClick={() => setMenuOpen(false)}        // New------------------
           aria-hidden="true"
         />
       )}
@@ -444,19 +452,19 @@ const StudentDashboard = () => {
           </div>
 
           <div className="locker-content-area">
-            {!selectedFloor ? (
+            {!selectedFloor && !isMobile ? (
               <div className="locker-floor-display">
                 <h2>Please select a floor to begin</h2>
                 <p>Choose a floor from the sidebar to view available lockers</p>
               </div>
             ) : !selectedSide ? (
               <LockerSelection
-                floor={selectedFloor}
+                floor={selectedFloor || 6}
                 onSelectSide={handleSideSelect}
               />
             ) : (
               <LockerGrid
-                floor={selectedFloor}
+                floor={selectedFloor || 6}
                 side={selectedSide}
                 onSelectLocker={handleSelectLocker}
                 onBack={handleBackToFloorPlan}

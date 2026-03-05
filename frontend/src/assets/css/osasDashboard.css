@@ -38,17 +38,21 @@
   justify-content: center;
 }
 
-.osas-logo-icon-inner {
+img {
+  height: 50px;
+}
+
+/* .osas-logo-icon-inner {
   width: 20px;
   height: 20px;
-  border: 3px solid white;
+  border: 3px solid rgb(255, 0, 0);
   border-radius: 4px;
-}
+} */
 
 .osas-logo-text {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1f2937;
+  color: #0045a5;
 }
 
 .osas-user-info {
@@ -239,6 +243,19 @@
   }
 
   .osas-tabs {
+    flex-direction: column;
+  }
+
+  .filter-section {
+    display: flex;
+    flex-direction: row;
+  }
+
+}
+
+@media (max-width: 1060px) {
+  .filter-date-inputs {
+    display: flex;
     flex-direction: column;
   }
 }
