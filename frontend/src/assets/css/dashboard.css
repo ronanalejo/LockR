@@ -17,6 +17,7 @@ body {
     color: white;
 }
 
+
 /* Sidebar Styles */
 .locker-sidebar {
     width: 200px;
@@ -45,46 +46,6 @@ body {
     height: 35px;
 }
 
-
-/* Search Bar Styles */
-/* .locker-search-container {
-    padding: 8px;
-}
-
-.locker-search-wrapper {
-    margin-top: 9px;
-    position: relative;
-}
-
-.locker-search-input {
-    width: 100%;
-    background-color: white;
-    color: #4b5563;
-    font-size: 12px;
-    padding: 10px 8px 10px 13px;
-    padding-right: 24px;
-    border-radius: 4px;
-    border: none;
-    outline: none;
-}
-
-.locker-search-input:focus {
-    box-shadow: 0 0 0 1px #3b82f6;
-}
-
-.locker-search-input::placeholder {
-    color: #9ca3af;
-}
-
-.locker-search-icon {
-    position: absolute;
-    right: 10px;
-    top: 35%;
-    transform: translateY(-50%);
-    width: 17px;
-    height: 10px;
-    color: #9ca3af;
-} */
 
 /* Floor Navigation Styles */
 .locker-floor-nav {
@@ -403,7 +364,7 @@ svg {
         display: block !important;
         min-width: unset !important;
         padding: 16px 0 !important;
-        font-size: 13px !important;
+        font-size: 16px !important;
     }
 
     .reservation-log-button {
