@@ -364,6 +364,20 @@
   background: #94a3b8;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.swal2-container {
+  z-index: 99999 !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .reservation-log-modal,
