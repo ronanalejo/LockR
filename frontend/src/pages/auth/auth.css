@@ -12,15 +12,20 @@ p {
 }
 
 .login-form {
-    text-align: center;
-    overflow: hidden;
+    display: flex;
     height: 100vh;
+    overflow: hidden;
+    text-align: center;
 }
 
 form {
-    margin-top: 16%;
-    margin-left: 25%;
+    flex: 1;          
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     transition: 0.3s;
+    margin: 0;  
     
 }
 
@@ -69,36 +74,73 @@ input:focus {
 }
 
 #ireserve-logo {
-    position: absolute;
+    position: relative;
     display: flex;
-    top: 0px;
+    flex-direction: column;
     background-color: royalblue;
     height: 100vh;
     transition: 0.2s;
+    width: 30%;
+    align-items: center;
+    justify-content: center;  
+    padding-bottom: 10rem; 
+    overflow: hidden;
+}
+
+#ireserve-logo img {
+    margin: 10%;
+    height: 40rem;
+}
+
+#iac-logo{
+    width: 40%;
+    max-width: 130px;
+    object-fit: contain;
+    border-color: red;
+    padding-top: 10px;
 }
 
 /* MOBILE & TABLET */
 @media (max-width: 1024px) {
     #ireserve-logo {
         display: none;
-        height: 100vh;
     }
 
     #logo-mobile {
-        position: relative;
-        height: 20rem;
+        height: auto !important;
+        margin-bottom: 520px;
+        width: min(350px, 60vw);
+        flex-shrink: 0;
+        display: block;
+        position: absolute;
+    }
+
+    .login-form {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center; 
+        padding: 20px;  
+        overflow-y: auto;
+        gap: 20px;
     }
 
     form {
-        margin-left: 0%;
-        margin-top: 0%;
-        min-height: 100vh;
+        width: 100%;
+        max-width: 360px;
+        margin: 0;
+        min-height: unset;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 1;
     }
+    
 
     body {
         background-color: royalblue;
     }
     #login-btn {
+        flex-direction: column;
         margin: 20px 0px 0px 0px;
         background-color: white;
         color: black;
@@ -110,27 +152,22 @@ input:focus {
     } 
 }
 
+
+
 /* DESKTOP */
 
 @media (min-width: 1025px) {
     #logo-mobile {
         display: none;
-        height: 100vh;
     }
 
     form {
-        margin-top: 30%;
-        margin-left: 45%;
+        margin: 0;
     }
 }
 @media (min-width: 1380px) {
     form {
-        margin-top: 17%;
-        margin-left: 25%
+        margin: 0;
     }
 }
 
-img {
-    padding: 0%;
-    height: 40rem;
-}

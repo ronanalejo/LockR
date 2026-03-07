@@ -255,7 +255,10 @@ const LoginPage = () => {
     <div className="login-form">
       <div id="ireserve-logo">
         <img src={iRESERVELOGO} alt="logo" />
+        <img id="iac-logo" src="WHITE_iACADEMY Long Logo_Makati.png" alt="" />
       </div>
+     
+
 
       <img id="logo-mobile" src={iRESERVELOGO} alt="logo" />
 

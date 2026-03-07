@@ -370,7 +370,7 @@ const StudentDashboard = () => {
       {menuOpen && (
         <div
           className="sidebar-overlay"
-          onClick={() => setMenuOpen(false)} // New------------------
+          onClick={() => setMenuOpen(false)}
           aria-hidden="true"
         />
       )}
@@ -390,7 +390,7 @@ const StudentDashboard = () => {
           className="reservation-log-button"
           onClick={handleOpenReservationLog}
         >
-          <span> 📋 My Reservations</span>
+          <span>My Reservations</span>
         </button>
 
         {/* Floor Navigation */}
@@ -430,6 +430,7 @@ const StudentDashboard = () => {
       </div>
 
       {/* Main Content */}
+
       <div className="locker-main-content" style={getBackgroundStyle()}>
         {isWithinOperatingHours === null ? null : !isWithinOperatingHours ? (
           <div className="locker-unavailable-notice">
