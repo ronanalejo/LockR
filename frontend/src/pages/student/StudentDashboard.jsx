@@ -12,6 +12,7 @@ import {
 import { API_ENDPOINTS } from "../../config/api";
 import LockerSelection from "./LockerSelection";
 import LockerGrid from "../../components/student/LockerGrid";
+import SetSelection from "./SetSelection";
 import ReservationForm from "../../components/student/ReservationForm";
 import RulesRegulations from "../../components/student/RulesRegulations";
 import EndorsementApproval from "../../components/student/EndorsementApproval";
@@ -26,6 +27,7 @@ const StudentDashboard = () => {
   });
 
   const [selectedSide, setSelectedSide] = useState(null);
+  const [selectedSet, setSelectedSet] = useState(null);
   const [selectedLocker, setSelectedLocker] = useState(null);
   const [showRules, setShowRules] = useState(false);
   const [reservationData, setReservationData] = useState(null);
@@ -133,11 +135,12 @@ const StudentDashboard = () => {
   const handleFloorSelect = (floor) => {
     setSelectedFloor(floor);
     setSelectedSide(null);
-    setMenuOpen(false);
+    setSelectedSet(null);
   };
 
   const handleSideSelect = (side) => {
     setSelectedSide(side);
+    setSelectedSet(null);
   };
 
   const handleBackToFloorPlan = () => {
@@ -506,15 +509,23 @@ const StudentDashboard = () => {
                   </div>
                 ) : !selectedSide ? (
                   <LockerSelection
-                    floor={selectedFloor || 6}
+                    floor={selectedFloor}
                     onSelectSide={handleSideSelect}
+                  />
+                ) : !selectedSet ? (
+                  <SetSelection
+                    floor={selectedFloor}
+                    wing={selectedSide}
+                    onSelectSet={(set) => setSelectedSet(set)}
+                    onBack={() => setSelectedSide(null)}
                   />
                 ) : (
                   <LockerGrid
-                    floor={selectedFloor || 6}
-                    side={selectedSide}
+                    floor={selectedFloor}
+                    wing={selectedSide}
+                    set={selectedSet}
                     onSelectLocker={handleSelectLocker}
-                    onBack={handleBackToFloorPlan}
+                    onBack={() => setSelectedSet(null)}
                     hasActiveReservation={hasActiveReservation}
                   />
                 )}

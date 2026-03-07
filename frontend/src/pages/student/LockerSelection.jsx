@@ -50,7 +50,7 @@ const LockerSelection = ({ floor, onSelectSide }) => {
               {/* Side A */}
               <button
                 className="side-card side-a"
-                onClick={() => onSelectSide("A")}
+                onClick={() => onSelectSide("Left Wing")}
               >
                 <div className="side-icon">
                   <div className="locker-visual">
@@ -67,7 +67,7 @@ const LockerSelection = ({ floor, onSelectSide }) => {
               {/* Side B */}
               <button
                 className="side-card side-b"
-                onClick={() => onSelectSide("B")}
+                onClick={() => onSelectSide("Right Wing")}
               >
                 <div className="side-icon">
                   <div className="locker-visual">

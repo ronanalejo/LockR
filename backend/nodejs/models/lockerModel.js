@@ -15,7 +15,7 @@ const LockerModel = {
   async getAllLockers(filters = {}, limit = 50, offset = 0) {
     try {
       let query = `
-        SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
+        SELECT lockerID, branchID, floorNumber, wing, setName, status, createdAt, updatedAt 
         FROM locker 
         WHERE 1=1
       `;
@@ -89,7 +89,7 @@ const LockerModel = {
   async getAvailableLockers(limit = 50, offset = 0) {
     try {
       const query = `
-        SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
+        SELECT lockerID, branchID, floorNumber, wing, setName, status, createdAt, updatedAt 
         FROM locker 
         WHERE status = 'Available'
         ORDER BY floorNumber ASC, lockerID ASC
@@ -113,7 +113,7 @@ const LockerModel = {
   async getLockersByFloor(floorNumber, status = null, limit = 50, offset = 0) {
     try {
       let query = `
-      SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
+      SELECT lockerID, branchID, floorNumber, wing, setName, status, createdAt, updatedAt 
       FROM locker 
       WHERE floorNumber = ?
     `;
@@ -151,7 +151,7 @@ const LockerModel = {
   async getLockerById(lockerID) {
     try {
       const query = `
-        SELECT lockerID, branchID, floorNumber, status, createdAt, updatedAt 
+        SELECT lockerID, branchID, floorNumber, wing, setName, status, createdAt, updatedAt 
         FROM locker 
         WHERE lockerID = ?
       `;
@@ -191,15 +191,28 @@ const LockerModel = {
    */
   async createLocker(lockerData) {
     try {
-      const { branchID, floorNumber, status = "Available" } = lockerData;
+      const {
+        lockerID,
+        branchID,
+        floorNumber,
+        wing = null,
+        setName = null,
+        status = "Available",
+      } = lockerData;
       const query = `
-        INSERT INTO locker (branchID, floorNumber, status, createdAt, updatedAt)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        INSERT INTO locker (lockerID, branchID, floorNumber, wing, setName, status, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `;
-      const [result] = await db.query(query, [branchID, floorNumber, status]);
+      await db.query(query, [
+        lockerID,
+        branchID,
+        floorNumber,
+        wing,
+        setName,
+        status,
+      ]);
 
-      // Return created locker
-      return await this.getLockerById(result.insertId);
+      return await this.getLockerById(lockerID);
     } catch (error) {
       throw new Error(`Error creating locker: ${error.message}.`);
     }

@@ -347,14 +347,27 @@ const LockerController = {
    */
   async createLocker(req, res) {
     try {
-      const { branchID, floorNumber, status } = req.body;
+      const { lockerID, branchID, floorNumber, status, wing, setName } =
+        req.body;
 
-      // validate required fields
-      if (!branchID || floorNumber === undefined) {
+      if (
+        !lockerID ||
+        lockerID.trim() === "" ||
+        !branchID ||
+        floorNumber === undefined
+      ) {
         return res.status(400).json({
           success: false,
           error:
-            "Missing required fields: branchID and floorNumber are required.",
+            "Missing required fields: lockerID, branchID and floorNumber are required.",
+        });
+      }
+
+      const validWings = ["Left Wing", "Right Wing"];
+      if (!wing || !validWings.includes(wing)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid wing. Must be 'Left Wing' or 'Right Wing'.",
         });
       }
 
@@ -377,8 +390,11 @@ const LockerController = {
       }
 
       const newLocker = await LockerModel.createLocker({
+        lockerID: lockerID.trim(),
         branchID,
         floorNumber,
+        wing,
+        setName: setName || null,
         status: status || "Available",
       });
 
@@ -407,7 +423,7 @@ const LockerController = {
     const connection = await pool.getConnection();
     try {
       const lockerID = req.params.lockerID;
-      const { floorNumber, status } = req.body;
+      const { floorNumber, status, wing, setName } = req.body;
 
       if (!lockerID || lockerID.trim() === "") {
         return res
@@ -468,6 +484,20 @@ const LockerController = {
         fields.push("status = ?");
         values.push(status);
       }
+      if (wing !== undefined) {
+        const validWings = ["Left Wing", "Right Wing"];
+        if (!validWings.includes(wing)) {
+          return res
+            .status(400)
+            .json({ success: false, error: "Invalid wing." });
+        }
+        fields.push("wing = ?");
+        values.push(wing);
+      }
+      if (setName !== undefined) {
+        fields.push("setName = ?");
+        values.push(setName || null);
+      }
       fields.push("updatedAt = CURRENT_TIMESTAMP");
       values.push(lockerID);
 
@@ -488,13 +518,11 @@ const LockerController = {
     } catch (error) {
       await connection.rollback();
       console.error("Error in updateLocker:", error);
-      res
-        .status(500)
-        .json({
-          success: false,
-          error: "Failed to update locker.",
-          message: error.message,
-        });
+      res.status(500).json({
+        success: false,
+        error: "Failed to update locker.",
+        message: error.message,
+      });
     } finally {
       connection.release();
     }
