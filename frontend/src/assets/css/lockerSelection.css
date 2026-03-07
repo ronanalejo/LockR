@@ -1,17 +1,17 @@
 /* Floor plan container */
 .floor-plan-container {
-  background-color: rgba(255, 255, 255, 0.95);
+  background: radial-gradient(circle,rgb(255, 255, 255) 0%, rgb(234, 234, 234) 100%);
   backdrop-filter: blur(12px);
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   width: 100%;
-  height: auto;
-  min-height: 0;
+  height: 100%;
   max-width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  /* overflow: hidden; */
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Floor plan header */
@@ -147,7 +147,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 10;
+  z-index: 1000;
   backdrop-filter: blur(8px);
 }
 
@@ -346,6 +346,21 @@
 
 .info-card li:last-child {
   border-bottom: none;
+}
+
+.modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99999 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    position: relative;
+    z-index: 100000 !important;
 }
 
 /* Responsive Design */

@@ -344,10 +344,10 @@ const StudentDashboard = () => {
       {menuOpen && (
         <div
           className="sidebar-overlay"
-          onClick={() => setMenuOpen(false)}        // New------------------
+          onClick={() => setMenuOpen(false)}      
           aria-hidden="true"
         />
-      )}
+      )}  
 
       {/* Sidebar */}
       <div className={`locker-sidebar ${menuOpen ? "sidebar-open" : ""}`}>
@@ -362,9 +362,8 @@ const StudentDashboard = () => {
 
         <button
           className="reservation-log-button"
-          onClick={handleOpenReservationLog}
-        >
-          <span> 📋 My Reservations</span>
+          onClick={handleOpenReservationLog}>
+          <span>My Reservations</span>
         </button>
 
         {/* Floor Navigation */}
@@ -396,9 +395,11 @@ const StudentDashboard = () => {
       </div>
 
       {/* Main Content */}
+      
       <div className="locker-main-content" style={getBackgroundStyle()}>
         {/* Header */}
         <div className="content-overlay">
+          
           <div className="locker-header">
             <button
               className="burger-menu-btn"
