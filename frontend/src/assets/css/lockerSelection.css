@@ -1,6 +1,10 @@
 /* Floor plan container */
 .floor-plan-container {
-  background: radial-gradient(circle,rgb(255, 255, 255) 0%, rgb(234, 234, 234) 100%);
+  background: radial-gradient(
+    circle,
+    rgb(255, 255, 255) 0%,
+    rgb(234, 234, 234) 100%
+  );
   backdrop-filter: blur(12px);
   padding: 1rem;
   border-radius: 0.5rem;
@@ -349,18 +353,18 @@
 }
 
 .modal-overlay {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 99999 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content {
-    position: relative;
-    z-index: 100000 !important;
+  position: relative;
+  z-index: 100000 !important;
 }
 
 /* Responsive Design */
@@ -633,4 +637,93 @@
   .location-modal-close:hover {
     transform: none;
   }
+}
+
+/* Set Selection */
+.set-selection-back {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.back-to-wing-btn {
+  background: none;
+  border: 2px solid #e5e7eb;
+  color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.back-to-wing-btn:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.sets-container {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.set-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 160px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.set-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.set-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+.set-letter {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+}
+
+.set-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.no-sets-message {
+  text-align: center;
+  color: #6b7280;
+  padding: 3rem;
+}
+
+.no-sets-message p {
+  margin-bottom: 0.5rem;
 }

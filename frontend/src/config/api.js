@@ -44,6 +44,11 @@ const API_ENDPOINTS = {
     byFloor: (floor) => `${API_BASE_URL}/lockers/floor/${floor}`,
     byId: (id) => `${API_BASE_URL}/lockers/${id}`,
   },
+  lockerSets: {
+    base: `${API_BASE_URL}/locker-sets`,
+    byFloorAndWing: (floor, wing) =>
+      `${API_BASE_URL}/locker-sets?floorNumber=${floor}&wing=${encodeURIComponent(wing)}`,
+  },
   reservations: {
     create: `${API_BASE_URL}/reservations`,
     validateAgreement: `${API_BASE_URL}/reservations/validate-agreement`,

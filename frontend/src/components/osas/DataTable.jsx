@@ -17,7 +17,7 @@ const DataTable = ({ data, loading, activeTab, onAction, onRefresh }) => {
   const columns = useMemo(() => {
     const commonColumns = [
       { key: "referralSlipNo", label: "Referral No.", sortable: true },
-      { key: "lockerID", label: "Locker ID", sortable: true },
+      { key: "lockerID", label: "Locker Number", sortable: true },
       { key: "floorNumber", label: "Floor No.", sortable: true },
       { key: "studentName", label: "Student Name", sortable: true },
       { key: "agreement", label: "Agreement", sortable: true },

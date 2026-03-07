@@ -8,7 +8,8 @@ import "../../assets/css/lockerGrid.css";
 
 const LockerGrid = ({
   floor,
-  side,
+  wing,
+  set,
   onSelectLocker,
   onBack,
   hasActiveReservation = false,
@@ -35,7 +36,9 @@ const LockerGrid = ({
           setLoading(true);
         }
 
-        console.log(`FETCHING LOCKERS FOR FLOOR ${floor}, SIDE ${side}`);
+        console.log(
+          `FETCHING LOCKERS FOR FLOOR ${floor}, WING ${wing}, SET ${set}`,
+        );
         const response = await lockerService.getLockersByFloor(floor);
         console.log("FULL RESPONSE STRUCTURE:");
         console.log("response:", response);
@@ -60,17 +63,11 @@ const LockerGrid = ({
           }
 
           const filteredLockers = allLockers.filter((locker) => {
-            const lockerIdParts = locker.lockerID.split("-");
-            if (lockerIdParts.length >= 2) {
-              const lockerSide = lockerIdParts[1].charAt(0).toUpperCase();
-              const matches = lockerSide === side.toUpperCase();
-              return matches;
-            }
-            return false;
+            return locker.wing === wing && locker.setName === set;
           });
 
           console.log(
-            `Filtered to ${filteredLockers.length} lockers for side ${side}`,
+            `Filtered to ${filteredLockers.length} lockers for wing ${wing}, set ${set}`,
           );
 
           const mappedLockers = filteredLockers.map((locker, index) => ({
@@ -112,7 +109,7 @@ const LockerGrid = ({
         }
       }
     },
-    [floor, side, navigate],
+    [floor, wing, set, navigate],
   );
 
   useEffect(() => {
@@ -138,7 +135,7 @@ const LockerGrid = ({
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [floor, side, navigate, fetchLockers, user]);
+  }, [floor, wing, set, navigate, fetchLockers, user]);
 
   if (authError) {
     return (
@@ -146,10 +143,10 @@ const LockerGrid = ({
         <div className="grid-header">
           <div className="grid-title-section">
             <button onClick={onBack} className="back-button">
-              <p> Back to Floor Plan</p>
+              <p> Back to Set Selection</p>
             </button>
             <h2 className="grid-title">
-              Floor {floor} - Side {side}
+              Floor {floor} - {wing} - Set {set}
             </h2>
           </div>
         </div>
@@ -166,10 +163,10 @@ const LockerGrid = ({
         <div className="grid-header">
           <div className="grid-title-section">
             <button onClick={onBack} className="back-button">
-              Back to Floor Plan
+              Back to Set Selection
             </button>
             <h2 className="grid-title">
-              Floor {floor} - Side {side}
+              Floor {floor} - {wing} - Set {set}
             </h2>
           </div>
         </div>
@@ -186,10 +183,10 @@ const LockerGrid = ({
       <div className="grid-header">
         <div className="grid-title-section">
           <button onClick={onBack} className="back-button">
-            Back to Floor Plan
+            Back to Set Selection
           </button>
           <h2 className="grid-title">
-            Floor {floor} - Side {side}
+            Floor {floor} - {wing} - Set {set}
           </h2>
         </div>
         {lastUpdate && (
@@ -218,7 +215,7 @@ const LockerGrid = ({
             <span>Available</span>
           </div>
         </div>
-        <div className="set-label">SET : {side}</div>
+        <div className="set-label">SET : {set}</div>
       </div>
 
       <div className="grid-layout">
