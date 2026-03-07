@@ -991,6 +991,7 @@ const adminController = {
         INNER JOIN student s ON r.studentID = s.studentID
         LEFT JOIN admin a ON r.employeeID = a.employeeID
         WHERE r.isActive = TRUE
+          AND (r.agreementDateEnd IS NULL OR r.agreementDateEnd >= NOW())
         ORDER BY r.agreementDateStart DESC
       `;
 
