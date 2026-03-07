@@ -1,200 +1,219 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
 /* Container Styles */
 .locker-dashboard {
-    display: flex;
-    height: 100vh;
-    background-color: #1f2937;
-    color: white;
+  display: flex;
+  height: 100vh;
+  background-color: #1f2937;
+  color: white;
 }
-
 
 /* Sidebar Styles */
 .locker-sidebar {
-    width: 200px;
-    background-color: #475569;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
+  width: 200px;
+  background-color: #475569;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
 .locker-sidebar-logo {
-    height: 56px;
-    background-color: #1d4ed8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid #1e40af;
+  height: 56px;
+  background-color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #1e40af;
 }
 
 .locker-logo-container {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 #iac-logo {
-    height: 35px;
+  height: 35px;
 }
-
 
 /* Floor Navigation Styles */
 .locker-floor-nav {
-    flex: 1;
-    padding: 8px 0px;
-    display: flex;
-    flex-direction: column;
+  flex: 1;
+  padding: 8px 0px;
+  display: flex;
+  flex-direction: column;
 }
 
 .locker-floor-button {
-    width: 100%;
-    padding: 20px 0;
-    font-size: 15px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
+  width: 100%;
+  padding: 20px 0;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .locker-floor-button:hover {
-    opacity: 0.9;
+  opacity: 0.9;
 }
 
 .locker-floor-button.active {
-   background-color: #2563eb;
-   color: white;
+  background-color: #2563eb;
+  color: white;
 }
 
 .locker-floor-button.inactive {
-    background-color: #475569;
-    color: #d1d5db;
+  background-color: #475569;
+  color: #d1d5db;
 }
 
 .locker-floor-button.inactive:hover {
-    background-color: #6b7280;
+  background-color: #6b7280;
 }
 
 /* Logout Button Styles */
 .locker-logout-container {
-    padding: 12px;
+  padding: 12px;
 }
 
 .locker-logout-button {
-    background: transparent;
-    color: rgb(255, 30, 0);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 10px 0;
-    border-radius: 7px;
-    border: solid 1px rgb(255, 30, 0);
-    cursor: pointer;
-    transition: background-color 0.2s;
-    width: 100%;
-    margin-bottom: 0px;
+  background: transparent;
+  color: rgb(255, 30, 0);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 0;
+  border-radius: 7px;
+  border: solid 1px rgb(255, 30, 0);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  margin-bottom: 0px;
 }
-    
+
 .locker-logout-button:hover {
-    background-color: #b91c1c;
-    color: white;
+  background-color: #b91c1c;
+  color: white;
 }
 
 /* Main Content Styles */
 .locker-main-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.locker-unavailable-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.locker-unavailable-notice p {
+  font-size: 1.0625rem;
+  color: #374151;
+  max-width: 540px;
+  line-height: 1.7;
+  background: white;
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .locker-header {
-    background-color: #1d4ed8;
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-    border-bottom: 1px solid #1e40af;
-    height: 56px;
+  background-color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid #1e40af;
+  height: 56px;
 }
 
 .locker-header-title {
-    font-weight: bold;
-    font-size: 16px;
-    color: white;
+  font-weight: bold;
+  font-size: 16px;
+  color: white;
 }
 
 /* Content Area */
 .locker-content-area {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    background-color: #374151;
-    flex: 1;
-    overflow: auto;
-    padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: #374151;
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
 }
 
 .locker-floor-display {
-    font-weight: 500;
-    color: #d1d5db;
-    font-size: 24px;
-    text-align: center;
+  font-weight: 500;
+  color: #d1d5db;
+  font-size: 24px;
+  text-align: center;
 }
 
 .reservation-log-button {
-    background-color: transparent;
-    height: 40px;
-    margin: 10px 10px 2px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.349);
-    color: white;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.2s;
+  background-color: transparent;
+  height: 40px;
+  margin: 10px 10px 2px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.349);
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 .reservation-log-button:hover {
-    border-color: rgb(67, 180, 255);
-    color: rgb(67, 180, 255);
+  border-color: rgb(67, 180, 255);
+  color: rgb(67, 180, 255);
 }
 .reservation-log-button:active {
-    background-color: #2563eb;
-    color: white;
+  background-color: #2563eb;
+  color: white;
 }
 .reservation-log-button.inactive {
-    background-color: #475569;
+  background-color: #475569;
 }
 .reservation-log-button.inactive:hover {
-    background-color: #6b7280;
+  background-color: #6b7280;
 }
 
 .mobile-logout-btn {
-    margin-left: auto;
-    margin-right: 15px;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-    color: white;
-    font-size: 15px;
-    transition: 0.2s;
+  margin-left: auto;
+  margin-right: 15px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: white;
+  font-size: 15px;
+  transition: 0.2s;
 }
 .mobile-logout-btn:active {
-    color: #b91c1c;
+  color: #b91c1c;
 }
 
 .mobile-floor-menu {
-    margin-left: 5px;
-    margin-right: 20px;
-    cursor: pointer;
+  margin-left: 5px;
+  margin-right: 20px;
+  cursor: pointer;
 }
 svg {
-    height: 30px;
+  height: 30px;
 }
 
 .burger-menu-btn {
@@ -217,13 +236,21 @@ svg {
   height: 2px;
   background: #fff;
   border-radius: 2px;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
   transform-origin: center;
 }
 
-.burger-icon.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.burger-icon.open span:nth-child(2) { opacity: 0; }
-.burger-icon.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.burger-icon.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.burger-icon.open span:nth-child(2) {
+  opacity: 0;
+}
+.burger-icon.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
 
 .sidebar-overlay {
   display: none;
@@ -233,227 +260,224 @@ svg {
 
 /* Desktop */
 @media (min-width: 640px) {
-    .mobile-logout-btn {
-        display: none;
-    }
+  .mobile-logout-btn {
+    display: none;
+  }
 
-    .mobile-floor-menu {
-        display: none;
-    }
+  .mobile-floor-menu {
+    display: none;
+  }
 
-    .burger-menu-btn {
-        display: none;
-    }
+  .burger-menu-btn {
+    display: none;
+  }
 }
 
 /* Large Tablets and Small Laptops (1024px and below) */
 @media (max-width: 1024px) {
-    .locker-sidebar {
-        width: 180px;
-    }
+  .locker-sidebar {
+    width: 180px;
+  }
 
-    .locker-floor-button {
-        padding: 18px 0;
-        font-size: 14px;
-    }
+  .locker-floor-button {
+    padding: 18px 0;
+    font-size: 14px;
+  }
 
-    .locker-header-title {
-        font-size: 15px;
-    }
+  .locker-header-title {
+    font-size: 15px;
+  }
 
-    .locker-content-area {
-        padding: 0.75rem;
-    }
+  .locker-content-area {
+    padding: 0.75rem;
+  }
 }
 
 /* Tablets (768px and below) */
 @media (max-width: 768px) {
-    .locker-sidebar {
-        width: 80px;
-    }
+  .locker-sidebar {
+    width: 80px;
+  }
 
-    .locker-logo-text {
-        font-size: 12px;
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-    }
+  .locker-logo-text {
+    font-size: 12px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
 
-    .locker-search-input {
-        font-size: 10px;
-        padding: 8px 6px;
-    }
+  .locker-search-input {
+    font-size: 10px;
+    padding: 8px 6px;
+  }
 
-    .locker-floor-button {
-        padding: 16px 0;
-        font-size: 12px;
-    }
+  .locker-floor-button {
+    padding: 16px 0;
+    font-size: 12px;
+  }
 
-    .locker-logout-button {
-        font-size: 12px;
-        padding: 8px 0;
-    }
+  .locker-logout-button {
+    font-size: 12px;
+    padding: 8px 0;
+  }
 
-    .locker-header {
-        padding: 0 16px;
-    }
+  .locker-header {
+    padding: 0 16px;
+  }
 
-    .locker-header-title {
-        font-size: 14px;
-    }
+  .locker-header-title {
+    font-size: 14px;
+  }
 
-    .locker-floor-display {
-        font-size: 20px;
-    }
+  .locker-floor-display {
+    font-size: 20px;
+  }
 
-    .locker-content-area {
-        padding: 0.5rem;
-    }
+  .locker-content-area {
+    padding: 0.5rem;
+  }
 }
 
 /* Mobile Landscape and Small Tablets (640px and below) */
 @media (max-width: 640px) {
-    .burger-menu-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 10px;
-    }
+  .burger-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+  }
 
-    .locker-dashboard {
-        flex-direction: row !important;
-    }
+  .locker-dashboard {
+    flex-direction: row !important;
+  }
 
-    .locker-sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 250px !important;
-        height: 100% !important;
-        flex-direction: column !important;
-        overflow-x: unset !important;
-        z-index: 1050;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  .locker-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px !important;
+    height: 100% !important;
+    flex-direction: column !important;
+    overflow-x: unset !important;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-    .sidebar-overlay {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0, 5);
-        z-index: 1040;
-        backdrop-filter: blur(2px);
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0, 5);
+    z-index: 1040;
+    backdrop-filter: blur(2px);
+  }
 
-    } 
+  .locker-sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+  }
 
-    .locker-sidebar.sidebar-open {
-        transform: translateX(0);
-        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
-    }
+  .locker-sidebar-logo {
+    display: flex !important;
+  }
 
-    .locker-sidebar-logo {
-        display: flex !important;
-    }
+  .locker-floor-nav {
+    flex-direction: column !important;
+    overflow-x: unset !important;
+  }
 
-    .locker-floor-nav {
-        flex-direction: column !important;
-        overflow-x: unset !important;
-    }
+  .locker-floor-button {
+    display: block !important;
+    min-width: unset !important;
+    padding: 16px 0 !important;
+    font-size: 16px !important;
+  }
 
-    .locker-floor-button {
-        display: block !important;
-        min-width: unset !important;
-        padding: 16px 0 !important;
-        font-size: 16px !important;
-    }
+  .reservation-log-button {
+    display: block !important;
+  }
 
-    .reservation-log-button {
-        display: block !important;
-    }
+  .locker-logout-button {
+    display: block !important;
+  }
 
-    .locker-logout-button {
-        display: block !important;
-    }
+  .locker-logout-container {
+    padding: 12px !important;
+    display: block !important;
+    align-items: unset !important;
+  }
 
-    .locker-logout-container {
-        padding: 12px !important;
-        display: block !important;
-        align-items: unset !important;
-    }
+  .locker-main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+  }
 
-    .locker-main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        height: 100vh !important;
-    }
-
-    .sidebar-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 1040;
-        backdrop-filter: blur(2px);
-    }
-
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1040;
+    backdrop-filter: blur(2px);
+  }
 }
 
 /* Mobile Portrait (480px and below) */
 @media (max-width: 480px) {
-    .locker-sidebar-logo {
-        min-width: 60px;
-    }
+  .locker-sidebar-logo {
+    min-width: 60px;
+  }
 
-    .locker-logo-text {
-        font-size: 11px;
-    }
+  .locker-logo-text {
+    font-size: 11px;
+  }
 
-    .locker-floor-button {
-        min-width: 70px;
-        padding: 10px 12px;
-        font-size: 12px;
-    }
+  .locker-floor-button {
+    min-width: 70px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
 
-    .locker-logout-button {
-        min-width: 70px;
-        font-size: 11px;
-    }
+  .locker-logout-button {
+    min-width: 70px;
+    font-size: 11px;
+  }
 
-    .locker-header-title {
-        font-size: 12px;
-    }
+  .locker-header-title {
+    font-size: 12px;
+  }
 
-    .locker-floor-display {
-        font-size: 16px;
-    }
+  .locker-floor-display {
+    font-size: 16px;
+  }
 
-    .locker-content-area {
-        padding: 0.25rem;
-    }
+  .locker-content-area {
+    padding: 0.25rem;
+  }
 }
 
 /* Very Small Devices (360px and below) */
 @media (max-width: 360px) {
-    .locker-logo-text {
-        font-size: 10px;
-    }
+  .locker-logo-text {
+    font-size: 10px;
+  }
 
-    .locker-floor-button {
-        min-width: 60px;
-        padding: 8px 10px;
-        font-size: 11px;
-    }
+  .locker-floor-button {
+    min-width: 60px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
 
-    .locker-logout-button {
-        min-width: 60px;
-        font-size: 10px;
-    }
+  .locker-logout-button {
+    min-width: 60px;
+    font-size: 10px;
+  }
 
-    .locker-header-title {
-        font-size: 11px;
-    }
+  .locker-header-title {
+    font-size: 11px;
+  }
 
-    .locker-floor-display {
-        font-size: 14px;
-    }
+  .locker-floor-display {
+    font-size: 14px;
+  }
 }
-

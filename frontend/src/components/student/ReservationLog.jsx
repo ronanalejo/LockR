@@ -379,7 +379,7 @@ const ReservationLog = ({ reservations, onClose, onReservationCancelled }) => {
                           activeReservation.reservationTimeEnd,
                         );
                         const diff = end - now;
-                        if (diff <= 0) return "Expired";
+                        if (diff <= 0) return "Processing...";
                         const hours = Math.floor(diff / (1000 * 60 * 60));
                         const minutes = Math.floor(
                           (diff % (1000 * 60 * 60)) / (1000 * 60),

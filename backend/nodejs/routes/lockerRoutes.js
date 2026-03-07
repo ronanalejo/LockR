@@ -31,6 +31,14 @@ router.put(
   LockerController.updateLockerStatus,
 );
 
+// PUT /api/lockers/:lockerID - Full locker update (admin only)
+router.put(
+  "/:lockerID",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  LockerController.updateLocker,
+);
+
 // GET /api/lockers/:lockerID - Fetch single locker details (general route, comes after specific ones)
 router.get(
   "/:lockerID",

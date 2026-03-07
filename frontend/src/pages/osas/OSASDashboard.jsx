@@ -4,6 +4,7 @@ import useAuth from "../../hooks/useAuth";
 import DataTable from "../../components/osas/DataTable";
 import FilterButtons from "../../components/osas/FilterButtons";
 import SemesterPeriodModal from "../../components/common/SemesterPeriodModal";
+import FloorPlanManager from "../../components/osas/FloorPlanManager";
 import adminService from "../../services/adminService";
 import {
   showError,
@@ -404,9 +405,7 @@ const OSASDashboard = () => {
               />
             </>
           ) : activeTab === "floorplan" ? (
-            <div className="floor-plan-placeholder">
-              <p>Floor Plan view coming soon</p>
-            </div>
+            <FloorPlanManager onLockerChange={() => fetchData(true)} />
           ) : (
             <DataTable
               data={filteredReservations}

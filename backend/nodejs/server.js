@@ -197,3 +197,57 @@ server.listen(PORT, () => {
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`WebSocket: Socket.IO attached`);
 });
+
+const pool = require("./config/database");
+
+setInterval(async () => {
+  try {
+    const [expired] = await pool.query(
+      `SELECT r.referralSlipNo, r.lockerID, s.studentEmail, s.firstName as studentFirstName
+       FROM reservation r
+       INNER JOIN student s ON r.studentID = s.studentID
+       WHERE (r.forEndorsement = 1 OR r.forApproval = 1)
+         AND r.reservationTimeEnd < NOW()`,
+    );
+    for (const r of expired) {
+      await pool.query(
+        `UPDATE reservation SET forEndorsement = 0, forApproval = 0, isActive = 0 WHERE referralSlipNo = ?`,
+        [r.referralSlipNo],
+      );
+      await pool.query(
+        `UPDATE locker SET status = 'Available', updatedAt = CURRENT_TIMESTAMP WHERE lockerID = ?`,
+        [r.lockerID],
+      );
+      socketService.emitReservationUpdate("reservation-rejected", {
+        referralSlipNo: r.referralSlipNo,
+      });
+      socketService.emitLockerUpdate("locker-update", { lockerID: r.lockerID });
+      setImmediate(async () => {
+        try {
+          const emailService = require("./services/emailService");
+          await emailService.sendEndorsementRejectedEmail(
+            r.studentEmail,
+            r.studentFirstName,
+            r.referralSlipNo,
+            "OSAS was unable to complete your reservation.",
+          );
+          console.log(
+            `[AutoReject] Rejection email sent to: ${r.studentEmail}`,
+          );
+        } catch (emailErr) {
+          console.error(
+            `[AutoReject] Failed to send rejection email:`,
+            emailErr.message,
+          );
+        }
+      });
+    }
+    if (expired.length > 0) {
+      console.log(
+        `[AutoReject] Rejected ${expired.length} expired reservation(s)`,
+      );
+    }
+  } catch (err) {
+    console.error("[AutoReject] Error during auto-rejection:", err.message);
+  }
+}, 60000);

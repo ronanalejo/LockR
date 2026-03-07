@@ -1,3 +1,5 @@
+const pool = require("../config/database");
+const socketService = require("../services/socketService");
 const LockerModel = require("../models/lockerModel");
 
 /**
@@ -110,7 +112,7 @@ const LockerController = {
         floorNumber,
         status,
         limit,
-        offset
+        offset,
       );
 
       // get total count for this floor
@@ -209,7 +211,7 @@ const LockerController = {
           return res.status(400).json({
             success: false,
             error: `Invalid status. Must be one of: ${validStatuses.join(
-              ", "
+              ", ",
             )}.`,
           });
         }
@@ -319,7 +321,7 @@ const LockerController = {
 
       const updatedLocker = await LockerModel.updateLockerStatus(
         lockerID,
-        status
+        status,
       );
 
       res.json({
@@ -368,7 +370,7 @@ const LockerController = {
           return res.status(400).json({
             success: false,
             error: `Invalid status. Must be one of: ${validStatuses.join(
-              ", "
+              ", ",
             )}.`,
           });
         }
@@ -401,19 +403,115 @@ const LockerController = {
    * DELETE /api/lockers/:lockerID
    * Delete a locker
    */
-  async deleteLocker(req, res) {
+  async updateLocker(req, res) {
+    const connection = await pool.getConnection();
     try {
-      const lockerID = parseInt(req.params.lockerID);
+      const lockerID = req.params.lockerID;
+      const { floorNumber, status } = req.body;
 
-      // validate locker ID
-      if (isNaN(lockerID)) {
+      if (!lockerID || lockerID.trim() === "") {
+        return res
+          .status(400)
+          .json({ success: false, error: "Locker ID is required." });
+      }
+
+      const validFloors = ["6", "7", "9", "10"];
+      const validStatuses = [
+        "Available",
+        "Reserved",
+        "Unavailable",
+        "Occupied",
+      ];
+      if (floorNumber && !validFloors.includes(String(floorNumber))) {
+        return res
+          .status(400)
+          .json({ success: false, error: "Invalid floor number." });
+      }
+      if (status && !validStatuses.includes(status)) {
+        return res
+          .status(400)
+          .json({ success: false, error: "Invalid status." });
+      }
+
+      const existingLocker = await LockerModel.getLockerById(lockerID);
+      if (!existingLocker) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Locker not found." });
+      }
+
+      await connection.beginTransaction();
+
+      if (existingLocker.status === "Reserved") {
+        const [reservations] = await connection.query(
+          `SELECT referralSlipNo FROM reservation WHERE lockerID = ? AND (forEndorsement = 1 OR forApproval = 1) LIMIT 1`,
+          [lockerID],
+        );
+        if (reservations.length > 0) {
+          await connection.query(
+            `UPDATE reservation SET forEndorsement = 0, forApproval = 0, isActive = 0 WHERE referralSlipNo = ?`,
+            [reservations[0].referralSlipNo],
+          );
+          socketService.emitReservationUpdate("reservation-rejected", {
+            referralSlipNo: reservations[0].referralSlipNo,
+          });
+        }
+      }
+
+      const fields = [];
+      const values = [];
+      if (floorNumber) {
+        fields.push("floorNumber = ?");
+        values.push(String(floorNumber));
+      }
+      if (status) {
+        fields.push("status = ?");
+        values.push(status);
+      }
+      fields.push("updatedAt = CURRENT_TIMESTAMP");
+      values.push(lockerID);
+
+      await connection.query(
+        `UPDATE locker SET ${fields.join(", ")} WHERE lockerID = ?`,
+        values,
+      );
+      await connection.commit();
+
+      const updatedLocker = await LockerModel.getLockerById(lockerID);
+      socketService.emitLockerUpdate("locker-update", { lockerID });
+
+      res.json({
+        success: true,
+        message: "Locker updated successfully.",
+        data: { locker: updatedLocker },
+      });
+    } catch (error) {
+      await connection.rollback();
+      console.error("Error in updateLocker:", error);
+      res
+        .status(500)
+        .json({
+          success: false,
+          error: "Failed to update locker.",
+          message: error.message,
+        });
+    } finally {
+      connection.release();
+    }
+  },
+
+  async deleteLocker(req, res) {
+    const connection = await pool.getConnection();
+    try {
+      const lockerID = req.params.lockerID;
+
+      if (!lockerID || lockerID.trim() === "") {
         return res.status(400).json({
           success: false,
-          error: "Invalid locker ID. Must be a valid integer.",
+          error: "Invalid locker ID. Locker ID is required.",
         });
       }
 
-      // check if locker exists
       const existingLocker = await LockerModel.getLockerById(lockerID);
       if (!existingLocker) {
         return res.status(404).json({
@@ -423,7 +521,30 @@ const LockerController = {
         });
       }
 
-      await LockerModel.deleteLocker(lockerID);
+      await connection.beginTransaction();
+
+      if (existingLocker.status === "Reserved") {
+        const [reservations] = await connection.query(
+          `SELECT referralSlipNo FROM reservation WHERE lockerID = ? AND (forEndorsement = 1 OR forApproval = 1) LIMIT 1`,
+          [lockerID],
+        );
+        if (reservations.length > 0) {
+          await connection.query(
+            `UPDATE reservation SET forEndorsement = 0, forApproval = 0, isActive = 0 WHERE referralSlipNo = ?`,
+            [reservations[0].referralSlipNo],
+          );
+          socketService.emitReservationUpdate("reservation-rejected", {
+            referralSlipNo: reservations[0].referralSlipNo,
+          });
+        }
+      }
+
+      await connection.query("DELETE FROM locker WHERE lockerID = ?", [
+        lockerID,
+      ]);
+      await connection.commit();
+
+      socketService.emitLockerUpdate("locker-update", { lockerID });
 
       res.json({
         success: true,

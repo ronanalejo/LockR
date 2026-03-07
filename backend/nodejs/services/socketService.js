@@ -36,6 +36,20 @@ const socketService = {
     return io;
   },
 
+  emitLockerUpdate(eventType, data = {}) {
+    if (!io) {
+      console.warn("[Socket] IO not initialized, skipping emit");
+      return;
+    }
+    const payload = {
+      type: eventType,
+      lockerID: data.lockerID || null,
+      timestamp: Date.now(),
+    };
+    io.to("student").emit("reservation-update", payload);
+    io.to("osas").emit("reservation-update", payload);
+  },
+
   emitReservationUpdate(eventType, data = {}) {
     if (!io) {
       console.warn("[Socket] IO not initialized, skipping emit");

@@ -289,6 +289,9 @@ exports.getServerTime = async (req, res) => {
       data: {
         year: now.getFullYear(),
         iso: now.toISOString(),
+        day: now.getDay(),
+        hour: now.getHours(),
+        minute: now.getMinutes(),
       },
     });
   } catch (err) {
