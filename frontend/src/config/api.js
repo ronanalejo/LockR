@@ -40,6 +40,7 @@ const API_ENDPOINTS = {
   },
   lockers: {
     available: `${API_BASE_URL}/lockers/available`,
+    base: `${API_BASE_URL}/lockers`,
     byFloor: (floor) => `${API_BASE_URL}/lockers/floor/${floor}`,
     byId: (id) => `${API_BASE_URL}/lockers/${id}`,
   },

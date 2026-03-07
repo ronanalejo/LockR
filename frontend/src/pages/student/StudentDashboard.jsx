@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../../assets/css/dashboard.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +17,7 @@ import RulesRegulations from "../../components/student/RulesRegulations";
 import EndorsementApproval from "../../components/student/EndorsementApproval";
 import OTPVerificationModal from "../../components/student/OTPVerificationModal";
 import ReservationLog from "../../components/student/ReservationLog";
+import semesterPeriodsService from "../../services/semesterPeriodsService";
 
 const StudentDashboard = () => {
   const [selectedFloor, setSelectedFloor] = useState(() => {
@@ -35,9 +36,25 @@ const StudentDashboard = () => {
   const [showReservationLog, setShowReservationLog] = useState(false);
   const [userReservations, setUserReservations] = useState([]);
   const [hasActiveReservation, setHasActiveReservation] = useState(false);
+  const [isWithinOperatingHours, setIsWithinOperatingHours] = useState(null);
+  const timeGateIntervalRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(window.innerWidth <= 640);
 
   const floors = [6, 7, 9, 10];
+
+  const checkOperatingHours = async () => {
+    try {
+      const result = await semesterPeriodsService.getServerTime();
+      if (!result.success || result.data?.day === undefined) return;
+      const { day, hour, minute } = result.data;
+      const totalMinutes = hour * 60 + minute;
+      const isTueToSat = day >= 2 && day <= 6;
+      const isInTimeRange = totalMinutes >= 480 && totalMinutes <= 990;
+      setIsWithinOperatingHours(isTueToSat && isInTimeRange);
+    } catch (err) {
+      console.error("Failed to check operating hours:", err);
+    }
+  };
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -49,6 +66,15 @@ const StudentDashboard = () => {
       localStorage.setItem("selectedFloor", selectedFloor);
     }
   }, [selectedFloor]);
+
+  useEffect(() => {
+    checkOperatingHours();
+    timeGateIntervalRef.current = setInterval(checkOperatingHours, 5000);
+    return () => {
+      if (timeGateIntervalRef.current)
+        clearInterval(timeGateIntervalRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const checkActiveReservationStatus = async () => {
@@ -344,10 +370,10 @@ const StudentDashboard = () => {
       {menuOpen && (
         <div
           className="sidebar-overlay"
-          onClick={() => setMenuOpen(false)}      
+          onClick={() => setMenuOpen(false)}
           aria-hidden="true"
         />
-      )}  
+      )}
 
       {/* Sidebar */}
       <div className={`locker-sidebar ${menuOpen ? "sidebar-open" : ""}`}>
@@ -362,7 +388,8 @@ const StudentDashboard = () => {
 
         <button
           className="reservation-log-button"
-          onClick={handleOpenReservationLog}>
+          onClick={handleOpenReservationLog}
+        >
           <span>My Reservations</span>
         </button>
 
@@ -371,14 +398,22 @@ const StudentDashboard = () => {
           {floors.map((floor) => (
             <button
               key={floor}
-              onClick={() => !hasActiveReservation && handleFloorSelect(floor)}
+              onClick={() =>
+                !hasActiveReservation &&
+                isWithinOperatingHours &&
+                handleFloorSelect(floor)
+              }
               className={`locker-floor-button ${
                 selectedFloor === floor ? "active" : "inactive"
               }`}
-              disabled={hasActiveReservation}
+              disabled={hasActiveReservation || !isWithinOperatingHours}
               style={{
-                opacity: hasActiveReservation ? 0.5 : 1,
-                cursor: hasActiveReservation ? "not-allowed" : "pointer",
+                opacity:
+                  hasActiveReservation || !isWithinOperatingHours ? 0.5 : 1,
+                cursor:
+                  hasActiveReservation || !isWithinOperatingHours
+                    ? "not-allowed"
+                    : "pointer",
               }}
             >
               Floor {floor}
@@ -395,85 +430,98 @@ const StudentDashboard = () => {
       </div>
 
       {/* Main Content */}
-      
+
       <div className="locker-main-content" style={getBackgroundStyle()}>
-        {/* Header */}
-        <div className="content-overlay">
-          
-          <div className="locker-header">
-            <button
-              className="burger-menu-btn"
-              onClick={() => setMenuOpen((prev) => !prev)}
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-            >
-              <span className="mobile-floor-menu" aria-label="Toggle menu">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+        {isWithinOperatingHours === null ? null : !isWithinOperatingHours ? (
+          <div className="locker-unavailable-notice">
+            <p>
+              You are not allowed to make locker reservations at this time.
+              LockR is only available from Tuesday to Saturday at 8AM to 4:30PM.
+              Reservations made after the said time are automatically rejected.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="content-overlay">
+              <div className="locker-header">
+                <button
+                  className="burger-menu-btn"
+                  onClick={() => setMenuOpen((prev) => !prev)}
+                  aria-label={menuOpen ? "Close menu" : "Open menu"}
                 >
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g
-                    id="SVGRepo_tracerCarrier"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></g>
-                  <g id="SVGRepo_iconCarrier">
-                    {" "}
-                    <path
-                      d="M4 18L20 18"
-                      stroke="#ffffff"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                    ></path>{" "}
-                    <path
-                      d="M4 12L20 12"
-                      stroke="#ffffff"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                    ></path>{" "}
-                    <path
-                      d="M4 6L20 6"
-                      stroke="#ffffff"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                    ></path>{" "}
-                  </g>
-                </svg>
-              </span>
-            </button>
+                  <span className="mobile-floor-menu" aria-label="Toggle menu">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g
+                        id="SVGRepo_tracerCarrier"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      ></g>
+                      <g id="SVGRepo_iconCarrier">
+                        {" "}
+                        <path
+                          d="M4 18L20 18"
+                          stroke="#ffffff"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                        ></path>{" "}
+                        <path
+                          d="M4 12L20 12"
+                          stroke="#ffffff"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                        ></path>{" "}
+                        <path
+                          d="M4 6L20 6"
+                          stroke="#ffffff"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                        ></path>{" "}
+                      </g>
+                    </svg>
+                  </span>
+                </button>
 
-            <h1 className="locker-header-title">
-              Welcome, {user?.firstName} {user?.lastName || "Student"}
-            </h1>
+                <h1 className="locker-header-title">
+                  Welcome, {user?.firstName} {user?.lastName || "Student"}
+                </h1>
 
-            <button className="mobile-logout-btn" onClick={handleLogout}>
-              Log Out
-            </button>
-          </div>
-
-          <div className="locker-content-area">
-            {!selectedFloor && !isMobile ? (
-              <div className="locker-floor-display">
-                <h2>Please select a floor to begin</h2>
-                <p>Choose a floor from the sidebar to view available lockers</p>
+                <button className="mobile-logout-btn" onClick={handleLogout}>
+                  Log Out
+                </button>
               </div>
-            ) : !selectedSide ? (
-              <LockerSelection
-                floor={selectedFloor || 6}
-                onSelectSide={handleSideSelect}
-              />
-            ) : (
-              <LockerGrid
-                floor={selectedFloor || 6}
-                side={selectedSide}
-                onSelectLocker={handleSelectLocker}
-                onBack={handleBackToFloorPlan}
-                hasActiveReservation={hasActiveReservation}
-              />
-            )}
-          </div>
-        </div>
+
+              <div className="locker-content-area">
+                {!selectedFloor && !isMobile ? (
+                  <div className="locker-floor-display">
+                    <h2>Please select a floor to begin</h2>
+                    <p>
+                      Choose a floor from the sidebar to view available lockers
+                    </p>
+                  </div>
+                ) : !selectedSide ? (
+                  <LockerSelection
+                    floor={selectedFloor || 6}
+                    onSelectSide={handleSideSelect}
+                  />
+                ) : (
+                  <LockerGrid
+                    floor={selectedFloor || 6}
+                    side={selectedSide}
+                    onSelectLocker={handleSelectLocker}
+                    onBack={handleBackToFloorPlan}
+                    hasActiveReservation={hasActiveReservation}
+                  />
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modals */}
