@@ -37,13 +37,19 @@ body {
 }
 
 .locker-logo-container {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+    padding: 0 10px;
 }
 
 #iac-logo {
-  height: 35px;
+    height: auto;
+    width: 100%;
+    max-height: 45px;
+    object-fit: contain;
+    margin-bottom: 10px;
 }
 
 /* Floor Navigation Styles */
@@ -88,17 +94,17 @@ body {
 }
 
 .locker-logout-button {
-  background: transparent;
-  color: rgb(255, 30, 0);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 10px 0;
-  border-radius: 7px;
-  border: solid 1px rgb(255, 30, 0);
-  cursor: pointer;
-  transition: background-color 0.2s;
-  width: 100%;
-  margin-bottom: 0px;
+    background: rgba(210, 35, 35, 0.978);
+    color: rgb(255, 255, 255);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 0;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    margin-bottom: 3px;
 }
 
 .locker-logout-button:hover {
