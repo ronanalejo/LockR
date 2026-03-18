@@ -310,7 +310,7 @@ const OSASDashboard = () => {
                 alt="iACADEMY Logo"
                 className="osas-navbar-logo-img"
               />
-              <span className="osas-logo-text">iACADEMY OSAS</span>
+              <span className="osas-logo-text">iACADEMY</span>
             </div>
             <div className="osas-navbar-user">
               <p className="osas-user-name">
