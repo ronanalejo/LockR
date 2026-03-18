@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Spinner, Badge } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import FinanceDataTable from "../../components/finance/FinanceDataTable";
@@ -272,7 +273,7 @@ const FinanceDashboard = () => {
 
           {isRefreshing && (
             <div className="refresh-indicator">
-              <div className="refresh-spinner"></div>
+              <Spinner size="sm" color="white" aria-label="Refreshing data" />
               <span>Updating...</span>
             </div>
           )}
@@ -314,7 +315,11 @@ const FinanceDashboard = () => {
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
-              {tab.count > 0 && <span className="tab-badge">{tab.count}</span>}
+              {tab.count > 0 && (
+                <Badge color="failure" className="ml-2 tab-badge">
+                  {tab.count}
+                </Badge>
+              )}
             </button>
           ))}
         </div>
