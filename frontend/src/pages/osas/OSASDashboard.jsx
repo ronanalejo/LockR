@@ -44,6 +44,7 @@ const OSASDashboard = () => {
     resolved: 0,
   });
 
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -298,35 +299,105 @@ const OSASDashboard = () => {
 
   return (
     <div className="osas-dashboard">
-      <div className="osas-sidebar">
-        <div className="osas-sidebar-logo">
-          <div className="osas-logo-container">
-            <img src={iACLogo} alt="" />
-            <div className="osas-logo-text">iACADEMY OSAS</div>
+      {/* Navbar */}
+      <nav className="osas-navbar">
+        <div className="osas-navbar-inner">
+          {/* Left: Logo + User Info */}
+          <div className="osas-navbar-left">
+            <div className="osas-logo-container">
+              <img
+                src={iACLogo}
+                alt="iACADEMY Logo"
+                className="osas-navbar-logo-img"
+              />
+              <span className="osas-logo-text">iACADEMY OSAS</span>
+            </div>
+            <div className="osas-navbar-user">
+              <p className="osas-user-name">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="osas-user-role">OSAS Administrator</p>
+            </div>
+          </div>
+
+          {/* Center: Tabs (desktop) */}
+          <div className="osas-navbar-tabs-desktop">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`osas-tab ${activeTab === tab.id ? "active" : ""}`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setIsNavOpen(false);
+                }}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="tab-badge">{tab.count}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Right: Logout + Hamburger */}
+          <div className="osas-navbar-right">
+            {isRefreshing && (
+              <div className="refresh-indicator">
+                <div className="refresh-spinner"></div>
+                <span>Updating...</span>
+              </div>
+            )}
+            <button className="osas-logout-button" onClick={handleLogout}>
+              Log Out
+            </button>
+            <button
+              className="osas-hamburger"
+              onClick={() => setIsNavOpen((prev) => !prev)}
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeWidth="2"
+                  d="M5 7h14M5 12h14M5 17h14"
+                />
+              </svg>
+            </button>
           </div>
         </div>
 
-        <div className="osas-user-info">
-          <p className="osas-user-name">
-            {user?.firstName} {user?.lastName}
-          </p>
-          <p className="osas-user-role">OSAS Administrator</p>
-        </div>
+        {/* Mobile dropdown menu */}
+        {isNavOpen && (
+          <div className="osas-navbar-tabs-mobile">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`osas-tab ${activeTab === tab.id ? "active" : ""}`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setIsNavOpen(false);
+                }}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="tab-badge">{tab.count}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
 
-        <button className="osas-logout-button" onClick={handleLogout}>
-          Log Out
-        </button>
-      </div>
-
+      {/* Main Content */}
       <div className="osas-main-content">
         <div className="osas-header">
           <h1 className="osas-header-title">Locker Reservation Management</h1>
-          {isRefreshing && (
-            <div className="refresh-indicator">
-              <Spinner size="sm" color="white" aria-label="Refreshing data" />
-              <span>Updating...</span>
-            </div>
-          )}
         </div>
 
         <div className="osas-stats-cards">
@@ -358,23 +429,6 @@ const OSASDashboard = () => {
               <p className="stat-value">{stats.resolved}</p>
             </div>
           </div>
-        </div>
-
-        <div className="osas-tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`osas-tab ${activeTab === tab.id ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-              {tab.count > 0 && (
-                <Badge color="failure" className="ml-2 tab-badge">
-                  {tab.count}
-                </Badge>
-              )}
-            </button>
-          ))}
         </div>
 
         {activeTab !== "floorplan" && activeTab !== "academic-period" && (

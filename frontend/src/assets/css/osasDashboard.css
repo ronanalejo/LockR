@@ -1,5 +1,6 @@
 .osas-dashboard {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family:
@@ -7,91 +8,125 @@
     Arial, sans-serif;
 }
 
-.osas-sidebar {
-  width: 280px;
-  background-color: rgba(255, 255, 255, 0.95);
-  padding: 2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+/* Navbar */
+.osas-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
-.osas-sidebar-logo {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #e5e7eb;
+.osas-navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  gap: 1rem;
+}
+
+.osas-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
 }
 
 .osas-logo-container {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
-.osas-logo-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.osas-navbar-logo-img {
+  height: 36px;
+  width: auto;
 }
-
-img {
-  height: 50px;
-}
-
-/* .osas-logo-icon-inner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgb(255, 0, 0);
-  border-radius: 4px;
-} */
 
 .osas-logo-text {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #0045a5;
+  white-space: nowrap;
 }
 
-.osas-user-info {
-  padding: 1rem;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  margin-bottom: 2rem;
+.osas-navbar-user {
+  border-left: 1px solid #e5e7eb;
+  padding-left: 1rem;
 }
 
 .osas-user-name {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 0.25rem;
+  margin: 0;
 }
 
 .osas-user-role {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6b7280;
+  margin: 0;
+}
+
+/* Desktop tabs in navbar center */
+.osas-navbar-tabs-desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Right section */
+.osas-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .osas-logout-button {
-  margin-top: auto;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1.25rem;
   background-color: #ef4444;
   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 500;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .osas-logout-button:hover {
   background-color: #dc2626;
 }
 
+/* Hamburger (mobile only) */
+.osas-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #374151;
+  padding: 0.25rem;
+}
+
+/* Mobile dropdown tabs */
+.osas-navbar-tabs-mobile {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem 1rem;
+  gap: 0.25rem;
+  border-top: 1px solid #e5e7eb;
+}
+
 .osas-main-content {
   flex: 1;
+  margin-top: 70px;
   padding: 2rem;
   overflow-y: auto;
 }
@@ -230,27 +265,26 @@ img {
 }
 
 @media (max-width: 768px) {
-  .osas-dashboard {
-    flex-direction: column;
+  .osas-navbar-tabs-desktop {
+    display: none;
   }
 
-  .osas-sidebar {
-    width: 100%;
+  .osas-hamburger {
+    display: block;
+  }
+
+  .osas-navbar-user {
+    display: none;
   }
 
   .osas-stats-cards {
     grid-template-columns: 1fr;
   }
 
-  .osas-tabs {
-    flex-direction: column;
-  }
-
   .filter-section {
     display: flex;
     flex-direction: row;
   }
-
 }
 
 @media (max-width: 1060px) {
