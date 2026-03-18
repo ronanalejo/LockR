@@ -69,6 +69,13 @@ router.post(
   adminController.cancelReservation,
 );
 
+router.patch(
+  "/reservations/:id/duplicate",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  adminController.markDuplicate,
+);
+
 // Occupied Lockers Endpoint
 router.get(
   "/reservations/occupied",

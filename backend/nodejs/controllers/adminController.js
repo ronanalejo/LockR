@@ -882,6 +882,51 @@ const adminController = {
   },
 
   // Cancel an active reservation
+  markDuplicate: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { duplicate } = req.body;
+
+      if (!id || isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid reservation ID",
+        });
+      }
+
+      if (typeof duplicate !== "boolean") {
+        return res.status(400).json({
+          success: false,
+          message: "duplicate must be a boolean",
+        });
+      }
+
+      const reservation = await reservationModel.findById(parseInt(id));
+      if (!reservation) {
+        return res.status(404).json({
+          success: false,
+          message: "Reservation not found",
+        });
+      }
+
+      await reservationModel.update(parseInt(id), { duplicate });
+
+      const updated = await reservationModel.findById(parseInt(id));
+
+      return res.json({
+        success: true,
+        message: `Reservation marked as ${duplicate ? "duplicate" : "not duplicate"}`,
+        data: updated,
+      });
+    } catch (error) {
+      console.error("Mark duplicate error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while updating duplicate status",
+      });
+    }
+  },
+
   cancelReservation: async (req, res) => {
     const connection = await pool.getConnection();
 

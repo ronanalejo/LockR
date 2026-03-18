@@ -257,6 +257,14 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.osas-content-area--table {
+  padding: 0;
+  overflow: visible;
+  height: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
 .floor-plan-placeholder {
   padding: 4rem;
   text-align: center;

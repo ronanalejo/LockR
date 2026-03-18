@@ -188,6 +188,27 @@ class AdminService {
     }
   }
 
+  /**
+   * Mark or unmark a reservation as duplicate
+   * @param {number|string} reservationId - Reservation ID
+   * @param {boolean} isDuplicate - Whether the reservation is a duplicate
+   * @returns {Promise<Object>}
+   */
+  async markDuplicate(reservationId, isDuplicate) {
+    try {
+      const response = await this.client.patch(
+        `/admin/reservations/${reservationId}/duplicate`,
+        { duplicate: isDuplicate },
+      );
+      return this.formatSuccess(
+        response,
+        `Reservation marked as ${isDuplicate ? "duplicate" : "not duplicate"}`,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // ==================== RESERVATIONS ====================
 
   /**

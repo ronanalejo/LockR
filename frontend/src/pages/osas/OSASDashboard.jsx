@@ -3,7 +3,6 @@ import { Spinner, Badge } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import DataTable from "../../components/osas/DataTable";
-import FilterButtons from "../../components/osas/FilterButtons";
 import SemesterPeriodModal from "../../components/common/SemesterPeriodModal";
 import FloorPlanManager from "../../components/osas/FloorPlanManager";
 import adminService from "../../services/adminService";
@@ -198,10 +197,102 @@ const OSASDashboard = () => {
     }
   };
 
-  const handleAction = async (action, reservationId) => {
+  const handleAction = async (action, reservationIdOrIds) => {
+    // --- Bulk / mass actions ---
+    const isBulkAction =
+      action.startsWith("approve-all") ||
+      action.startsWith("reject-all") ||
+      action.startsWith("mass-approve") ||
+      action.startsWith("mass-reject");
+
+    if (isBulkAction) {
+      const isApprove =
+        action.startsWith("approve-all") || action.startsWith("mass-approve");
+      const isEndorsement = action.includes("endorsement");
+
+      let targetIds;
+      if (action.startsWith("approve-all") || action.startsWith("reject-all")) {
+        targetIds = reservations.map((r) => r.referralSlipNo);
+      } else {
+        targetIds = reservationIdOrIds || [];
+      }
+
+      if (targetIds.length === 0) {
+        showError("No Items", "There are no items to process.");
+        return;
+      }
+
+      const actionLabel = isApprove ? "approve" : "reject";
+      const typeLabel = isEndorsement ? "endorsement" : "reservation";
+      const result = await showConfirm(
+        `Are you sure you want to ${actionLabel} ${targetIds.length} ${typeLabel}(s)?`,
+      );
+      if (!result.isConfirmed) return;
+
+      showLoading("Processing...", "Please wait");
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const id of targetIds) {
+        try {
+          if (isEndorsement) {
+            if (isApprove) await adminService.approveEndorsement(id);
+            else await adminService.rejectEndorsement(id, "Rejected by OSAS");
+          } else {
+            if (isApprove) await adminService.approveReservation(id);
+            else await adminService.rejectReservation(id, "Rejected by OSAS");
+          }
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      }
+
+      closeAlert();
+      showSuccess(
+        "Completed",
+        `${successCount} processed successfully${
+          failCount > 0 ? `, ${failCount} failed` : ""
+        }`,
+      );
+      await fetchData(false);
+      return;
+    }
+
+    // --- Duplicate marking ---
+    if (action === "mark-duplicate-yes" || action === "mark-duplicate-no") {
+      const isDuplicate = action === "mark-duplicate-yes";
+      const result = await showConfirm(
+        `Mark this reservation as ${isDuplicate ? "a duplicate" : "not a duplicate"}?`,
+      );
+      if (!result.isConfirmed) return;
+
+      try {
+        showLoading("Processing...", "Please wait");
+        const response = await adminService.markDuplicate(
+          reservationIdOrIds,
+          isDuplicate,
+        );
+        closeAlert();
+        if (response && response.success) {
+          showSuccess("Success", response.message || "Reservation updated.");
+          await fetchData(false);
+        }
+      } catch (error) {
+        closeAlert();
+        showError(
+          "Error",
+          error.message || "Failed to update duplicate status.",
+        );
+      }
+      return;
+    }
+
+    // --- Single-item receipt check ---
     if (action === "approve-reservation") {
       const reservation = reservations.find(
-        (r) => r.referralSlipNo === reservationId,
+        (r) => r.referralSlipNo === reservationIdOrIds,
       );
       if (
         reservation &&
@@ -237,20 +328,20 @@ const OSASDashboard = () => {
 
       switch (action) {
         case "approve-endorsement":
-          response = await adminService.approveEndorsement(reservationId);
+          response = await adminService.approveEndorsement(reservationIdOrIds);
           break;
         case "reject-endorsement":
           response = await adminService.rejectEndorsement(
-            reservationId,
+            reservationIdOrIds,
             "Rejected by OSAS",
           );
           break;
         case "approve-reservation":
-          response = await adminService.approveReservation(reservationId);
+          response = await adminService.approveReservation(reservationIdOrIds);
           break;
         case "reject-reservation":
           response = await adminService.rejectReservation(
-            reservationId,
+            reservationIdOrIds,
             "Rejected by OSAS",
           );
           break;
@@ -260,7 +351,6 @@ const OSASDashboard = () => {
 
       closeAlert();
 
-      // Handle semester period requirement responses
       if (response && response.requiresSemesterPeriod) {
         await showError("Cannot Approve", response.message);
         return;
@@ -275,7 +365,6 @@ const OSASDashboard = () => {
       }
     } catch (error) {
       closeAlert();
-
       if (error.response?.data?.requiresSemesterPeriod) {
         showError("Cannot Approve", error.response.data.message);
       } else {
@@ -431,15 +520,9 @@ const OSASDashboard = () => {
           </div>
         </div>
 
-        {activeTab !== "floorplan" && activeTab !== "academic-period" && (
-          <FilterButtons
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            onClearFilters={clearFilters}
-          />
-        )}
-
-        <div className="osas-content-area">
+        <div
+          className={`osas-content-area${["endorsement", "approval", "occupied", "history"].includes(activeTab) ? " osas-content-area--table" : ""}`}
+        >
           {activeTab === "academic-period" ? (
             <>
               <div className="ap-header-bar">
@@ -472,6 +555,9 @@ const OSASDashboard = () => {
               activeTab={activeTab}
               onAction={handleAction}
               onRefresh={() => fetchData(true)}
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={clearFilters}
             />
           )}
         </div>
