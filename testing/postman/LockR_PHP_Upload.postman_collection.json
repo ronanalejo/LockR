@@ -52,8 +52,8 @@
                   "    const response = pm.response.json();",
                   "    pm.collectionVariables.set('token', response.token);",
                   "    pm.collectionVariables.set('current_student_id', response.user.studentID);",
-                  "    console.log('Token:', response.token);",
-                  "    console.log('Student ID:', response.user.studentID);",
+                  "    ",
+                  "    ",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -98,7 +98,7 @@
                   "pm.test('Test results returned', function () {",
                   "    const response = pm.response.json();",
                   "    pm.expect(response.success).to.be.true;",
-                  "    console.log('PHP Backend Status:', JSON.stringify(response.data, null, 2));",
+                  "    ",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -139,7 +139,7 @@
                   "pm.test('Filename returned', function () {",
                   "    const response = pm.response.json();",
                   "    pm.expect(response.data).to.have.property('filename');",
-                  "    console.log('Uploaded file:', response.data.filename);",
+                  "    ",
                   "});"
                 ],
                 "type": "text/javascript"

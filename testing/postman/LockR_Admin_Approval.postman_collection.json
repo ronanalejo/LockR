@@ -40,9 +40,9 @@
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
                   "    pm.collectionVariables.set('admin_token', response.token);",
-                  "    console.log('Admin Token saved:', response.token);",
-                  "    console.log('Employee ID:', response.user.employeeID);",
-                  "    console.log('Department:', response.user.department);",
+                  "    ",
+                  "    ",
+                  "    ",
                   "    ",
                   "    pm.test('User is admin', function() {",
                   "        pm.expect(response.user.userType).to.equal('admin');",
@@ -125,7 +125,7 @@
                   "    ",
                   "    const firstReservation = pm.response.json().data[0];",
                   "    pm.collectionVariables.set('test_reservation_id', firstReservation.referralSlipNo);",
-                  "    console.log('Saved test_reservation_id:', firstReservation.referralSlipNo);",
+                  "    ",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -220,7 +220,7 @@
                   "pm.test('PDF generation status indicated', function () {",
                   "    const response = pm.response.json();",
                   "    pm.expect(response.data).to.have.property('pdfGenerated');",
-                  "    console.log('PDF Generated:', response.data.pdfGenerated);",
+                  "    ",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -246,7 +246,12 @@
             "url": {
               "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/approve",
               "host": ["{{base_url}}"],
-              "path": ["admin", "reservations", "{{test_reservation_id}}", "approve"]
+              "path": [
+                "admin",
+                "reservations",
+                "{{test_reservation_id}}",
+                "approve"
+              ]
             },
             "description": "Approve a reservation - updates status to 'For Approval', sets locker to 'Occupied', generates PDF"
           }
@@ -346,7 +351,12 @@
             "url": {
               "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/approve",
               "host": ["{{base_url}}"],
-              "path": ["admin", "reservations", "{{test_reservation_id}}", "approve"]
+              "path": [
+                "admin",
+                "reservations",
+                "{{test_reservation_id}}",
+                "approve"
+              ]
             },
             "description": "Test unauthorized access"
           }
@@ -407,7 +417,12 @@
             "url": {
               "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/reject",
               "host": ["{{base_url}}"],
-              "path": ["admin", "reservations", "{{test_reservation_id}}", "reject"]
+              "path": [
+                "admin",
+                "reservations",
+                "{{test_reservation_id}}",
+                "reject"
+              ]
             },
             "description": "Reject a reservation - resets status to 'For Endorsement', sets locker to 'Available'"
           }
@@ -483,9 +498,7 @@
             {
               "listen": "prerequest",
               "script": {
-                "exec": [
-                  "// This test verifies the complete approval workflow"
-                ]
+                "exec": ["// This test verifies the complete approval workflow"]
               }
             },
             {
@@ -517,7 +530,12 @@
             "url": {
               "raw": "{{base_url}}/admin/reservations/{{test_reservation_id}}/approve",
               "host": ["{{base_url}}"],
-              "path": ["admin", "reservations", "{{test_reservation_id}}", "approve"]
+              "path": [
+                "admin",
+                "reservations",
+                "{{test_reservation_id}}",
+                "approve"
+              ]
             }
           }
         }

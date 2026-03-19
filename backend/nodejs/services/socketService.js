@@ -14,21 +14,15 @@ const socketService = {
     });
 
     io.on("connection", (socket) => {
-      console.log("[Socket] Client connected:", socket.id);
-
       socket.on("join-dashboard", (dashboard) => {
         if (["osas", "finance", "student"].includes(dashboard)) {
           socket.join(dashboard);
-          console.log("[Socket] Client", socket.id, "joined room:", dashboard);
         }
       });
 
-      socket.on("disconnect", (reason) => {
-        console.log("[Socket] Client disconnected:", socket.id, "-", reason);
-      });
+      socket.on("disconnect", (reason) => {});
     });
 
-    console.log("[Socket] Socket.IO initialized");
     return io;
   },
 

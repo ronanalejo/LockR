@@ -5,8 +5,6 @@ const path = require("path");
 const app = express();
 const PORT = 8000;
 
-console.log("Starting LockR Proxy Server...\n");
-
 // Proxy /api/* to Node.js backend
 app.use(
   "/api",
@@ -39,24 +37,12 @@ app.use(
 
 // Serve frontend build folder
 const buildPath = path.join(__dirname, "frontend/build");
-console.log("Frontend build path:", buildPath);
+
 app.use(express.static(buildPath));
 
 // Fallback to index.html for client-side routing
 app.use((req, res) => {
-  console.log(`[Frontend] ${req.method} ${req.url} -> index.html`);
   res.sendFile(path.join(buildPath, "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log("\n========================================");
-  console.log("  LockR Proxy Server Running");
-  console.log("========================================");
-  console.log(`Local: http://localhost:${PORT}`);
-  console.log("Public: https://lockr.fit (via Cloudflare Tunnel)\n");
-  console.log("Routes:");
-  console.log("  / → Frontend (build folder)");
-  console.log("  /api/* → Node.js backend (localhost:5000)");
-  console.log("  /backend/php/* → PHP backend (localhost:80)");
-  console.log("========================================\n");
-});
+app.listen(PORT, () => {});

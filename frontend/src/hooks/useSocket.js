@@ -32,20 +32,16 @@ const useSocket = (dashboard, onUpdate) => {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("[Socket] Connected:", socket.id);
       socket.emit("join-dashboard", dashboard);
     });
 
     socket.on("reservation-update", (payload) => {
-      console.log("[Socket] Reservation update received:", payload);
       if (onUpdateRef.current) {
         onUpdateRef.current(payload);
       }
     });
 
-    socket.on("disconnect", (reason) => {
-      console.log("[Socket] Disconnected:", reason);
-    });
+    socket.on("disconnect", (reason) => {});
 
     socket.on("connect_error", (err) => {
       console.warn("[Socket] Connection error:", err.message);

@@ -30,21 +30,14 @@ const allowedOrigins =
 
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log("CORS Request from origin:", origin);
-    console.log("Environment:", process.env.NODE_ENV);
-    console.log("Allowed origins:", allowedOrigins);
-
     // Allow requests with no origin (like mobile apps, Postman, curl)
     if (!origin) {
-      console.log("No origin - allowing request");
       return callback(null, true);
     }
 
     if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log("Origin allowed");
       callback(null, true);
     } else {
-      console.log("Origin blocked:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -103,7 +96,6 @@ const db = require("./config/database");
 (async () => {
   try {
     await db.query("SELECT 1");
-    console.log("Database connection verified");
   } catch (err) {
     console.error("Database connection test failed:", err.message);
   }
@@ -194,11 +186,7 @@ socketService.init(server, {
   credentials: true,
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`WebSocket: Socket.IO attached`);
-});
+server.listen(PORT, () => {});
 
 const pool = require("./config/database");
 

@@ -21,7 +21,6 @@ const pool = mysql.createPool({
 pool
   .getConnection()
   .then((connection) => {
-    console.log(`Database connected: ${process.env.DB_NAME || "lockr_db_dev"}`);
     connection.release();
   })
   .catch((err) => {

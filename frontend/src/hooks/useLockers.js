@@ -50,7 +50,7 @@ const useLockers = (options = {}) => {
       if (filterParams.floor) {
         // Fetch lockers for specific floor
         result = await lockerService.getLockersByFloor(
-          Number(filterParams.floor)
+          Number(filterParams.floor),
         );
       } else if (
         filterParams.status === "available" ||
@@ -80,7 +80,6 @@ const useLockers = (options = {}) => {
     } catch (err) {
       // ignore abort errors
       if (err.name === "AbortError") {
-        console.log("Fetch aborted");
         return;
       }
 
@@ -106,7 +105,7 @@ const useLockers = (options = {}) => {
         fetchLockers(filterParams);
       }, debounceMs);
     },
-    [fetchLockers, debounceMs]
+    [fetchLockers, debounceMs],
   );
 
   /**
@@ -128,13 +127,13 @@ const useLockers = (options = {}) => {
 
     if (floor) {
       filtered = filtered.filter(
-        (locker) => locker.floorNumber?.toString() === floor.toString()
+        (locker) => locker.floorNumber?.toString() === floor.toString(),
       );
     }
 
     if (status) {
       filtered = filtered.filter(
-        (locker) => locker.status?.toLowerCase() === status.toLowerCase()
+        (locker) => locker.status?.toLowerCase() === status.toLowerCase(),
       );
     }
 
@@ -147,28 +146,28 @@ const useLockers = (options = {}) => {
   const getLockersByFloor = useCallback(
     (floorNumber) => {
       return lockers.filter(
-        (locker) => locker.floorNumber?.toString() === floorNumber.toString()
+        (locker) => locker.floorNumber?.toString() === floorNumber.toString(),
       );
     },
-    [lockers]
+    [lockers],
   );
 
   const getLockersByStatus = useCallback(
     (statusType) => {
       return lockers.filter(
-        (locker) => locker.status?.toLowerCase() === statusType.toLowerCase()
+        (locker) => locker.status?.toLowerCase() === statusType.toLowerCase(),
       );
     },
-    [lockers]
+    [lockers],
   );
 
   const getLockerById = useCallback(
     (lockerId) => {
       return lockers.find(
-        (locker) => locker.lockerID?.toString() === lockerId.toString()
+        (locker) => locker.lockerID?.toString() === lockerId.toString(),
       );
     },
-    [lockers]
+    [lockers],
   );
 
   /**
@@ -177,16 +176,16 @@ const useLockers = (options = {}) => {
   const stats = useMemo(() => {
     const total = lockers.length;
     const occupied = lockers.filter(
-      (l) => l.status?.toLowerCase() === "occupied"
+      (l) => l.status?.toLowerCase() === "occupied",
     ).length;
     const available = lockers.filter(
-      (l) => l.status?.toLowerCase() === "available"
+      (l) => l.status?.toLowerCase() === "available",
     ).length;
     const reserved = lockers.filter(
-      (l) => l.status?.toLowerCase() === "reserved"
+      (l) => l.status?.toLowerCase() === "reserved",
     ).length;
     const unavailable = lockers.filter(
-      (l) => l.status?.toLowerCase() === "unavailable"
+      (l) => l.status?.toLowerCase() === "unavailable",
     ).length;
 
     return {

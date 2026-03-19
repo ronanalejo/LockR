@@ -3,15 +3,12 @@ import "../../assets/css/endorsementApproval.css";
 
 const EndorsementApproval = ({ onClose }) => {
   const handleOverlayClick = (e) => {
-    console.log("Overlay clicked");
     if (e.target === e.currentTarget) {
-      console.log("Closing via overlay");
       onClose();
     }
   };
 
   const handleClose = () => {
-    console.log("Close button clicked");
     if (typeof onClose === "function") {
       onClose();
     } else {

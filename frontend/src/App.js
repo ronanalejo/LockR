@@ -19,7 +19,6 @@ import Unauthorized from "./pages/common/Unauthorized.jsx";
 import OSASDashboard from "./pages/osas/OSASDashboard.jsx";
 import FinanceDashboard from "./pages/finance/FinanceDashboard.jsx";
 
-
 function AppRoutes() {
   return (
     <Routes>
@@ -52,13 +51,13 @@ function AppRoutes() {
         path="/finance/dashboard"
         element={
           <DepartmentRoute
-          allowedRoles={["admin"]}
-          allowedDepartments={["Finance"]}>
+            allowedRoles={["admin"]}
+            allowedDepartments={["Finance"]}
+          >
             <FinanceDashboard />
           </DepartmentRoute>
         }
       />
-
 
       <Route path="/unauthorized" element={<Unauthorized />} />
 
@@ -83,7 +82,6 @@ function AppRoutes() {
 }
 
 function App() {
-  console.log("Google Client ID:", process.env.REACT_APP_GOOGLE_CLIENT_ID);
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <Router>

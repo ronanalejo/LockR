@@ -61,8 +61,6 @@ const StudentDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  console.log("User object:", user);
-
   useEffect(() => {
     if (selectedFloor) {
       localStorage.setItem("selectedFloor", selectedFloor);
@@ -152,7 +150,6 @@ const StudentDashboard = () => {
   };
 
   const handleConfirmReservation = (reservationData) => {
-    console.log("Reservation data prepared:", reservationData);
     setTempReservationData(reservationData);
     setSelectedLocker(null);
   };
@@ -290,9 +287,6 @@ const StudentDashboard = () => {
   };
 
   const handleCloseEndorsement = () => {
-    console.log("handleCloseEndorsement called");
-    console.log("Current showEndorsement state:", showEndorsement);
-
     try {
       setShowEndorsement(false);
       setReservationData(null);
@@ -566,7 +560,6 @@ const StudentDashboard = () => {
       {showEndorsement && (
         <EndorsementApproval
           onClose={() => {
-            console.log("EndorsementApproval onClose called");
             handleCloseEndorsement();
           }}
         />

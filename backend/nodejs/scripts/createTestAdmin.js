@@ -21,7 +21,6 @@ const createTestAdmin = async () => {
       hashedPassword,
       "OSAS",
     ]);
-    console.log("Test admin created successfully");
   } catch (error) {
     console.error("Error creating test admin:", error.message);
   } finally {

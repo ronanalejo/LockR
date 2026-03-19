@@ -22,7 +22,6 @@ const createTestStudent = async () => {
       hashedPassword,
       "BSIT",
     ]);
-    console.log("Test student created successfully");
   } catch (error) {
     console.error("Error creating test student:", error.message);
   } finally {

@@ -27,7 +27,6 @@ const getBaseURL = () => {
     window.location.hostname === "";
 
   if (isLocalhost) {
-    console.log("Local development detected - using localhost backend");
     // Build the URL dynamically to avoid hardcoded "localhost:5000" string
     const protocol = window.location.protocol || "http:";
     const hostname = window.location.hostname || "localhost";
@@ -35,7 +34,7 @@ const getBaseURL = () => {
   }
 
   // 3. Production - use API subdomain
-  console.log("Production environment detected - using api.lockr.fit");
+
   return "https://api.lockr.fit/api";
 };
 
@@ -49,7 +48,6 @@ const api = axios.create({
 });
 
 // Log the base URL for debugging
-console.log("API Base URL configured:", api.defaults.baseURL);
 
 // request interceptor - inject token into every request
 api.interceptors.request.use(

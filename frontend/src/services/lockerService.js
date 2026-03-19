@@ -91,7 +91,6 @@ class LockerService {
 
     try {
       const url = API_ENDPOINTS.lockers.byFloor(floorNumber);
-      console.log("Fetching from URL:", url);
 
       const response = await fetch(url, {
         method: "GET",
@@ -102,9 +101,6 @@ class LockerService {
       const data = await this.handleResponse(response);
 
       // Log the raw response
-      console.log("Raw API response:", data);
-      console.log("data.data:", data.data);
-      console.log("data.data.lockers:", data.data?.lockers);
 
       // Extract lockers correctly
       let lockers;
@@ -120,8 +116,6 @@ class LockerService {
       } else {
         lockers = [];
       }
-
-      console.log("Extracted lockers:", lockers.length, "items");
 
       return {
         success: true,

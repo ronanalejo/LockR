@@ -222,8 +222,6 @@ const reservationService = {
       console.error("Upload proofOfPayment error:", error);
 
       if (retryCount < MAX_RETRIES && !error.message.includes("Invalid")) {
-        console.log(`Retrying upload (${retryCount + 1}/${MAX_RETRIES})...`);
-
         await new Promise((resolve) =>
           setTimeout(resolve, RETRY_DELAY * (retryCount + 1)),
         );

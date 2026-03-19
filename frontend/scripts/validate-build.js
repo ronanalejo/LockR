@@ -1,10 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-console.log("\n========================================");
-console.log("  LockR Production Build Validator");
-console.log("========================================\n");
-
 const buildDir = path.join(__dirname, "../build");
 
 // Check if build directory exists
@@ -51,13 +47,10 @@ function checkFiles(directory) {
 
 checkFiles(buildDir);
 
-console.log("Files checked:", filesChecked);
 console.log(
   "Localhost references:",
   localhostFound ? "FOUND (CRITICAL ERROR)" : "None",
 );
-console.log("Production API found:", productionApiFound ? "Yes" : "No");
-console.log("");
 
 if (localhostFound) {
   console.error("VALIDATION FAILED");
@@ -76,7 +69,3 @@ if (!productionApiFound) {
     "This may indicate the build was not created with the correct environment.\n",
   );
 }
-
-console.log("VALIDATION PASSED");
-console.log("=================");
-console.log("This build is safe to deploy to production.\n");

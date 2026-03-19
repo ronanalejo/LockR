@@ -42,9 +42,9 @@
                   "    pm.collectionVariables.set('token', response.token);",
                   "    pm.collectionVariables.set('user', JSON.stringify(response.user));",
                   "    pm.collectionVariables.set('current_student_id', response.user.studentID);",
-                  "    console.log('Token saved successfully');",
-                  "    console.log('Token saved:', response.token);",
-                  "    console.log('Student ID:', response.user.studentID);",
+                  "    ",
+                  "    ",
+                  "    ",
                   "}"
                 ],
                 "type": "text/javascript"

@@ -3,7 +3,6 @@ import "../../assets/css/lockerSelection.css";
 import floor6Bg from "../../assets/images/backgrounds/floor6Bg.jpg";
 
 const LockerSelection = ({ floor, onSelectSide }) => {
-  console.log("Floor 6 Background:", floor6Bg);
   const [showLocationModal, setShowLocationModal] = useState(false);
   return (
     <div className="floor-plan-container">

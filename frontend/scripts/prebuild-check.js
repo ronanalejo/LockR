@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 
-console.log("\n===========================================");
-console.log("  LockR Production Build Pre-Check");
-console.log("===========================================\n");
-
 const requiredApiUrl = "https://api.lockr.fit/api";
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -31,7 +27,3 @@ if (apiUrl !== requiredApiUrl) {
   console.warn("Expected value:", requiredApiUrl);
   console.warn("\nContinuing build, but verify this is correct...\n");
 }
-
-console.log("Pre-build checks passed");
-console.log("API URL:", apiUrl);
-console.log("Building for production...\n");

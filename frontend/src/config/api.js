@@ -148,7 +148,5 @@ const apiClient = {
   },
 };
 
-console.log("API Base URL:", API_BASE_URL);
-
 export { API_BASE_URL, API_ENDPOINTS, apiClient };
 export default API_ENDPOINTS;

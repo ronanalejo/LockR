@@ -79,7 +79,6 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
 
     // Read student copy buffer for email attachment
     const studentCopyBuffer = await fs.readFile(studentOutputPath);
-    console.log("[PDF] Student copy generated successfully");
 
     // Generate OSAS Copy
     const osasHtml = generatePaymentAdviceHTML(
@@ -99,7 +98,6 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
       printBackground: true,
       margin: { top: "20px", right: "20px", bottom: "20px", left: "20px" },
     });
-    console.log("[PDF] OSAS copy generated successfully");
 
     // Generate Finance Copy
     const financeHtml = generatePaymentAdviceHTML(
@@ -119,7 +117,6 @@ async function generatePaymentAdviceSlipWithCopy(reservation) {
       printBackground: true,
       margin: { top: "20px", right: "20px", bottom: "20px", left: "20px" },
     });
-    console.log("[PDF] Finance copy generated successfully");
 
     await browser.close();
 

@@ -26,7 +26,6 @@ const LockerGrid = ({
       const token = localStorage.getItem("token");
 
       if (!token) {
-        console.log("No token found in localStorage");
         setAuthError(true);
         return;
       }
@@ -40,26 +39,17 @@ const LockerGrid = ({
           `FETCHING LOCKERS FOR FLOOR ${floor}, WING ${wing}, SET ${set}`,
         );
         const response = await lockerService.getLockersByFloor(floor);
-        console.log("FULL RESPONSE STRUCTURE:");
-        console.log("response:", response);
-        console.log("response.data:", response.data);
-        console.log("response.data type:", typeof response.data);
-        console.log("response.data is array?", Array.isArray(response.data));
+
         if (response.data && typeof response.data === "object") {
-          console.log("response.data.lockers:", response.data.lockers);
         }
-        console.log("API Response:", response);
 
         if (response.success) {
           const allLockers = Array.isArray(response.data)
             ? response.data
             : response.data.lockers || [];
 
-          console.log(`Total lockers received: ${allLockers.length}`);
-
           // Log sample locker structure
           if (allLockers.length > 0) {
-            console.log("Sample locker structure:", allLockers[0]);
           }
 
           const filteredLockers = allLockers.filter((locker) => {
@@ -115,11 +105,8 @@ const LockerGrid = ({
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    console.log("Auth check:", { token: !!token, user: !!user });
-
     // Only show error if token is missing
     if (!token) {
-      console.log("No token - showing auth error");
       setAuthError(true);
       setLoading(false);
       showError("Authentication Required", "Please log in to view lockers");

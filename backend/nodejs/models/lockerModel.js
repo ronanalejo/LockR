@@ -128,14 +128,10 @@ const LockerModel = {
       }
 
       // DEBUG LOGGING
-      console.log("QUERY:", query);
-      console.log("PARAMS:", params);
 
       const [rows] = await db.query(query, params);
 
       // DEBUG LOGGING
-      console.log("ROWS RETURNED:", rows.length);
-      console.log("SAMPLE ROW:", rows[0]);
 
       return rows;
     } catch (error) {
