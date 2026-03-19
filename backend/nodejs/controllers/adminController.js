@@ -19,10 +19,13 @@ const adminController = {
           s.firstName as studentFirstName,
           s.lastName as studentLastName,
           s.student_type,
-          s.branchID as studentBranchID
+          s.branchID as studentBranchID,
+          a.firstName as endorsedByFirstName,
+          a.lastName as endorsedByLastName
         FROM reservation r
         INNER JOIN locker l ON r.lockerID = l.lockerID
         INNER JOIN student s ON r.studentID = s.studentID
+        LEFT JOIN admin a ON r.employeeID = a.employeeID
         WHERE r.forEndorsement = TRUE 
         AND r.forApproval = FALSE
         AND r.isActive = FALSE
@@ -490,10 +493,13 @@ const adminController = {
           s.firstName as studentFirstName,
           s.lastName as studentLastName,
           s.student_type,
-          s.branchID as studentBranchID
+          s.branchID as studentBranchID,
+          a.firstName as endorsedByFirstName,
+          a.lastName as endorsedByLastName
         FROM reservation r
         INNER JOIN locker l ON r.lockerID = l.lockerID
         INNER JOIN student s ON r.studentID = s.studentID
+        LEFT JOIN admin a ON r.employeeID = a.employeeID
         WHERE r.forApproval = TRUE 
         AND (r.forEndorsement = FALSE OR r.forEndorsement IS NULL)
         AND (r.isActive = FALSE OR r.isActive IS NULL)

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../assets/css/pdfViewerModal.css";
 import { API_BASE_URL } from "../../config/api";
 
@@ -9,6 +9,11 @@ const PDFViewerModal = ({
 }) => {
   const [loadError, setLoadError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [blobUrl, setBlobUrl] = useState(null);
+
+  const imageExtensions = ["png", "jpg", "jpeg", "gif", "webp", "bmp"];
+  const ext = pdfUrl ? pdfUrl.split(".").pop().toLowerCase().split("?")[0] : "";
+  const isImage = imageExtensions.includes(ext);
 
   let fullPdfUrl = "";
   if (pdfUrl) {
@@ -29,6 +34,30 @@ const PDFViewerModal = ({
     fullPdfUrl,
     API_BASE_URL,
   });
+
+  useEffect(() => {
+    if (!isImage || !fullPdfUrl) return;
+    let objectUrl = null;
+    setIsLoading(true);
+    setLoadError(false);
+    fetch(fullPdfUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch image");
+        return res.blob();
+      })
+      .then((blob) => {
+        objectUrl = URL.createObjectURL(blob);
+        setBlobUrl(objectUrl);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setLoadError(true);
+        setIsLoading(false);
+      });
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [fullPdfUrl, isImage]);
 
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -112,7 +141,7 @@ const PDFViewerModal = ({
             </div>
           )}
 
-          {pdfUrl && !loadError && (
+          {pdfUrl && !loadError && !isImage && (
             <iframe
               src={`${fullPdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
               title={title}
@@ -121,6 +150,31 @@ const PDFViewerModal = ({
               onError={handleIframeError}
               style={{ display: isLoading ? "none" : "block" }}
             />
+          )}
+
+          {pdfUrl && !loadError && isImage && blobUrl && (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "auto",
+                background: "#f9fafb",
+              }}
+            >
+              <img
+                src={blobUrl}
+                alt={title}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  objectFit: "contain",
+                  borderRadius: 8,
+                }}
+              />
+            </div>
           )}
 
           {!pdfUrl && (

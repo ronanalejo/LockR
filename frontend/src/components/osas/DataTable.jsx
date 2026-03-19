@@ -5,6 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from "react";
+import { showConfirm } from "../../utils/notifications";
 import { debounce } from "lodash";
 import CountdownTimer from "./CountdownTimer";
 import PDFViewerModal from "./PDFViewerModal";
@@ -33,6 +34,10 @@ const DataTable = ({
   const [showActionsDropdown, setShowActionsDropdown] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [localSearch, setLocalSearch] = useState(filters?.search || "");
+  const [showMassModal, setShowMassModal] = useState(false);
+  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [genericPdfUrl, setGenericPdfUrl] = useState(null);
+  const [genericPdfTitle, setGenericPdfTitle] = useState("");
 
   const itemsPerPage = 10;
   const actionsDropdownRef = useRef(null);
@@ -275,9 +280,10 @@ const DataTable = ({
         return proofPath ? (
           <button
             className="btn-view-doc"
-            onClick={() =>
-              window.open(`${uploadsBaseUrl}/uploads/${proofPath}`, "_blank")
-            }
+            onClick={() => {
+              setGenericPdfUrl(proofPath);
+              setGenericPdfTitle(`Receipt - ${reservation.referralSlipNo}`);
+            }}
           >
             View
           </button>
@@ -292,9 +298,12 @@ const DataTable = ({
         return slipPath ? (
           <button
             className="btn-view-doc"
-            onClick={() =>
-              window.open(`${uploadsBaseUrl}/uploads/${slipPath}`, "_blank")
-            }
+            onClick={() => {
+              setGenericPdfUrl(slipPath);
+              setGenericPdfTitle(
+                `Payment Advice Slip - ${reservation.referralSlipNo}`,
+              );
+            }}
           >
             View
           </button>
@@ -427,7 +436,7 @@ const DataTable = ({
               }}
               className="w-36 bg-white rounded divide-y divide-gray-100 shadow border border-gray-100"
             >
-              <ul className="py-1 text-sm text-gray-700">
+              <ul className="list-none py-1 text-sm text-gray-700">
                 <li>
                   <button
                     className="block w-full text-left py-2 px-4 hover:bg-gray-100 text-green-700 font-medium"
@@ -481,6 +490,11 @@ const DataTable = ({
     activeTab === "endorsement"
       ? "mass-reject-endorsements"
       : "mass-reject-approvals";
+
+  const modalColumns = useMemo(
+    () => columns.filter((c) => c.key !== "actions"),
+    [columns],
+  );
 
   return (
     <div className="w-full flex flex-col" style={{ height: "100%" }}>
@@ -543,11 +557,11 @@ const DataTable = ({
                 Actions
               </button>
               {showActionsDropdown && (
-                <div className="absolute right-0 top-10 z-20 w-44 bg-white rounded divide-y divide-gray-100 shadow">
-                  <ul className="py-1 text-sm text-gray-700">
+                <div className="absolute right-0 top-10 z-20 w-44 bg-white rounded shadow">
+                  <ul className="list-none py-0 text-sm text-gray-700 divide-y divide-gray-200">
                     <li>
                       <button
-                        className="block w-full text-left py-2 px-4 hover:bg-gray-100 text-green-700 font-medium"
+                        className="block w-full text-left py-2 px-4 bg-transparent border-0 hover:bg-gray-100 text-green-700 font-medium cursor-pointer"
                         onClick={() => {
                           setShowActionsDropdown(false);
                           onAction(approveAllAction, null);
@@ -558,7 +572,7 @@ const DataTable = ({
                     </li>
                     <li>
                       <button
-                        className="block w-full text-left py-2 px-4 hover:bg-gray-100 text-red-600 font-medium"
+                        className="block w-full text-left py-2 px-4 bg-transparent border-0 hover:bg-gray-100 text-red-600 font-medium cursor-pointer"
                         onClick={() => {
                           setShowActionsDropdown(false);
                           onAction(rejectAllAction, null);
@@ -569,30 +583,14 @@ const DataTable = ({
                     </li>
                     <li>
                       <button
-                        className="block w-full text-left py-2 px-4 hover:bg-gray-100 text-green-700"
+                        className="block w-full text-left py-2 px-4 bg-transparent border-0 hover:bg-gray-100 text-blue-700 font-medium cursor-pointer"
                         onClick={() => {
                           setShowActionsDropdown(false);
-                          onAction(
-                            massApproveAction,
-                            sortedData.map((r) => r.referralSlipNo),
-                          );
+                          setSelectedRows(new Set());
+                          setShowMassModal(true);
                         }}
                       >
-                        Mass Approve
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        className="block w-full text-left py-2 px-4 hover:bg-gray-100 text-red-600"
-                        onClick={() => {
-                          setShowActionsDropdown(false);
-                          onAction(
-                            massRejectAction,
-                            sortedData.map((r) => r.referralSlipNo),
-                          );
-                        }}
-                      >
-                        Mass Reject
+                        Mass Approve/Reject
                       </button>
                     </li>
                   </ul>
@@ -893,6 +891,389 @@ const DataTable = ({
           }}
           title={`Application Form and Locker Usage Agreement - ${selectedReservation.referralSlipNo}`}
         />
+      )}
+
+      {genericPdfUrl && (
+        <PDFViewerModal
+          pdfUrl={genericPdfUrl}
+          onClose={() => {
+            setGenericPdfUrl(null);
+            setGenericPdfTitle("");
+          }}
+          title={genericPdfTitle}
+        />
+      )}
+
+      {genericPdfUrl && (
+        <PDFViewerModal
+          pdfUrl={genericPdfUrl}
+          onClose={() => {
+            setGenericPdfUrl(null);
+            setGenericPdfTitle("");
+          }}
+          title={genericPdfTitle}
+        />
+      )}
+      {showMassModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0, 0, 0, 0.5)",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 8,
+              width: "95vw",
+              maxWidth: window.innerWidth * 0.95,
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "16px 20px",
+                borderBottom: "1px solid #e5e7eb",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: 17,
+                  fontWeight: 600,
+                  color: "#111827",
+                  margin: 0,
+                }}
+              >
+                Mass Approve / Reject Reservations
+              </h2>
+              <span style={{ fontSize: 13, color: "#6b7280" }}>
+                {selectedRows.size} selected
+              </span>
+            </div>
+
+            {/* Modal Table */}
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  minWidth: 0,
+                  borderCollapse: "collapse",
+                  fontSize: 13,
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      background: "#f9fafb",
+                      borderBottom: "1px solid #e5e7eb",
+                      position: "sticky",
+                      top: 0,
+                    }}
+                  >
+                    <th
+                      style={{
+                        padding: "10px 14px",
+                        width: 44,
+                        textAlign: "center",
+                        borderBottom: "1px solid #e5e7eb",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        style={{ cursor: "pointer" }}
+                        checked={
+                          sortedData.length > 0 &&
+                          selectedRows.size === sortedData.length
+                        }
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedRows(
+                              new Set(sortedData.map((r) => r.referralSlipNo)),
+                            );
+                          } else {
+                            setSelectedRows(new Set());
+                          }
+                        }}
+                      />
+                    </th>
+                    {modalColumns.map((col) => (
+                      <th
+                        key={col.key}
+                        style={{
+                          padding: "10px 14px",
+                          textAlign: "left",
+                          fontWeight: 600,
+                          color: "#374151",
+                          borderBottom: "1px solid #e5e7eb",
+                          whiteSpace: "nowrap",
+                          minWidth: 0,
+                        }}
+                      >
+                        {col.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedData.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={modalColumns.length + 1}
+                        style={{
+                          textAlign: "center",
+                          padding: 32,
+                          color: "#6b7280",
+                        }}
+                      >
+                        No reservations found.
+                      </td>
+                    </tr>
+                  ) : (
+                    sortedData.map((row, idx) => (
+                      <tr
+                        key={row.referralSlipNo}
+                        style={{
+                          borderBottom: "1px solid #f3f4f6",
+                          background: selectedRows.has(row.referralSlipNo)
+                            ? "#eff6ff"
+                            : idx % 2 === 0
+                              ? "#fff"
+                              : "#f9fafb",
+                          cursor: "pointer",
+                        }}
+                        onClick={(e) => {
+                          if (e.target.closest("button")) return;
+                          const next = new Set(selectedRows);
+                          if (next.has(row.referralSlipNo)) {
+                            next.delete(row.referralSlipNo);
+                          } else {
+                            next.add(row.referralSlipNo);
+                          }
+                          setSelectedRows(next);
+                        }}
+                      >
+                        <td
+                          style={{ padding: "10px 14px", textAlign: "center" }}
+                        >
+                          <input
+                            type="checkbox"
+                            style={{ cursor: "pointer" }}
+                            checked={selectedRows.has(row.referralSlipNo)}
+                            onChange={() => {
+                              const next = new Set(selectedRows);
+                              if (next.has(row.referralSlipNo)) {
+                                next.delete(row.referralSlipNo);
+                              } else {
+                                next.add(row.referralSlipNo);
+                              }
+                              setSelectedRows(next);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </td>
+                        {modalColumns.map((col) => (
+                          <td
+                            key={col.key}
+                            style={{ padding: "10px 14px", color: "#374151" }}
+                          >
+                            {(() => {
+                              switch (col.key) {
+                                case "studentName":
+                                  return (
+                                    `${row.studentFirstName || ""} ${row.studentLastName || ""}`.trim() ||
+                                    "-"
+                                  );
+                                case "agreement":
+                                  return (
+                                    row.agreementType || row.agreement || "-"
+                                  );
+                                case "reservationTimer":
+                                  return renderCellContent(row, {
+                                    key: "reservationTimer",
+                                  });
+                                case "applicationForm":
+                                  return renderCellContent(row, {
+                                    key: "applicationForm",
+                                  });
+                                case "paymentAdviceSlip": {
+                                  const slipPath =
+                                    row.pdfPaymentAdviceSlipOSAS ||
+                                    row.pdfPaymentAdviceSlip;
+                                  if (!slipPath) return "-";
+                                  return (
+                                    <button
+                                      className="btn-view-doc"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setGenericPdfUrl(slipPath);
+                                        setGenericPdfTitle(
+                                          `Payment Advice Slip - ${row.referralSlipNo}`,
+                                        );
+                                      }}
+                                    >
+                                      View
+                                    </button>
+                                  );
+                                }
+                                case "proofOfPayment": {
+                                  const proofPath =
+                                    row.proofOfPayment || row.dropboxReceipt;
+                                  if (!proofPath) return "-";
+                                  return (
+                                    <button
+                                      className="btn-view-doc"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setGenericPdfUrl(proofPath);
+                                        setGenericPdfTitle(
+                                          `Receipt - ${row.referralSlipNo}`,
+                                        );
+                                      }}
+                                    >
+                                      View
+                                    </button>
+                                  );
+                                }
+                                case "endorsedBy":
+                                  return row.endorsedByFirstName
+                                    ? `${row.endorsedByFirstName} ${row.endorsedByLastName || ""}`.trim()
+                                    : "-";
+                                case "agreementPeriod":
+                                  if (!row.agreementDateStart) return "-";
+                                  return `${new Date(row.agreementDateStart).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} - ${row.agreementDateEnd ? new Date(row.agreementDateEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "N/A"}`;
+                                default:
+                                  return row[col.key] != null
+                                    ? String(row[col.key])
+                                    : "-";
+                              }
+                            })()}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Generic PDF/Image viewer triggered from inside the modal */}
+            {genericPdfUrl && (
+              <PDFViewerModal
+                pdfUrl={genericPdfUrl}
+                onClose={() => {
+                  setGenericPdfUrl(null);
+                  setGenericPdfTitle("");
+                }}
+                title={genericPdfTitle}
+              />
+            )}
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: "12px 20px",
+                borderTop: "1px solid #e5e7eb",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                background: "#fff",
+              }}
+            >
+              <button
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 6,
+                  border: "none",
+                  background: selectedRows.size === 0 ? "#d1fae5" : "#059669",
+                  color: selectedRows.size === 0 ? "#6b7280" : "#fff",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: selectedRows.size === 0 ? "not-allowed" : "pointer",
+                }}
+                disabled={selectedRows.size === 0}
+                onClick={async () => {
+                  const ids = Array.from(selectedRows);
+                  const result = await showConfirm(
+                    `Are you sure you want to approve ${ids.length} reservation(s)?`,
+                  );
+                  if (result.isConfirmed) {
+                    setShowMassModal(false);
+                    setSelectedRows(new Set());
+                    onAction(massApproveAction, ids);
+                  }
+                }}
+              >
+                Approve
+              </button>
+              <button
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 6,
+                  border: "none",
+                  background: selectedRows.size === 0 ? "#fee2e2" : "#dc2626",
+                  color: selectedRows.size === 0 ? "#6b7280" : "#fff",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: selectedRows.size === 0 ? "not-allowed" : "pointer",
+                }}
+                disabled={selectedRows.size === 0}
+                onClick={async () => {
+                  const ids = Array.from(selectedRows);
+                  const result = await showConfirm(
+                    `Are you sure you want to reject ${ids.length} reservation(s)?`,
+                  );
+                  if (result.isConfirmed) {
+                    setShowMassModal(false);
+                    setSelectedRows(new Set());
+                    onAction(massRejectAction, ids);
+                  }
+                }}
+              >
+                Reject
+              </button>
+              <button
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 6,
+                  border: "1px solid #d1d5db",
+                  background: "#fff",
+                  color: "#374151",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+                onClick={async () => {
+                  if (selectedRows.size === 0) {
+                    setShowMassModal(false);
+                    return;
+                  }
+                  const result = await showConfirm(
+                    "Cancel the mass action? Your current selection will be lost.",
+                  );
+                  if (result.isConfirmed) {
+                    setShowMassModal(false);
+                    setSelectedRows(new Set());
+                  }
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
