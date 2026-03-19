@@ -224,10 +224,16 @@ const OSASDashboard = () => {
 
       const actionLabel = isApprove ? "approve" : "reject";
       const typeLabel = isEndorsement ? "endorsement" : "reservation";
-      const result = await showConfirm(
-        `Are you sure you want to ${actionLabel} ${targetIds.length} ${typeLabel}(s)?`,
-      );
-      if (!result.isConfirmed) return;
+
+      const isMassAction =
+        action.startsWith("mass-approve") || action.startsWith("mass-reject");
+
+      if (!isMassAction) {
+        const result = await showConfirm(
+          `Are you sure you want to ${actionLabel} ${targetIds.length} ${typeLabel}(s)?`,
+        );
+        if (!result.isConfirmed) return;
+      }
 
       showLoading("Processing...", "Please wait");
 
