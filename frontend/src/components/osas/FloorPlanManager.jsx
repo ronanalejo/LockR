@@ -495,7 +495,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
           <div className="relative">
             <button
               type="button"
-              className="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+              className="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
               onClick={() => {
                 setActionsOpen(!actionsOpen);
                 setFilterOpen(false);
@@ -593,10 +593,10 @@ const FloorPlanManager = ({ onLockerChange }) => {
               </svg>
             </button>
             {filterOpen && (
-              <div className="absolute right-0 z-10 mt-1 w-72 p-4 bg-white rounded-lg shadow">
+              <div className="absolute right-0 top-10 z-20 w-64 p-3 bg-white rounded-lg shadow">
                 {/* Floor Navigation */}
                 <div className="mb-4">
-                  <h6 className="mb-2 text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  <h6 className="mb-2 text-sm font-semibold text-gray-900">
                     Floor
                   </h6>
                   <div className="flex flex-wrap gap-2">
@@ -604,7 +604,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
                       <button
                         key={floor}
                         type="button"
-                        className={`fpm-floor-tab${selectedFloor === floor ? " active" : ""}`}
+                        className={`px-3 py-1 text-xs rounded border font-medium transition-colors ${selectedFloor === floor ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}
                         onClick={() => handleFloorSelect(floor)}
                       >
                         {floor}
@@ -615,7 +615,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
 
                 {/* Wing Navigation */}
                 <div className="mb-4">
-                  <h6 className="mb-2 text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  <h6 className="mb-2 text-sm font-semibold text-gray-900">
                     Wing
                   </h6>
                   <div className="flex flex-wrap gap-2">
@@ -623,7 +623,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
                       <button
                         key={wing}
                         type="button"
-                        className={`fpm-wing-tab${selectedWing === wing ? " active" : ""}`}
+                        className={`px-3 py-1 text-xs rounded border font-medium transition-colors ${selectedWing === wing ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}
                         onClick={() => handleWingSelect(wing)}
                       >
                         {wing}
@@ -634,13 +634,13 @@ const FloorPlanManager = ({ onLockerChange }) => {
 
                 {/* Sets Section */}
                 <div>
-                  <h6 className="mb-2 text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  <h6 className="mb-2 text-sm font-semibold text-gray-900">
                     Set
                   </h6>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      className={`fpm-set-tab${selectedSet === null ? " active" : ""}`}
+                      className={`px-3 py-1 text-xs rounded border font-medium transition-colors ${selectedSet === null ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}
                       onClick={() => setSelectedSet(null)}
                     >
                       All
@@ -649,7 +649,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
                       <button
                         key={set.id}
                         type="button"
-                        className={`fpm-set-tab${selectedSet === set.setName ? " active" : ""}`}
+                        className={`px-3 py-1 text-xs rounded border font-medium transition-colors ${selectedSet === set.setName ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}
                         onClick={() =>
                           setSelectedSet(
                             selectedSet === set.setName ? null : set.setName,
