@@ -9,7 +9,8 @@ import {
   closeAlert,
   showError,
 } from "../../utils/notifications";
-import { API_ENDPOINTS } from "../../config/api";
+import { API_ENDPOINTS, API_BASE_URL } from "../../config/api";
+import locationIcon from "../../assets/images/icons/location-icon.svg";
 import LockerGrid from "../../components/student/LockerGrid";
 import ReservationForm from "../../components/student/ReservationForm";
 import RulesRegulations from "../../components/student/RulesRegulations";
@@ -42,6 +43,9 @@ const StudentDashboard = () => {
   const [activeGrid, setActiveGrid] = useState(null);
   const [floorSets, setFloorSets] = useState({});
   const [setsLoading, setSetsLoading] = useState(true);
+  const [locateModal, setLocateModal] = useState(null);
+  const [locateBlobUrl, setLocateBlobUrl] = useState(null);
+  const [locateBlobLoading, setLocateBlobLoading] = useState(false);
   const wings = ["Left Wing", "Right Wing"];
 
   const floors = [6, 7, 9, 10];
@@ -72,7 +76,7 @@ const StudentDashboard = () => {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${token}`,
                 },
-              }
+              },
             );
             const data = await response.json();
             result[`${floor}|${wing}`] = data.success ? data.data || [] : [];
@@ -265,7 +269,10 @@ const StudentDashboard = () => {
     } catch (error) {
       console.error("Reservation error:", error);
       closeAlert();
-      showError("Submission Failed", error.message || "Failed to submit agreement");
+      showError(
+        "Submission Failed",
+        error.message || "Failed to submit agreement",
+      );
     }
   };
 
@@ -349,27 +356,60 @@ const StudentDashboard = () => {
     setShowReservationLog(false);
   };
 
+  const handleLocate = (floor, wing) => {
+    const wingSlug = wing.replace(/\s+/g, "-").toLowerCase();
+    const baseUrl = API_BASE_URL.replace(/\/api\/?$/, "");
+    const imageUrl = `${baseUrl}/uploads/annotated-floor-plans/annotated_floor${floor}_${wingSlug}.png`;
+    setLocateModal({ floor, wing, imageUrl, hasError: false });
+    setLocateBlobUrl(null);
+    setLocateBlobLoading(true);
+
+    const token = localStorage.getItem("token");
+    fetch(imageUrl, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Not found");
+        return res.blob();
+      })
+      .then((blob) => {
+        setLocateBlobUrl(URL.createObjectURL(blob));
+        setLocateBlobLoading(false);
+      })
+      .catch(() => {
+        setLocateModal((prev) => (prev ? { ...prev, hasError: true } : prev));
+        setLocateBlobLoading(false);
+      });
+  };
+
   const floorButtonProps = (floor) => ({
     onClick: () =>
-      !hasActiveReservation && isWithinOperatingHours && handleFloorSelect(floor),
+      !hasActiveReservation &&
+      isWithinOperatingHours &&
+      handleFloorSelect(floor),
     disabled: hasActiveReservation || !isWithinOperatingHours,
     className: `locker-floor-button ${selectedFloor === floor ? "active" : ""}`,
   });
 
   const drawerFloorButtonProps = (floor) => ({
     onClick: () =>
-      !hasActiveReservation && isWithinOperatingHours && handleFloorSelect(floor),
+      !hasActiveReservation &&
+      isWithinOperatingHours &&
+      handleFloorSelect(floor),
     disabled: hasActiveReservation || !isWithinOperatingHours,
     className: `drawer-floor-button ${selectedFloor === floor ? "active" : ""}`,
   });
 
   return (
-    <div className="locker-dashboard" style={{ backgroundImage: `url(${selectedFloor ? floorBackgrounds[selectedFloor] : iacademyBg})` }}>
-
+    <div
+      className="locker-dashboard"
+      style={{
+        backgroundImage: `url(${selectedFloor ? floorBackgrounds[selectedFloor] : iacademyBg})`,
+      }}
+    >
       {/* ── Navbar ─────────────────────────────────── */}
       <nav className="locker-navbar">
         <div className="locker-navbar-inner">
-
           {/* Logo */}
           <div className="locker-navbar-logo">
             <img
@@ -403,7 +443,10 @@ const StudentDashboard = () => {
 
           {/* Desktop: reservations + logout */}
           <div className="locker-navbar-right">
-            <button className="reservation-log-button" onClick={handleOpenReservationLog}>
+            <button
+              className="reservation-log-button"
+              onClick={handleOpenReservationLog}
+            >
               My Reservations
             </button>
             <button className="locker-logout-button" onClick={handleLogout}>
@@ -417,10 +460,29 @@ const StudentDashboard = () => {
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
           >
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 18L20 18" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
-              <path d="M4 12L20 12" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
-              <path d="M4 6L20 6" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 18L20 18"
+                stroke="#ffffff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 12L20 12"
+                stroke="#ffffff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 6L20 6"
+                stroke="#ffffff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </div>
@@ -428,13 +490,22 @@ const StudentDashboard = () => {
 
       {/* ── Mobile Drawer ───────────────────────────── */}
       <div className={`locker-mobile-drawer ${menuOpen ? "drawer-open" : ""}`}>
-        <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", paddingLeft: 4 }}>
+        <span
+          style={{
+            fontSize: 13,
+            color: "rgba(255,255,255,0.5)",
+            paddingLeft: 4,
+          }}
+        >
           Welcome, {user?.firstName} {user?.lastName || "Student"}
         </span>
         <div className="drawer-divider" />
         <button
           className={`drawer-floor-button ${selectedFloor === null ? "active" : ""}`}
-          onClick={() => { setSelectedFloor(null); setMenuOpen(false); }}
+          onClick={() => {
+            setSelectedFloor(null);
+            setMenuOpen(false);
+          }}
         >
           Home
         </button>
@@ -444,7 +515,10 @@ const StudentDashboard = () => {
           </button>
         ))}
         <div className="drawer-divider" />
-        <button className="drawer-reservation-btn" onClick={handleOpenReservationLog}>
+        <button
+          className="drawer-reservation-btn"
+          onClick={handleOpenReservationLog}
+        >
           My Reservations
         </button>
         <button className="drawer-logout-btn" onClick={handleLogout}>
@@ -489,7 +563,22 @@ const StudentDashboard = () => {
                         const sets = floorSets[`${floor}|${wing}`] || [];
                         return (
                           <div key={wing} className="wing-column">
-                            <h3 className="wing-column-title">{wing}</h3>
+                            <div className="wing-column-header">
+                              <h3 className="wing-column-title">{wing}</h3>
+                              <button
+                                className="wing-locate-btn"
+                                onClick={() => handleLocate(floor, wing)}
+                                title={`View map for ${wing}`}
+                              >
+                                <img
+                                  src={locationIcon}
+                                  alt=""
+                                  className="wing-locate-icon"
+                                  aria-hidden="true"
+                                />
+                                Locate
+                              </button>
+                            </div>
                             {sets.length === 0 ? (
                               <p className="wing-no-sets">No sets available.</p>
                             ) : (
@@ -498,10 +587,18 @@ const StudentDashboard = () => {
                                   <button
                                     key={set.id}
                                     className="wing-set-btn"
-                                    onClick={() => setActiveGrid({ floor, wing, set: set.setName })}
+                                    onClick={() =>
+                                      setActiveGrid({
+                                        floor,
+                                        wing,
+                                        set: set.setName,
+                                      })
+                                    }
                                     disabled={hasActiveReservation}
                                   >
-                                    <div className="wing-set-icon">{set.setName}</div>
+                                    <div className="wing-set-icon">
+                                      {set.setName}
+                                    </div>
                                     <span>Set {set.setName}</span>
                                   </button>
                                 ))}
@@ -572,6 +669,67 @@ const StudentDashboard = () => {
             }
           }}
         />
+      )}
+      {locateModal && (
+        <div
+          className="locate-modal-overlay"
+          onClick={() => {
+            if (locateBlobUrl) URL.revokeObjectURL(locateBlobUrl);
+            setLocateModal(null);
+            setLocateBlobUrl(null);
+          }}
+        >
+          <div
+            className="locate-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="locate-modal-header">
+              <h3 className="locate-modal-title">
+                Floor {locateModal.floor} — {locateModal.wing}
+              </h3>
+              <button
+                className="locate-modal-close"
+                onClick={() => {
+                  if (locateBlobUrl) URL.revokeObjectURL(locateBlobUrl);
+                  setLocateModal(null);
+                  setLocateBlobUrl(null);
+                }}
+                aria-label="Close map"
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="locate-modal-body">
+              {locateModal.hasError ? (
+                <div className="locate-modal-no-map">
+                  <p>No map image has been set for this wing yet.</p>
+                  <p className="locate-modal-no-map-sub">
+                    An administrator must first set the map via the OSAS
+                    Dashboard.
+                  </p>
+                </div>
+              ) : locateBlobLoading ? (
+                <div className="locate-modal-loading">
+                  <div className="spinner"></div>
+                  <p>Loading map...</p>
+                </div>
+              ) : locateBlobUrl ? (
+                <img
+                  src={locateBlobUrl}
+                  alt={`Floor ${locateModal.floor} ${locateModal.wing} map`}
+                  className="locate-modal-image"
+                />
+              ) : null}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -2,10 +2,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadDir = path.join(
-  __dirname,
-  "../../../uploads/annotated-floor-plans",
-);
+const uploadDir = path.join(__dirname, "../../uploads/annotated-floor-plans");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -17,11 +14,11 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const floor = req.params.floor || "unknown";
-    const wing = (req.body.wing || "unknown")
-      .replace(/\s+/g, "-")
-      .toLowerCase();
-    const timestamp = Date.now();
-    cb(null, `annotated_floor${floor}_${wing}_${timestamp}.png`);
+    const match = file.originalname.match(
+      /^annotated_floor\d+_(.+?)_\d+\.png$/,
+    );
+    const wing = match ? match[1] : "unknown";
+    cb(null, `annotated_floor${floor}_${wing}.png`);
   },
 });
 

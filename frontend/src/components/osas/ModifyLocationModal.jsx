@@ -230,7 +230,7 @@ const ModifyLocationModal = ({ locker, floors, onClose, onSaved }) => {
         return;
       }
 
-      showSuccess("Saved", "Annotated floor plan saved successfully.");
+      showSuccess("Updated", "Floor plan updated successfully.");
       if (onSaved) onSaved(data.data);
       onClose();
     } catch (err) {
@@ -464,7 +464,7 @@ const ModifyLocationModal = ({ locker, floors, onClose, onSaved }) => {
             onClick={handleSave}
             disabled={saving || imageError || !imageLoaded}
           >
-            {saving ? "Saving..." : "Save Annotation"}
+            {saving ? "Updating..." : "Update"}
           </button>
           <button className="fpm-btn fpm-btn--cancel" onClick={onClose}>
             Cancel
