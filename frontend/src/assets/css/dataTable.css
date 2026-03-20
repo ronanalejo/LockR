@@ -150,13 +150,13 @@
 }
 
 .duplicate-badge.yes {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 .duplicate-badge.no {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 .action-buttons {

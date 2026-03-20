@@ -274,6 +274,14 @@ const OSASDashboard = () => {
       );
       if (!result.isConfirmed) return;
 
+      setReservations((prev) =>
+        prev.map((r) =>
+          r.referralSlipNo === reservationIdOrIds
+            ? { ...r, duplicate: isDuplicate }
+            : r,
+        ),
+      );
+
       try {
         showLoading("Processing...", "Please wait");
         const response = await adminService.markDuplicate(
@@ -286,6 +294,13 @@ const OSASDashboard = () => {
           await fetchData(false);
         }
       } catch (error) {
+        setReservations((prev) =>
+          prev.map((r) =>
+            r.referralSlipNo === reservationIdOrIds
+              ? { ...r, duplicate: !isDuplicate }
+              : r,
+          ),
+        );
         closeAlert();
         showError(
           "Error",

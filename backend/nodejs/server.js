@@ -186,7 +186,9 @@ socketService.init(server, {
   credentials: true,
 });
 
-server.listen(PORT, () => {});
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 const pool = require("./config/database");
 
