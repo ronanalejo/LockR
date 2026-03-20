@@ -542,7 +542,7 @@ const OSASDashboard = () => {
         </div>
 
         <div
-          className={`osas-content-area${["endorsement", "approval", "occupied", "history"].includes(activeTab) ? " osas-content-area--table" : ""}`}
+          className={`osas-content-area${["endorsement", "approval", "occupied", "history"].includes(activeTab) ? " osas-content-area--table" : ""}${activeTab === "floorplan" ? " osas-content-area--floorplan" : ""}`}
         >
           {activeTab === "academic-period" ? (
             <>

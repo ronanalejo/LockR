@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { API_ENDPOINTS } from "../../config/api";
 import editIcon from "../../assets/images/icons/edit-icon.svg";
 import deleteIcon from "../../assets/images/icons/delete-icon.svg";
-import settingsIcon from "../../assets/images/icons/settings-icon.svg";
 import {
   showConfirm,
   showSuccess,
@@ -40,6 +39,10 @@ const FloorPlanManager = ({ onLockerChange }) => {
   const [newSetName, setNewSetName] = useState("");
   const [editingSetId, setEditingSetId] = useState(null);
   const [editingSetName, setEditingSetName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [rowDropdowns, setRowDropdowns] = useState({});
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -47,6 +50,13 @@ const FloorPlanManager = ({ onLockerChange }) => {
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
     };
+  };
+
+  const toggleRowDropdown = (lockerID) => {
+    setRowDropdowns((prev) => ({
+      ...prev,
+      [lockerID]: !prev[lockerID],
+    }));
   };
 
   const fetchLockers = useCallback(async (floor) => {
@@ -139,6 +149,13 @@ const FloorPlanManager = ({ onLockerChange }) => {
   const displayedLockers = lockers.filter((locker) => {
     if (locker.wing !== selectedWing) return false;
     if (selectedSet && locker.setName !== selectedSet) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchesID = locker.lockerID?.toLowerCase().includes(q);
+      const matchesSet = locker.setName?.toLowerCase().includes(q);
+      const matchesStatus = locker.status?.toLowerCase().includes(q);
+      if (!matchesID && !matchesSet && !matchesStatus) return false;
+    }
     return true;
   });
 
@@ -410,135 +427,326 @@ const FloorPlanManager = ({ onLockerChange }) => {
 
   return (
     <div className="fpm-container">
-      {/* Floor Navigation */}
-      <div className="fpm-floor-nav">
-        <span className="fpm-floors-label">Floors</span>
-        {FLOORS.map((floor) => (
-          <button
-            key={floor}
-            className={`fpm-floor-tab${selectedFloor === floor ? " active" : ""}`}
-            onClick={() => handleFloorSelect(floor)}
-          >
-            {floor}
-          </button>
-        ))}
-      </div>
-
-      {/* Wing Navigation */}
-      <div className="fpm-wing-nav">
-        {WINGS.map((wing) => (
-          <button
-            key={wing}
-            className={`fpm-wing-tab${selectedWing === wing ? " active" : ""}`}
-            onClick={() => handleWingSelect(wing)}
-          >
-            {wing}
-          </button>
-        ))}
-      </div>
-
-      {/* Sets Section */}
-      <div className="fpm-sets-section">
-        <span className="fpm-sets-label">Sets</span>
-        <button
-          className="fpm-settings-btn"
-          onClick={handleOpenSetModal}
-          title="Manage Sets"
-        >
-          <img src={settingsIcon} alt="Manage Sets" />
-        </button>
-        {sets.map((set) => (
-          <button
-            key={set.id}
-            className={`fpm-set-tab${selectedSet === set.setName ? " active" : ""}`}
-            onClick={() =>
-              setSelectedSet(selectedSet === set.setName ? null : set.setName)
-            }
-          >
-            {set.setName}
-          </button>
-        ))}
-      </div>
-
-      {/* List Header */}
-      <div className="fpm-list-header">
-        <h3 className="fpm-list-title">
-          Floor {selectedFloor} — {selectedWing}
-          {selectedSet ? ` — Set ${selectedSet}` : ""} Lockers
-        </h3>
-        <button
-          className="fpm-add-btn"
-          onClick={() => {
-            setAddForm({
-              lockerID: "",
-              wing: selectedWing,
-              setName: "",
-              status: "Available",
-            });
-            setAddModalOpen(true);
-          }}
-        >
-          Add
-        </button>
-      </div>
-
-      {/* Locker Table */}
-      {loading ? (
-        <div className="fpm-state-msg">Loading lockers...</div>
-      ) : displayedLockers.length === 0 ? (
-        <div className="fpm-state-msg">
-          No lockers found for Floor {selectedFloor} — {selectedWing}
-          {selectedSet ? ` — Set ${selectedSet}` : ""}.
+      {/* Table Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+        {/* Search Bar */}
+        <div className="w-full md:w-1/2">
+          <div className="relative w-full">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg
+                aria-hidden="true"
+                className="w-5 h-5 text-gray-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2"
+              placeholder="Search lockers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
-      ) : (
-        <table className="fpm-table">
-          <thead>
+
+        {/* Action Buttons */}
+        <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
+          {/* Actions Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              className="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+              onClick={() => {
+                setActionsOpen(!actionsOpen);
+                setFilterOpen(false);
+              }}
+            >
+              Actions
+              <svg
+                className="-mr-1 ml-1.5 w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                />
+              </svg>
+            </button>
+            {actionsOpen && (
+              <div className="absolute right-0 z-10 mt-1 w-44 bg-white rounded divide-y divide-gray-100 shadow">
+                <ul className="py-1 text-sm text-gray-900 list-none p-0 m-0">
+                  <li>
+                    <button
+                      type="button"
+                      className="block w-full text-left py-2 px-4 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none"
+                      onClick={() => {
+                        setAddForm({
+                          lockerID: "",
+                          wing: selectedWing,
+                          setName: "",
+                          status: "Available",
+                        });
+                        setAddModalOpen(true);
+                        setActionsOpen(false);
+                      }}
+                    >
+                      Add Locker
+                    </button>
+                  </li>
+                </ul>
+                <div className="py-1">
+                  <button
+                    type="button"
+                    className="block w-full text-left py-2 px-4 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none"
+                    onClick={() => {
+                      handleOpenSetModal();
+                      setActionsOpen(false);
+                    }}
+                  >
+                    Modify Sets
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Filter Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              className="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+              onClick={() => {
+                setFilterOpen(!filterOpen);
+                setActionsOpen(false);
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="h-4 w-4 mr-2 text-gray-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Filter
+              <svg
+                className="-mr-1 ml-1.5 w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  clipRule="evenodd"
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                />
+              </svg>
+            </button>
+            {filterOpen && (
+              <div className="absolute right-0 z-10 mt-1 w-72 p-4 bg-white rounded-lg shadow">
+                {/* Floor Navigation */}
+                <div className="mb-4">
+                  <h6 className="mb-2 text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Floor
+                  </h6>
+                  <div className="flex flex-wrap gap-2">
+                    {FLOORS.map((floor) => (
+                      <button
+                        key={floor}
+                        type="button"
+                        className={`fpm-floor-tab${selectedFloor === floor ? " active" : ""}`}
+                        onClick={() => handleFloorSelect(floor)}
+                      >
+                        {floor}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Wing Navigation */}
+                <div className="mb-4">
+                  <h6 className="mb-2 text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Wing
+                  </h6>
+                  <div className="flex flex-wrap gap-2">
+                    {WINGS.map((wing) => (
+                      <button
+                        key={wing}
+                        type="button"
+                        className={`fpm-wing-tab${selectedWing === wing ? " active" : ""}`}
+                        onClick={() => handleWingSelect(wing)}
+                      >
+                        {wing}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sets Section */}
+                <div>
+                  <h6 className="mb-2 text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Set
+                  </h6>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className={`fpm-set-tab${selectedSet === null ? " active" : ""}`}
+                      onClick={() => setSelectedSet(null)}
+                    >
+                      All
+                    </button>
+                    {sets.map((set) => (
+                      <button
+                        key={set.id}
+                        type="button"
+                        className={`fpm-set-tab${selectedSet === set.setName ? " active" : ""}`}
+                        onClick={() =>
+                          setSelectedSet(
+                            selectedSet === set.setName ? null : set.setName,
+                          )
+                        }
+                      >
+                        {set.setName}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left text-gray-500 table-fixed">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th>Locker Number</th>
-              <th>Wing</th>
-              <th>Set</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th scope="col" className="px-4 py-3 w-48">
+                Locker Number
+              </th>
+              <th scope="col" className="px-4 py-3 w-36">
+                Wing
+              </th>
+              <th scope="col" className="px-4 py-3 w-20">
+                Set
+              </th>
+              <th scope="col" className="px-4 py-3 w-32">
+                Status
+              </th>
+              <th scope="col" className="px-4 py-3 w-16">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
-            {displayedLockers.map((locker) => (
-              <tr key={locker.lockerID}>
-                <td>{locker.lockerID}</td>
-                <td>{locker.wing || "—"}</td>
-                <td>{locker.setName || "—"}</td>
-                <td>
-                  <span
-                    className={`fpm-status-badge fpm-status--${locker.status.toLowerCase()}`}
-                  >
-                    {locker.status}
-                  </span>
-                </td>
-                <td className="fpm-actions-cell">
-                  {locker.status !== "Occupied" && (
-                    <>
-                      <button
-                        className="fpm-icon-btn"
-                        onClick={() => handleEdit(locker)}
-                        title="Edit"
-                      >
-                        <img src={editIcon} alt="Edit" />
-                      </button>
-                      <button
-                        className="fpm-icon-btn fpm-icon-btn--delete"
-                        onClick={() => handleDelete(locker)}
-                        title="Delete"
-                      >
-                        <img src={deleteIcon} alt="Delete" />
-                      </button>
-                    </>
-                  )}
+            {loading ? (
+              <tr>
+                <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                  Loading lockers...
                 </td>
               </tr>
-            ))}
+            ) : displayedLockers.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                  No lockers found for Floor {selectedFloor} &mdash;{" "}
+                  {selectedWing}
+                  {selectedSet ? ` — Set ${selectedSet}` : ""}.
+                </td>
+              </tr>
+            ) : (
+              displayedLockers.map((locker) => (
+                <tr key={locker.lockerID} className="border-b border-gray-200">
+                  <th
+                    scope="row"
+                    className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap"
+                  >
+                    {locker.lockerID}
+                  </th>
+                  <td className="px-4 py-3">{locker.wing || "—"}</td>
+                  <td className="px-4 py-3">{locker.setName || "—"}</td>
+                  <td className="px-4 py-3 w-36">
+                    <span
+                      className={`fpm-status-badge fpm-status--${locker.status.toLowerCase()}`}
+                    >
+                      {locker.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 w-16 text-right">
+                    {locker.status !== "Occupied" && (
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="inline-flex items-center p-1 text-sm font-medium text-center text-gray-900 bg-transparent border-0 rounded-lg hover:bg-gray-100 focus:outline-none"
+                          onClick={() => toggleRowDropdown(locker.lockerID)}
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            aria-hidden="true"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                          </svg>
+                        </button>
+                        {rowDropdowns[locker.lockerID] && (
+                          <div className="absolute right-0 z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow">
+                            <ul className="py-1 text-sm text-gray-900 list-none p-0 m-0">
+                              <li>
+                                <button
+                                  type="button"
+                                  className="block w-full text-left py-2 px-4 hover:bg-gray-100 focus:outline-none"
+                                  onClick={() => {
+                                    handleEdit(locker);
+                                    toggleRowDropdown(locker.lockerID);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                              </li>
+                            </ul>
+                            <div className="py-1">
+                              <button
+                                type="button"
+                                className="block w-full text-left py-2 px-4 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none"
+                                onClick={() => {
+                                  handleDelete(locker);
+                                  toggleRowDropdown(locker.lockerID);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
-      )}
+      </div>
 
       {/* Edit Locker Modal */}
       {editModalOpen && editLocker && (
