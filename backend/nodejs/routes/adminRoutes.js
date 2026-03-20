@@ -92,4 +92,13 @@ router.get(
   adminController.getReservationHistory,
 );
 
+const annotatedFloorPlanController = require("../controllers/annotatedFloorPlanController");
+
+router.post(
+  "/floor-plans/:floor/annotated",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  annotatedFloorPlanController.saveAnnotatedFloorPlan,
+);
+
 module.exports = router;

@@ -10,6 +10,7 @@ import {
   closeAlert,
 } from "../../utils/notifications";
 import "../../assets/css/floorPlanManager.css";
+import ModifyLocationModal from "./ModifyLocationModal";
 
 const FLOORS = ["6", "7", "9", "10"];
 const WINGS = ["Left Wing", "Right Wing"];
@@ -46,6 +47,8 @@ const FloorPlanManager = ({ onLockerChange }) => {
   const [rowDropdowns, setRowDropdowns] = useState({});
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [currentPage, setCurrentPage] = useState(1);
+  const [modifyLocationModalOpen, setModifyLocationModalOpen] = useState(false);
+  const [modifyLocationLocker, setModifyLocationLocker] = useState(null);
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -548,6 +551,20 @@ const FloorPlanManager = ({ onLockerChange }) => {
                     }}
                   >
                     Modify Sets
+                  </button>
+                  <button
+                    type="button"
+                    className="block w-full text-left py-2 px-4 text-sm text-gray-900 hover:bg-gray-100 focus:outline-none"
+                    onClick={() => {
+                      setModifyLocationLocker({
+                        floorNumber: selectedFloor,
+                        wing: selectedWing,
+                      });
+                      setModifyLocationModalOpen(true);
+                      setActionsOpen(false);
+                    }}
+                  >
+                    Modify Location
                   </button>
                 </div>
               </div>
@@ -1171,6 +1188,20 @@ const FloorPlanManager = ({ onLockerChange }) => {
             </div>
           </div>
         </div>
+      )}
+      {modifyLocationModalOpen && modifyLocationLocker && (
+        <ModifyLocationModal
+          locker={modifyLocationLocker}
+          floors={FLOORS}
+          onClose={() => {
+            setModifyLocationModalOpen(false);
+            setModifyLocationLocker(null);
+          }}
+          onSaved={() => {
+            setModifyLocationModalOpen(false);
+            setModifyLocationLocker(null);
+          }}
+        />
       )}
     </div>
   );

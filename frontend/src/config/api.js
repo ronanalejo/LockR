@@ -63,6 +63,8 @@ const API_ENDPOINTS = {
     approval: `${API_BASE_URL}/admin/reservations/approval`,
     approve: (id) => `${API_BASE_URL}/admin/reservations/${id}/approve`,
     floorPlans: `${API_BASE_URL}/admin/floor-plans`,
+    annotatedFloorPlan: (floor) =>
+      `${API_BASE_URL}/admin/floor-plans/${floor}/annotated`,
   },
   otp: {
     send: `${API_BASE_URL}/otp/send`,
