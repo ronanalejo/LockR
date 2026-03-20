@@ -141,22 +141,22 @@ const OSASDashboard = () => {
   }, [fetchData, fetchStats]);
 
   const filteredReservations = useMemo(() => {
+    const agreementMap = {
+      1: "1 semester/term",
+      2: "2 semesters/terms",
+      3: "1 school year",
+    };
+
     return reservations.filter((reservation) => {
+      // Floor filter
       if (
         filters.floor &&
-        reservation.floorNumber !== parseInt(filters.floor)
+        String(reservation.floorNumber) !== String(filters.floor)
       ) {
         return false;
       }
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const studentName =
-          `${reservation.studentFirstName} ${reservation.studentLastName}`.toLowerCase();
-        const referralNo = reservation.referralSlipNo?.toString() || "";
-        return (
-          studentName.includes(searchLower) || referralNo.includes(searchLower)
-        );
-      }
+
+      // Date range filter
       if (filters.dateRange.start || filters.dateRange.end) {
         const reservationDate = new Date(reservation.createdAt);
         if (
@@ -172,6 +172,37 @@ const OSASDashboard = () => {
           return false;
         }
       }
+
+      // Search across all visible columns
+      if (filters.search) {
+        const s = filters.search.toLowerCase();
+
+        const studentName =
+          `${reservation.studentFirstName || ""} ${reservation.studentLastName || ""}`.toLowerCase();
+
+        const endorsedBy =
+          `${reservation.endorsedByFirstName || ""} ${reservation.endorsedByLastName || ""}`.toLowerCase();
+
+        const agreementLabel = (
+          agreementMap[reservation.agreement] ||
+          String(reservation.agreement || "")
+        ).toLowerCase();
+
+        const searchableFields = [
+          studentName,
+          (reservation.referralSlipNo?.toString() || "").toLowerCase(),
+          (reservation.lockerID?.toString() || "").toLowerCase(),
+          (reservation.floorNumber?.toString() || "").toLowerCase(),
+          agreementLabel,
+          endorsedBy,
+          (reservation.studentID?.toString() || "").toLowerCase(),
+        ];
+
+        if (!searchableFields.some((field) => field.includes(s))) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [reservations, filters]);

@@ -18,8 +18,8 @@ const EDITABLE_STATUSES = ["Available", "Reserved", "Unavailable"];
 const ROWS_PER_PAGE = 10;
 
 const FloorPlanManager = ({ onLockerChange }) => {
-  const [selectedFloor, setSelectedFloor] = useState(FLOORS[0]);
-  const [selectedWing, setSelectedWing] = useState(WINGS[0]);
+  const [selectedFloor, setSelectedFloor] = useState(null);
+  const [selectedWing, setSelectedWing] = useState(null);
   const [selectedSet, setSelectedSet] = useState(null);
   const [lockers, setLockers] = useState([]);
   const [sets, setSets] = useState([]);
@@ -37,6 +37,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
   });
   const [addFormSets, setAddFormSets] = useState([]);
   const [setModalWing, setSetModalWing] = useState(WINGS[0]);
+  const [setModalFloor, setSetModalFloor] = useState(null);
   const [setModalSets, setSetModalSets] = useState([]);
   const [newSetName, setNewSetName] = useState("");
   const [editingSetId, setEditingSetId] = useState(null);
@@ -68,14 +69,28 @@ const FloorPlanManager = ({ onLockerChange }) => {
   const fetchLockers = useCallback(async (floor) => {
     setLoading(true);
     try {
-      const response = await fetch(API_ENDPOINTS.lockers.byFloor(floor), {
-        headers: getAuthHeaders(),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setLockers(data.data?.lockers || []);
+      if (floor) {
+        const response = await fetch(API_ENDPOINTS.lockers.byFloor(floor), {
+          headers: getAuthHeaders(),
+        });
+        const data = await response.json();
+        if (data.success) {
+          setLockers(data.data?.lockers || []);
+        } else {
+          showError("Error", data.message || "Failed to load lockers.");
+        }
       } else {
-        showError("Error", data.message || "Failed to load lockers.");
+        const results = await Promise.all(
+          FLOORS.map((f) =>
+            fetch(`${API_ENDPOINTS.lockers.byFloor(f)}?limit=100`, {
+              headers: getAuthHeaders(),
+            }).then((r) => r.json()),
+          ),
+        );
+        const allLockers = results.flatMap((d) =>
+          d.success ? d.data?.lockers || [] : [],
+        );
+        setLockers(allLockers);
       }
     } catch (err) {
       console.error("fetchLockers error:", err);
@@ -136,15 +151,21 @@ const FloorPlanManager = ({ onLockerChange }) => {
   }, [selectedFloor, fetchLockers]);
 
   useEffect(() => {
-    fetchSets(selectedFloor, selectedWing);
+    if (selectedFloor && selectedWing) {
+      fetchSets(selectedFloor, selectedWing);
+    } else {
+      setSets([]);
+    }
     setSelectedSet(null);
   }, [selectedFloor, selectedWing, fetchSets]);
 
   useEffect(() => {
-    if (setModalOpen) {
-      fetchSetModalSets(selectedFloor, setModalWing);
+    if (setModalOpen && setModalFloor) {
+      fetchSetModalSets(setModalFloor, setModalWing);
+    } else if (setModalOpen && !setModalFloor) {
+      setSetModalSets([]);
     }
-  }, [setModalOpen, setModalWing, selectedFloor, fetchSetModalSets]);
+  }, [setModalOpen, setModalWing, setModalFloor, fetchSetModalSets]);
 
   useEffect(() => {
     if (addModalOpen) {
@@ -158,8 +179,9 @@ const FloorPlanManager = ({ onLockerChange }) => {
   }, [selectedFloor, selectedWing, selectedSet, searchQuery, sortConfig]);
 
   const filteredLockers = lockers.filter((locker) => {
-    if (locker.wing !== selectedWing) return false;
-    if (selectedSet && locker.setName !== selectedSet) return false;
+    if (selectedWing && locker.wing !== selectedWing) return false;
+    if (selectedWing && selectedSet && locker.setName !== selectedSet)
+      return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const matchesID = locker.lockerID?.toLowerCase().includes(q);
@@ -192,7 +214,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
   };
 
   const handleWingSelect = (wing) => {
-    setSelectedWing(wing);
+    setSelectedWing((prev) => (prev === wing ? null : wing));
     setSelectedSet(null);
   };
 
@@ -340,7 +362,9 @@ const FloorPlanManager = ({ onLockerChange }) => {
   };
 
   const handleOpenSetModal = () => {
-    setSetModalWing(selectedWing);
+    setSetModalFloor(null);
+    setSetModalWing(WINGS[0]);
+    setSetModalSets([]);
     setNewSetName("");
     setEditingSetId(null);
     setEditingSetName("");
@@ -362,7 +386,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          floorNumber: selectedFloor,
+          floorNumber: setModalFloor,
           wing: setModalWing,
           setName: trimmed,
         }),
@@ -375,8 +399,8 @@ const FloorPlanManager = ({ onLockerChange }) => {
       }
       showSuccess("Added", `Set ${trimmed} created.`);
       setNewSetName("");
-      fetchSetModalSets(selectedFloor, setModalWing);
-      fetchSets(selectedFloor, selectedWing);
+      fetchSetModalSets(setModalFloor, setModalWing);
+      if (selectedFloor) fetchSets(selectedFloor, selectedWing);
     } catch (err) {
       closeAlert();
       console.error("handleAddSet error:", err);
@@ -420,8 +444,8 @@ const FloorPlanManager = ({ onLockerChange }) => {
       showSuccess("Updated", `Set updated to ${trimmed}.`);
       setEditingSetId(null);
       setEditingSetName("");
-      fetchSetModalSets(selectedFloor, setModalWing);
-      fetchSets(selectedFloor, selectedWing);
+      fetchSetModalSets(setModalFloor, setModalWing);
+      if (selectedFloor) fetchSets(selectedFloor, selectedWing);
     } catch (err) {
       closeAlert();
       console.error("handleSaveEditSet error:", err);
@@ -451,8 +475,8 @@ const FloorPlanManager = ({ onLockerChange }) => {
       }
       showSuccess("Deleted", `Set ${set.setName} has been deleted.`);
       if (selectedSet === set.setName) setSelectedSet(null);
-      fetchSetModalSets(selectedFloor, setModalWing);
-      fetchSets(selectedFloor, selectedWing);
+      fetchSetModalSets(setModalFloor, setModalWing);
+      if (selectedFloor) fetchSets(selectedFloor, selectedWing);
     } catch (err) {
       closeAlert();
       console.error("handleDeleteSet error:", err);
@@ -650,7 +674,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
                 </div>
 
                 {/* Sets Section */}
-                <div>
+                <div className="mb-4">
                   <h6 className="mb-2 text-sm font-semibold text-gray-900">
                     Set
                   </h6>
@@ -678,6 +702,21 @@ const FloorPlanManager = ({ onLockerChange }) => {
                     ))}
                   </div>
                 </div>
+
+                {/* Clear Filters */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedFloor(null);
+                    setSelectedWing(null);
+                    setSelectedSet(null);
+                    setSearchQuery("");
+                    setFilterOpen(false);
+                  }}
+                  className="w-full py-1.5 px-3 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                >
+                  Clear Filters
+                </button>
               </div>
             )}
           </div>
@@ -746,7 +785,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
             ) : filteredLockers.length === 0 ? (
               <tr>
                 <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                  No lockers found for Floor {selectedFloor} &mdash;{" "}
+                  No lockers found for Floor {selectedFloor || "all"} &mdash;{" "}
                   {selectedWing}
                   {selectedSet ? ` — Set ${selectedSet}` : ""}.
                 </td>
@@ -836,7 +875,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
           <span className="text-sm font-normal text-gray-500">
             Showing{" "}
             <span className="font-semibold text-gray-900">
-              {(currentPage - 1) * ROWS_PER_PAGE + 1}–
+              {(currentPage - 1) * ROWS_PER_PAGE + 1}&#8211;
               {Math.min(currentPage * ROWS_PER_PAGE, sortedLockers.length)}
             </span>{" "}
             of{" "}
@@ -845,8 +884,9 @@ const FloorPlanManager = ({ onLockerChange }) => {
             </span>
           </span>
 
-          <ul className="inline-flex items-stretch -space-x-px list-none p-0 m-0">
-            <li>
+          <div className="inline-flex items-stretch -space-x-px">
+            {/* Previous */}
+            <div>
               <button
                 type="button"
                 disabled={currentPage === 1}
@@ -868,51 +908,64 @@ const FloorPlanManager = ({ onLockerChange }) => {
                   />
                 </svg>
               </button>
-            </li>
+            </div>
 
+            {/* Page numbers with ellipsis */}
             {(() => {
-              const pages = [];
-              const delta = 1;
-              const left = currentPage - delta;
-              const right = currentPage + delta;
-              let prev = null;
+              const pageSet = new Set();
+              pageSet.add(1);
+              pageSet.add(totalPages);
+              for (
+                let i = Math.max(2, currentPage - 1);
+                i <= Math.min(totalPages - 1, currentPage + 1);
+                i++
+              ) {
+                pageSet.add(i);
+              }
+              const sortedPages = Array.from(pageSet).sort((a, b) => a - b);
 
-              for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= left && i <= right)) {
-                  if (prev !== null && i - prev > 1) {
-                    pages.push("...");
-                  }
-                  pages.push(i);
-                  prev = i;
+              const items = [];
+              let prev = null;
+              for (const page of sortedPages) {
+                if (prev !== null && page - prev > 1) {
+                  items.push({
+                    type: "ellipsis",
+                    key: `ellipsis-${prev}-${page}`,
+                  });
                 }
+                items.push({ type: "page", value: page });
+                prev = page;
               }
 
-              return pages.map((page, idx) =>
-                page === "..." ? (
-                  <li key={`ellipsis-${idx}`}>
-                    <span className="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300">
-                      ...
-                    </span>
-                  </li>
-                ) : (
-                  <li key={page}>
+              return items.map((item) => {
+                if (item.type === "ellipsis") {
+                  return (
+                    <div key={item.key}>
+                      <span className="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300">
+                        ...
+                      </span>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={item.value}>
                     <button
                       type="button"
-                      onClick={() => setCurrentPage(page)}
+                      onClick={() => setCurrentPage(item.value)}
                       className={`flex items-center justify-center text-sm py-2 px-3 leading-tight border ${
-                        currentPage === page
+                        currentPage === item.value
                           ? "z-10 text-blue-600 bg-blue-50 border-blue-300 hover:bg-blue-100 hover:text-blue-700"
                           : "text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700"
                       }`}
                     >
-                      {page}
+                      {item.value}
                     </button>
-                  </li>
-                ),
-              );
+                  </div>
+                );
+              });
             })()}
 
-            <li>
+            <div>
               <button
                 type="button"
                 disabled={currentPage === totalPages}
@@ -934,8 +987,8 @@ const FloorPlanManager = ({ onLockerChange }) => {
                   />
                 </svg>
               </button>
-            </li>
-          </ul>
+            </div>
+          </div>
         </nav>
       )}
 
@@ -1087,97 +1140,127 @@ const FloorPlanManager = ({ onLockerChange }) => {
         <div className="fpm-overlay">
           <div className="fpm-modal fpm-modal--sets">
             <h3 className="fpm-modal-title">
-              Manage Sets — Floor {selectedFloor}
+              Manage Sets{setModalFloor ? ` — Floor ${setModalFloor}` : ""}
             </h3>
             <div className="fpm-field">
-              <label>Wing</label>
+              <label>Floor</label>
               <select
-                value={setModalWing}
+                value={setModalFloor || ""}
                 onChange={(e) => {
-                  setSetModalWing(e.target.value);
+                  setSetModalFloor(e.target.value || null);
+                  setSetModalSets([]);
                   setEditingSetId(null);
                   setNewSetName("");
                 }}
               >
-                {WINGS.map((w) => (
-                  <option key={w} value={w}>
-                    {w}
+                <option value="">Select a floor</option>
+                {FLOORS.map((f) => (
+                  <option key={f} value={f}>
+                    Floor {f}
                   </option>
                 ))}
               </select>
             </div>
+            {!setModalFloor && (
+              <p className="fpm-set-empty">
+                Select a floor to manage its sets.
+              </p>
+            )}
+            {setModalFloor && (
+              <>
+                <div className="fpm-field">
+                  <label>Wing</label>
+                  <select
+                    value={setModalWing}
+                    onChange={(e) => {
+                      setSetModalWing(e.target.value);
+                      setEditingSetId(null);
+                      setNewSetName("");
+                    }}
+                  >
+                    {WINGS.map((w) => (
+                      <option key={w} value={w}>
+                        {w}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="fpm-set-list">
-              {setModalSets.length === 0 ? (
-                <p className="fpm-set-empty">No sets yet for this wing.</p>
-              ) : (
-                setModalSets.map((set) => (
-                  <div key={set.id} className="fpm-set-row">
-                    {editingSetId === set.id ? (
-                      <>
-                        <input
-                          className="fpm-set-name-input"
-                          type="text"
-                          maxLength={1}
-                          value={editingSetName}
-                          onChange={(e) => setEditingSetName(e.target.value)}
-                        />
-                        <button
-                          className="fpm-btn fpm-btn--save fpm-btn--sm"
-                          onClick={() => handleSaveEditSet(set.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="fpm-btn fpm-btn--cancel fpm-btn--sm"
-                          onClick={() => setEditingSetId(null)}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="fpm-set-name">{set.setName}</span>
-                        <div className="fpm-set-actions">
-                          <button
-                            className="fpm-icon-btn"
-                            onClick={() => handleEditSet(set)}
-                            title="Edit"
-                          >
-                            <img src={editIcon} alt="Edit" />
-                          </button>
-                          <button
-                            className="fpm-icon-btn fpm-icon-btn--delete"
-                            onClick={() => handleDeleteSet(set)}
-                            title="Delete"
-                          >
-                            <img src={deleteIcon} alt="Delete" />
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
+                <div className="fpm-set-list">
+                  {setModalSets.length === 0 ? (
+                    <p className="fpm-set-empty">No sets yet for this wing.</p>
+                  ) : (
+                    setModalSets.map((set) => (
+                      <div key={set.id} className="fpm-set-row">
+                        {editingSetId === set.id ? (
+                          <>
+                            <input
+                              className="fpm-set-name-input"
+                              type="text"
+                              maxLength={1}
+                              value={editingSetName}
+                              onChange={(e) =>
+                                setEditingSetName(e.target.value)
+                              }
+                            />
+                            <button
+                              className="fpm-btn fpm-btn--save fpm-btn--sm"
+                              onClick={() => handleSaveEditSet(set.id)}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="fpm-btn fpm-btn--cancel fpm-btn--sm"
+                              onClick={() => setEditingSetId(null)}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="fpm-set-name">{set.setName}</span>
+                            <div className="fpm-set-actions">
+                              <button
+                                className="fpm-icon-btn"
+                                onClick={() => handleEditSet(set)}
+                                title="Edit"
+                              >
+                                <img src={editIcon} alt="Edit" />
+                              </button>
+                              <button
+                                className="fpm-icon-btn fpm-icon-btn--delete"
+                                onClick={() => handleDeleteSet(set)}
+                                title="Delete"
+                              >
+                                <img src={deleteIcon} alt="Delete" />
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
 
-            <div className="fpm-add-set-row">
-              <input
-                className="fpm-set-name-input"
-                type="text"
-                maxLength={1}
-                value={newSetName}
-                onChange={(e) => setNewSetName(e.target.value)}
-                placeholder="A"
-              />
-              <button
-                className="fpm-btn fpm-btn--save fpm-btn--sm"
-                onClick={handleAddSet}
-              >
-                Add Set
-              </button>
-            </div>
-
+                <div className="fpm-add-set-row">
+                  <input
+                    className="fpm-set-name-input"
+                    type="text"
+                    maxLength={1}
+                    value={newSetName}
+                    onChange={(e) => setNewSetName(e.target.value)}
+                    placeholder="A"
+                  />
+                  <button
+                    className="fpm-btn fpm-btn--save fpm-btn--sm"
+                    onClick={handleAddSet}
+                  >
+                    Add Set
+                  </button>
+                </div>
+              </>
+            )}{" "}
+            {/* end setModalFloor conditional */}
             <div className="fpm-modal-actions">
               <button
                 className="fpm-btn fpm-btn--cancel"
