@@ -24,12 +24,10 @@ import floor6Bg from "../../assets/images/backgrounds/floor6Bg.jpg";
 import floor7Bg from "../../assets/images/backgrounds/floor7Bg.jpg";
 import floor9Bg from "../../assets/images/backgrounds/floor9Bg.jpg";
 import floor10Bg from "../../assets/images/backgrounds/floor10Bg.jpg";
+import iacademyBg from "../../assets/images/backgrounds/Iacademy.jpg";
 
 const StudentDashboard = () => {
-  const [selectedFloor, setSelectedFloor] = useState(() => {
-    const savedFloor = localStorage.getItem("selectedFloor");
-    return savedFloor ? parseInt(savedFloor, 10) : 6;
-  });
+  const [selectedFloor, setSelectedFloor] = useState(null);
 
   const [selectedSide, setSelectedSide] = useState(null);
   const [selectedSet, setSelectedSet] = useState(null);
@@ -67,8 +65,10 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (selectedFloor) {
+    if (selectedFloor !== null) {
       localStorage.setItem("selectedFloor", selectedFloor);
+    } else {
+      localStorage.removeItem("selectedFloor");
     }
   }, [selectedFloor]);
 
@@ -368,7 +368,7 @@ const StudentDashboard = () => {
 };
 
   return (
-    <div className="locker-dashboard" style={{ backgroundImage: `url(${floorBackgrounds[selectedFloor]})` }}>
+    <div className="locker-dashboard" style={{ backgroundImage: `url(${selectedFloor ? floorBackgrounds[selectedFloor] : iacademyBg})` }}>
 
       {/* ── Navbar ─────────────────────────────────── */}
       <nav className="locker-navbar">
@@ -380,14 +380,20 @@ const StudentDashboard = () => {
               id="iac-logo"
               src="../../WHITE_iACADEMY Long Logo_Makati.png"
               alt="iACADEMY"
+              onClick={() => { setSelectedFloor(null); setSelectedSide(null); setSelectedSet(null); }}
+              style={{ cursor: "pointer" }}
             />
             <span className="locker-welcome-text">
               Welcome, {user?.firstName} {user?.lastName || "Student"}
             </span>
           </div>
 
-          {/* Desktop: floor buttons + reservations */}
+          {/* Desktop: floor buttons */}
           <div className="locker-navbar-links">
+            <button id="home-btn" onClick={() => { setSelectedFloor(null); setSelectedSide(null); setSelectedSet(null); }} style={{ cursor: "pointer" }}>
+              Home
+            </button>
+
             {floors.map((floor) => (
               <button key={floor} {...floorButtonProps(floor)}>
                 Floor {floor}
@@ -427,10 +433,17 @@ const StudentDashboard = () => {
           Welcome, {user?.firstName} {user?.lastName || "Student"}
         </span>
         <div className="drawer-divider" />
+
+        <button className={`drawer-floor-button ${selectedFloor === null ? "active" : ""}`} onClick={() => { setSelectedFloor(null); setSelectedSide(null); setSelectedSet(null); setMenuOpen(false); }} >
+          Home
+        </button>
+
         {floors.map((floor) => (
+
           <button key={floor} {...drawerFloorButtonProps(floor)}>
             Floor {floor}
           </button>
+          
         ))}
         <div className="drawer-divider" />
         <button className="drawer-reservation-btn" onClick={handleOpenReservationLog}>
