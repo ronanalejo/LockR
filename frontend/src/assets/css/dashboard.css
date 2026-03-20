@@ -493,8 +493,16 @@ body,
 }
 
 @media (max-width: 640px) {
+  .floor-wings-row {
+    grid-template-columns: 1fr;
+  }
+
   .floor-section-block {
     padding: 1rem;
+  }
+
+  .wing-column {
+    padding: 0.75rem 1rem;
   }
 }
 
