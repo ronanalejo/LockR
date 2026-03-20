@@ -265,6 +265,11 @@
   flex-direction: column;
 }
 
+.osas-content-area--floorplan {
+  padding: 0;
+  overflow: visible;
+}
+
 .floor-plan-placeholder {
   padding: 4rem;
   text-align: center;

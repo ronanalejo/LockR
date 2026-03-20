@@ -154,7 +154,6 @@ const DataTable = ({
           },
           { key: "proofOfPayment", label: "Receipt", sortable: false },
           { key: "duplicate", label: "Duplicate?", sortable: false },
-          { key: "actions", label: "Actions", sortable: false },
         ];
       case "history":
         return [
@@ -316,7 +315,110 @@ const DataTable = ({
           reservation.agreementDateStart,
           reservation.agreementDateEnd,
         );
-      case "duplicate":
+      case "duplicate": {
+        if (activeTab === "occupied") {
+          const dupId = reservation.referralSlipNo;
+          const isDupOpen = openRowDropdown === dupId;
+
+          const toggleDupDropdown = (e) => {
+            e.stopPropagation();
+            if (isDupOpen) {
+              setOpenRowDropdown(null);
+              return;
+            }
+            const rect = e.currentTarget.getBoundingClientRect();
+            setDropdownPosition({
+              x: rect.right - 144,
+              y: rect.bottom + 4,
+            });
+            setOpenRowDropdown(dupId);
+          };
+
+          return (
+            <div className="flex items-center gap-2">
+              <span
+                className={`duplicate-badge ${reservation.duplicate ? "yes" : "no"}`}
+              >
+                {reservation.duplicate ? "Yes" : "No"}
+              </span>
+              <div className="relative">
+                <button
+                  onClick={toggleDupDropdown}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="inline-flex items-center p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                  type="button"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    aria-hidden="true"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                  </svg>
+                </button>
+                {isDupOpen && (
+                  <div
+                    style={{
+                      position: "fixed",
+                      top: dropdownPosition.y,
+                      left: dropdownPosition.x,
+                      zIndex: 9999,
+                    }}
+                    className="w-36 bg-white rounded divide-y divide-gray-100 shadow border border-gray-100"
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <ul className="list-none py-1 text-sm text-gray-700">
+                      <li>
+                        <button
+                          className="block w-full text-left py-2 px-4 hover:bg-gray-100"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenRowDropdown(null);
+                            onAction("mark-duplicate-yes", dupId);
+                          }}
+                        >
+                          Yes
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          className="block w-full text-left py-2 px-4 hover:bg-gray-100"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenRowDropdown(null);
+                            onAction("mark-duplicate-no", dupId);
+                          }}
+                        >
+                          No
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
         return (
           <span
             className={`duplicate-badge ${reservation.duplicate ? "yes" : "no"}`}
@@ -324,6 +426,7 @@ const DataTable = ({
             {reservation.duplicate ? "Yes" : "No"}
           </span>
         );
+      }
       case "actions":
         return renderRowActions(reservation);
       default:
