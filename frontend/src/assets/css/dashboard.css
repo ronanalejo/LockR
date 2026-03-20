@@ -4,7 +4,9 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
@@ -84,7 +86,6 @@ html, body, #root {
 #home-btn:hover {
   background-color: rgba(255, 255, 255, 0.12);
   color: white;
-
 }
 
 /* Desktop nav links (floors) */
@@ -94,7 +95,6 @@ html, body, #root {
   flex: 1;
   justify-content: center;
   margin-right: 9%;
-  
 }
 
 .locker-floor-button {
@@ -104,7 +104,9 @@ html, body, #root {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
   color: #d1d5db;
   background-color: transparent;
 }
@@ -133,7 +135,9 @@ html, body, #root {
   background-color: transparent;
   color: white;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .reservation-log-button:hover {
@@ -262,7 +266,9 @@ html, body, #root {
   color: white;
   cursor: pointer;
   text-align: center;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .drawer-reservation-btn:hover {
@@ -301,7 +307,7 @@ html, body, #root {
   overflow: auto;
   position: relative;
   z-index: 1;
-  background: transparent;  
+  background: transparent;
 }
 
 .locker-unavailable-notice {
@@ -337,7 +343,6 @@ html, body, #root {
   height: 100vh;
   position: relative;
   z-index: 1;
-
 }
 
 .locker-floor-display {
@@ -409,6 +414,10 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
 }
 
 .wing-column-title {
@@ -484,15 +493,10 @@ html, body, #root {
 }
 
 @media (max-width: 640px) {
-  .floor-wings-row {
-    grid-template-columns: 1fr;
-  }
-
   .floor-section-block {
     padding: 1rem;
   }
 }
-
 
 /* ─── Responsiveness ──────────────────────────────────────── */
 
@@ -505,7 +509,6 @@ html, body, #root {
     padding: 6px 12px;
     font-size: 13px;
   }
- 
 }
 
 /* Mobile: show burger, hide desktop links */
@@ -535,8 +538,6 @@ html, body, #root {
   .locker-navbar-links {
     display: none;
   }
-
-  
 }
 
 @media (max-width: 768px) {
@@ -572,5 +573,4 @@ html, body, #root {
   .home-locker-grid.single {
     grid-template-columns: 1fr;
   }
-
 }
