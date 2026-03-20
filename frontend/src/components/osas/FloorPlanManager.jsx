@@ -14,6 +14,7 @@ import "../../assets/css/floorPlanManager.css";
 const FLOORS = ["6", "7", "9", "10"];
 const WINGS = ["Left Wing", "Right Wing"];
 const EDITABLE_STATUSES = ["Available", "Reserved", "Unavailable"];
+const ROWS_PER_PAGE = 10;
 
 const FloorPlanManager = ({ onLockerChange }) => {
   const [selectedFloor, setSelectedFloor] = useState(FLOORS[0]);
@@ -43,6 +44,8 @@ const FloorPlanManager = ({ onLockerChange }) => {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [rowDropdowns, setRowDropdowns] = useState({});
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -146,7 +149,12 @@ const FloorPlanManager = ({ onLockerChange }) => {
     }
   }, [addModalOpen, addForm.wing, selectedFloor, fetchAddFormSets]);
 
-  const displayedLockers = lockers.filter((locker) => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedFloor, selectedWing, selectedSet, searchQuery, sortConfig]);
+
+  const filteredLockers = lockers.filter((locker) => {
     if (locker.wing !== selectedWing) return false;
     if (selectedSet && locker.setName !== selectedSet) return false;
     if (searchQuery) {
@@ -159,6 +167,22 @@ const FloorPlanManager = ({ onLockerChange }) => {
     return true;
   });
 
+  const sortedLockers = sortConfig.key
+    ? [...filteredLockers].sort((a, b) => {
+        const valA = (a[sortConfig.key] ?? "").toString().toLowerCase();
+        const valB = (b[sortConfig.key] ?? "").toString().toLowerCase();
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      })
+    : filteredLockers;
+
+  const totalPages = Math.ceil(sortedLockers.length / ROWS_PER_PAGE);
+  const paginatedLockers = sortedLockers.slice(
+    (currentPage - 1) * ROWS_PER_PAGE,
+    currentPage * ROWS_PER_PAGE,
+  );
+
   const handleFloorSelect = (floor) => {
     setSelectedFloor(floor);
     setSelectedSet(null);
@@ -167,6 +191,14 @@ const FloorPlanManager = ({ onLockerChange }) => {
   const handleWingSelect = (wing) => {
     setSelectedWing(wing);
     setSelectedSet(null);
+  };
+
+  const handleSort = (key) => {
+    setSortConfig((prev) =>
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" },
+    );
   };
 
   const handleEdit = (locker) => {
@@ -640,18 +672,48 @@ const FloorPlanManager = ({ onLockerChange }) => {
         <table className="w-full text-sm text-left text-gray-500 table-fixed">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="px-4 py-3 w-48">
-                Locker Number
-              </th>
-              <th scope="col" className="px-4 py-3 w-36">
-                Wing
-              </th>
-              <th scope="col" className="px-4 py-3 w-20">
-                Set
-              </th>
-              <th scope="col" className="px-4 py-3 w-32">
-                Status
-              </th>
+              {[
+                { key: "lockerID", label: "Locker Number", className: "w-48" },
+                { key: "wing", label: "Wing", className: "w-36" },
+                { key: "setName", label: "Set", className: "w-20" },
+                { key: "status", label: "Status", className: "w-32" },
+              ].map((col) => (
+                <th
+                  key={col.key}
+                  scope="col"
+                  className={`px-4 py-3 ${col.className} cursor-pointer select-none hover:bg-gray-100`}
+                  onClick={() => handleSort(col.key)}
+                >
+                  <span className="flex items-center gap-1">
+                    {col.label}
+                    <svg
+                      className={`w-3 h-3 transition-transform ${
+                        sortConfig.key === col.key
+                          ? "text-gray-900"
+                          : "text-gray-400"
+                      }`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      {sortConfig.key === col.key &&
+                      sortConfig.direction === "asc" ? (
+                        <path
+                          fillRule="evenodd"
+                          d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                          clipRule="evenodd"
+                        />
+                      ) : (
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      )}
+                    </svg>
+                  </span>
+                </th>
+              ))}
               <th scope="col" className="px-4 py-3 w-16">
                 Actions
               </th>
@@ -664,7 +726,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
                   Loading lockers...
                 </td>
               </tr>
-            ) : displayedLockers.length === 0 ? (
+            ) : filteredLockers.length === 0 ? (
               <tr>
                 <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                   No lockers found for Floor {selectedFloor} &mdash;{" "}
@@ -673,7 +735,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
                 </td>
               </tr>
             ) : (
-              displayedLockers.map((locker) => (
+              paginatedLockers.map((locker) => (
                 <tr key={locker.lockerID} className="border-b border-gray-200">
                   <th
                     scope="row"
@@ -690,7 +752,7 @@ const FloorPlanManager = ({ onLockerChange }) => {
                       {locker.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 w-16 text-right">
+                  <td className="px-4 py-3 w-16">
                     {locker.status !== "Occupied" && (
                       <div className="relative">
                         <button
@@ -748,7 +810,119 @@ const FloorPlanManager = ({ onLockerChange }) => {
         </table>
       </div>
 
-      {/* Edit Locker Modal */}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav
+          className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4 border-t border-gray-200"
+          aria-label="Locker table navigation"
+        >
+          <span className="text-sm font-normal text-gray-500">
+            Showing{" "}
+            <span className="font-semibold text-gray-900">
+              {(currentPage - 1) * ROWS_PER_PAGE + 1}–
+              {Math.min(currentPage * ROWS_PER_PAGE, sortedLockers.length)}
+            </span>{" "}
+            of{" "}
+            <span className="font-semibold text-gray-900">
+              {sortedLockers.length}
+            </span>
+          </span>
+
+          <ul className="inline-flex items-stretch -space-x-px list-none p-0 m-0">
+            <li>
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="sr-only">Previous</span>
+                <svg
+                  className="w-5 h-5"
+                  aria-hidden="true"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </li>
+
+            {(() => {
+              const pages = [];
+              const delta = 1;
+              const left = currentPage - delta;
+              const right = currentPage + delta;
+              let prev = null;
+
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+                  if (prev !== null && i - prev > 1) {
+                    pages.push("...");
+                  }
+                  pages.push(i);
+                  prev = i;
+                }
+              }
+
+              return pages.map((page, idx) =>
+                page === "..." ? (
+                  <li key={`ellipsis-${idx}`}>
+                    <span className="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300">
+                      ...
+                    </span>
+                  </li>
+                ) : (
+                  <li key={page}>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`flex items-center justify-center text-sm py-2 px-3 leading-tight border ${
+                        currentPage === page
+                          ? "z-10 text-blue-600 bg-blue-50 border-blue-300 hover:bg-blue-100 hover:text-blue-700"
+                          : "text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  </li>
+                ),
+              );
+            })()}
+
+            <li>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="sr-only">Next</span>
+                <svg
+                  className="w-5 h-5"
+                  aria-hidden="true"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      )}
+
+      {/* Edit Modal */}
       {editModalOpen && editLocker && (
         <div className="fpm-overlay">
           <div className="fpm-modal">
