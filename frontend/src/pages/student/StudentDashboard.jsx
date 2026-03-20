@@ -10,9 +10,7 @@ import {
   showError,
 } from "../../utils/notifications";
 import { API_ENDPOINTS } from "../../config/api";
-import LockerSelection from "./LockerSelection";
 import LockerGrid from "../../components/student/LockerGrid";
-import SetSelection from "./SetSelection";
 import ReservationForm from "../../components/student/ReservationForm";
 import RulesRegulations from "../../components/student/RulesRegulations";
 import EndorsementApproval from "../../components/student/EndorsementApproval";
@@ -28,9 +26,6 @@ import iacademyBg from "../../assets/images/backgrounds/Iacademy.jpg";
 
 const StudentDashboard = () => {
   const [selectedFloor, setSelectedFloor] = useState(null);
-
-  const [selectedSide, setSelectedSide] = useState(null);
-  const [selectedSet, setSelectedSet] = useState(null);
   const [selectedLocker, setSelectedLocker] = useState(null);
   const [showRules, setShowRules] = useState(false);
   const [reservationData, setReservationData] = useState(null);
@@ -44,8 +39,55 @@ const StudentDashboard = () => {
   const [isWithinOperatingHours, setIsWithinOperatingHours] = useState(null);
   const timeGateIntervalRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeGrid, setActiveGrid] = useState(null);
+  const [floorSets, setFloorSets] = useState({});
+  const [setsLoading, setSetsLoading] = useState(true);
+  const wings = ["Left Wing", "Right Wing"];
 
   const floors = [6, 7, 9, 10];
+
+  const floorBackgrounds = {
+    6: floor6Bg,
+    7: floor7Bg,
+    9: floor9Bg,
+    10: floor10Bg,
+  };
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchAllSets = async () => {
+      setSetsLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const floorsToFetch = selectedFloor ? [selectedFloor] : floors;
+        const result = {};
+        for (const floor of floorsToFetch) {
+          for (const wing of wings) {
+            const response = await fetch(
+              API_ENDPOINTS.lockerSets.byFloorAndWing(floor, wing),
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            const data = await response.json();
+            result[`${floor}|${wing}`] = data.success ? data.data || [] : [];
+          }
+        }
+        setFloorSets(result);
+      } catch (err) {
+        console.error("Failed to load sets:", err);
+      } finally {
+        setSetsLoading(false);
+      }
+    };
+    fetchAllSets();
+    setActiveGrid(null);
+  }, [selectedFloor]);
 
   const checkOperatingHours = async () => {
     try {
@@ -60,9 +102,6 @@ const StudentDashboard = () => {
       console.error("Failed to check operating hours:", err);
     }
   };
-
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (selectedFloor !== null) {
@@ -87,7 +126,6 @@ const StudentDashboard = () => {
         const reservationService =
           require("../../services/reservationService").default;
         const result = await reservationService.checkActiveReservation();
-
         if (result.success && result.hasActiveReservation) {
           setHasActiveReservation(true);
         } else {
@@ -98,13 +136,11 @@ const StudentDashboard = () => {
         setHasActiveReservation(false);
       }
     };
-
     checkActiveReservationStatus();
     const interval = setInterval(checkActiveReservationStatus, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Close drawer on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -119,7 +155,6 @@ const StudentDashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  // Lock body scroll when drawer is open on mobile
   useEffect(() => {
     if (menuOpen) {
       document.body.style.overflow = "hidden";
@@ -133,14 +168,7 @@ const StudentDashboard = () => {
 
   const handleFloorSelect = (floor) => {
     setSelectedFloor(floor);
-    setSelectedSide(null);
-    setSelectedSet(null);
     setMenuOpen(false);
-  };
-
-  const handleSideSelect = (side) => {
-    setSelectedSide(side);
-    setSelectedSet(null);
   };
 
   const handleSelectLocker = (locker) => {
@@ -158,11 +186,9 @@ const StudentDashboard = () => {
 
   const handleAcceptRules = async (agreementData) => {
     if (!tempReservationData) return;
-
     try {
       showLoading("Sending Verification Code", "Please wait...");
       const token = localStorage.getItem("token");
-
       const response = await fetch(API_ENDPOINTS.otp.send, {
         method: "POST",
         headers: {
@@ -170,14 +196,11 @@ const StudentDashboard = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
       const data = await response.json();
       closeAlert();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to send verification code");
       }
-
       setPendingAgreementData(agreementData);
       setShowOTPModal(true);
     } catch (error) {
@@ -189,17 +212,13 @@ const StudentDashboard = () => {
 
   const handleOTPVerified = async () => {
     if (!tempReservationData || !pendingAgreementData) return;
-
     setShowOTPModal(false);
-
     try {
       showLoading(
         "Processing Agreement",
         "Generating document and sending confirmation...",
       );
-
       const token = localStorage.getItem("token");
-
       const reservationPayload = {
         lockerID: tempReservationData.lockerID,
         duration: tempReservationData.duration,
@@ -211,7 +230,6 @@ const StudentDashboard = () => {
         program: pendingAgreementData.program,
         signature: pendingAgreementData.signature,
       };
-
       const response = await fetch(API_ENDPOINTS.reservations.create, {
         method: "POST",
         headers: {
@@ -220,20 +238,15 @@ const StudentDashboard = () => {
         },
         body: JSON.stringify(reservationPayload),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to create reservation");
       }
-
       closeAlert();
-
       await showSuccess(
         "Agreement Submitted Successfully!",
         "Your signed agreement has been sent to your email. Your reservation is now pending OSAS approval.",
       );
-
       const reservationService =
         require("../../services/reservationService").default;
       try {
@@ -244,7 +257,6 @@ const StudentDashboard = () => {
       } catch (error) {
         console.error("Failed to refresh reservation status:", error);
       }
-
       setShowRules(false);
       setTempReservationData(null);
       setPendingAgreementData(null);
@@ -253,10 +265,7 @@ const StudentDashboard = () => {
     } catch (error) {
       console.error("Reservation error:", error);
       closeAlert();
-      showError(
-        "Submission Failed",
-        error.message || "Failed to submit agreement",
-      );
+      showError("Submission Failed", error.message || "Failed to submit agreement");
     }
   };
 
@@ -283,7 +292,6 @@ const StudentDashboard = () => {
     try {
       setShowEndorsement(false);
       setReservationData(null);
-
       setTimeout(() => {
         const lockerInfo = reservationData?.lockerID || "Your locker";
         showSuccess(
@@ -310,11 +318,9 @@ const StudentDashboard = () => {
     try {
       showLoading("Loading Reservations", "Please wait...");
       const token = localStorage.getItem("token");
-
       if (!user || !user.studentID) {
         throw new Error("Student ID not found");
       }
-
       const response = await fetch(
         API_ENDPOINTS.reservations.byStudent(user.studentID),
         {
@@ -325,13 +331,10 @@ const StudentDashboard = () => {
           },
         },
       );
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to fetch reservations");
       }
-
       setUserReservations(data.data || data);
       setShowReservationLog(true);
       closeAlert();
@@ -360,13 +363,6 @@ const StudentDashboard = () => {
     className: `drawer-floor-button ${selectedFloor === floor ? "active" : ""}`,
   });
 
-  const floorBackgrounds = {
-  6: floor6Bg,
-  7: floor7Bg,
-  9: floor9Bg,
-  10: floor10Bg,
-};
-
   return (
     <div className="locker-dashboard" style={{ backgroundImage: `url(${selectedFloor ? floorBackgrounds[selectedFloor] : iacademyBg})` }}>
 
@@ -380,7 +376,7 @@ const StudentDashboard = () => {
               id="iac-logo"
               src="../../WHITE_iACADEMY Long Logo_Makati.png"
               alt="iACADEMY"
-              onClick={() => { setSelectedFloor(null); setSelectedSide(null); setSelectedSet(null); }}
+              onClick={() => setSelectedFloor(null)}
               style={{ cursor: "pointer" }}
             />
             <span className="locker-welcome-text">
@@ -390,10 +386,14 @@ const StudentDashboard = () => {
 
           {/* Desktop: floor buttons */}
           <div className="locker-navbar-links">
-            <button id="home-btn" onClick={() => { setSelectedFloor(null); setSelectedSide(null); setSelectedSet(null); }} style={{ cursor: "pointer" }}>
+            <button
+              id="home-btn"
+              className={`locker-floor-button ${selectedFloor === null ? "active" : ""}`}
+              onClick={() => setSelectedFloor(null)}
+              style={{ cursor: "pointer" }}
+            >
               Home
             </button>
-
             {floors.map((floor) => (
               <button key={floor} {...floorButtonProps(floor)}>
                 Floor {floor}
@@ -401,10 +401,9 @@ const StudentDashboard = () => {
             ))}
           </div>
 
-          {/* Desktop: welcome + logout */}
+          {/* Desktop: reservations + logout */}
           <div className="locker-navbar-right">
-            <button
-              className="reservation-log-button"onClick={handleOpenReservationLog}>
+            <button className="reservation-log-button" onClick={handleOpenReservationLog}>
               My Reservations
             </button>
             <button className="locker-logout-button" onClick={handleLogout}>
@@ -433,17 +432,16 @@ const StudentDashboard = () => {
           Welcome, {user?.firstName} {user?.lastName || "Student"}
         </span>
         <div className="drawer-divider" />
-
-        <button className={`drawer-floor-button ${selectedFloor === null ? "active" : ""}`} onClick={() => { setSelectedFloor(null); setSelectedSide(null); setSelectedSet(null); setMenuOpen(false); }} >
+        <button
+          className={`drawer-floor-button ${selectedFloor === null ? "active" : ""}`}
+          onClick={() => { setSelectedFloor(null); setMenuOpen(false); }}
+        >
           Home
         </button>
-
         {floors.map((floor) => (
-
           <button key={floor} {...drawerFloorButtonProps(floor)}>
             Floor {floor}
           </button>
-          
         ))}
         <div className="drawer-divider" />
         <button className="drawer-reservation-btn" onClick={handleOpenReservationLog}>
@@ -466,27 +464,56 @@ const StudentDashboard = () => {
           </div>
         ) : (
           <div className="locker-content-area">
-            {!selectedSide ? (
-              <LockerSelection
-                floor={selectedFloor}
-                onSelectSide={handleSideSelect}
-              />
-            ) : !selectedSet ? (
-              <SetSelection
-                floor={selectedFloor}
-                wing={selectedSide}
-                onSelectSet={(set) => setSelectedSet(set)}
-                onBack={() => setSelectedSide(null)}
-              />
-            ) : (
+            {activeGrid ? (
               <LockerGrid
-                floor={selectedFloor}
-                wing={selectedSide}
-                set={selectedSet}
+                floor={activeGrid.floor}
+                wing={activeGrid.wing}
+                set={activeGrid.set}
                 onSelectLocker={handleSelectLocker}
-                onBack={() => setSelectedSet(null)}
+                onBack={() => setActiveGrid(null)}
                 hasActiveReservation={hasActiveReservation}
+                hideBack={false}
               />
+            ) : setsLoading ? (
+              <div className="home-locker-loading">
+                <div className="spinner"></div>
+                <p>Loading floors...</p>
+              </div>
+            ) : (
+              <div className="floor-sections-wrapper">
+                {(selectedFloor ? [selectedFloor] : floors).map((floor) => (
+                  <div key={floor} className="floor-section-block">
+                    <h2 className="floor-section-title">Floor {floor}</h2>
+                    <div className="floor-wings-row">
+                      {wings.map((wing) => {
+                        const sets = floorSets[`${floor}|${wing}`] || [];
+                        return (
+                          <div key={wing} className="wing-column">
+                            <h3 className="wing-column-title">{wing}</h3>
+                            {sets.length === 0 ? (
+                              <p className="wing-no-sets">No sets available.</p>
+                            ) : (
+                              <div className="wing-sets-list">
+                                {sets.map((set) => (
+                                  <button
+                                    key={set.id}
+                                    className="wing-set-btn"
+                                    onClick={() => setActiveGrid({ floor, wing, set: set.setName })}
+                                    disabled={hasActiveReservation}
+                                  >
+                                    <div className="wing-set-icon">{set.setName}</div>
+                                    <span>Set {set.setName}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
