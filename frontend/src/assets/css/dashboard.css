@@ -4,124 +4,289 @@
   box-sizing: border-box;
 }
 
-body {
+html, body, #root {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
-/* Container Styles */
+/* ─── Layout ─────────────────────────────────────────── */
 .locker-dashboard {
   display: flex;
+  flex-direction: column;
   height: 100vh;
+  width: 100%;
   background-color: #1f2937;
   color: white;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+}
+.locker-dashboard[data-floor] {
+  filter: brightness(0.6);
+}
+.locker-dashboard::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: inherit;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(6px) brightness(0.9);
+  transform: scale(1.05);
+  z-index: 0;
 }
 
-/* Sidebar Styles */
-.locker-sidebar {
-  width: 200px;
-  background-color: #475569;
+/* ─── Navbar ─────────────────────────────────────────── */
+.locker-navbar {
+  background-color: #1d4ed8;
+  border-bottom: 1px solid #1e40af;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  height: 66px;
+}
+
+.locker-navbar-inner {
+  max-width: 100%;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 66px;
+}
+
+/* Logo */
+.locker-navbar-logo {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.locker-sidebar-logo {
-  height: 56px;
-  background-color: #1d4ed8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #1e40af;
-}
-
-.locker-logo-container {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    justify-content: center;
-    padding: 0 10px;
-}
-
 #iac-logo {
-    height: auto;
-    width: 100%;
-    max-height: 45px;
-    object-fit: contain;
-    margin-bottom: 10px;
+  max-height: 50px;
+  width: auto;
+  object-fit: contain;
+  margin-right: 30px;
+  margin-bottom: 10px;
 }
 
-/* Floor Navigation Styles */
-.locker-floor-nav {
-  flex: 1;
-  padding: 8px 0px;
+/* Desktop nav links (floors) */
+.locker-navbar-links {
   display: flex;
-  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  justify-content: center;
+  margin-right: 9%;
+  
 }
 
 .locker-floor-button {
-  width: 100%;
-  padding: 20px 0;
-  font-size: 15px;
+  padding: 12px 20px;
+  font-size: 16px;
   font-weight: 500;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+  color: #d1d5db;
+  background-color: transparent;
 }
 
-.locker-floor-button:hover {
-  opacity: 0.9;
-}
-
-.locker-floor-button.active {
-  background-color: #2563eb;
+.locker-floor-button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.12);
   color: white;
 }
 
-.locker-floor-button.inactive {
-  background-color: #475569;
-  color: #d1d5db;
+.locker-floor-button.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
-.locker-floor-button.inactive:hover {
-  background-color: #6b7280;
+.locker-floor-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-/* Logout Button Styles */
-.locker-logout-container {
-  padding: 12px;
+.reservation-log-button {
+  padding: 8px 14px;
+  font-size: 16px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.reservation-log-button:hover {
+  border-color: rgb(67, 180, 255);
+  color: rgb(67, 180, 255);
+}
+
+.reservation-log-button:active {
+  background-color: #2563eb;
+}
+
+/* Right side: welcome + logout */
+.locker-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.locker-welcome-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
 }
 
 .locker-logout-button {
-    background: rgba(210, 35, 35, 0.978);
-    color: rgb(255, 255, 255);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 10px 0;
-    border-radius: 7px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    width: 100%;
-    margin-bottom: 3px;
+  background: rgba(210, 35, 35, 0.978);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 19px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .locker-logout-button:hover {
   background-color: #b91c1c;
+}
+
+/* Burger button (mobile only) */
+.burger-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.burger-menu-btn svg {
+  height: 28px;
+}
+
+/* ─── Mobile Drawer ───────────────────────────────────── */
+.locker-mobile-drawer {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background-color: #1e3a8a;
+  border-bottom: 1px solid #1e40af;
+  z-index: 49;
+  padding: 12px 16px 16px;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.locker-mobile-drawer span {
+  margin-top: 7px;
+}
+
+.locker-mobile-drawer.drawer-open {
+  display: flex;
+}
+
+.drawer-floor-button {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 17px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #d1d5db;
+  background-color: transparent;
+  text-align: center;
+}
+
+.drawer-floor-button.active {
+  background-color: #2563eb;
   color: white;
 }
 
-/* Main Content Styles */
+.drawer-floor-button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.drawer-floor-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.drawer-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.12);
+  margin: 4px 0;
+}
+
+.drawer-reservation-btn {
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.drawer-reservation-btn:hover {
+  border-color: rgb(67, 180, 255);
+  color: rgb(67, 180, 255);
+}
+
+.drawer-logout-btn {
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(210, 35, 35, 0.9);
+  color: white;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.drawer-logout-btn:hover {
+  background-color: #b91c1c;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+/* ─── Main Content ────────────────────────────────────── */
 .locker-main-content {
   display: flex;
   flex-direction: column;
   flex: 1;
-  max-width: 100%;
-  max-height: 100vh;
+  max-height: calc(100vh - 56px);
   overflow: auto;
   position: relative;
   z-index: 1;
+  background: transparent;  
 }
 
 .locker-unavailable-notice {
@@ -144,34 +309,20 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.locker-header {
-  background-color: #1d4ed8;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  border-bottom: 1px solid #1e40af;
-  height: 56px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  flex-shrink: 0;
-}
-
-.locker-header-title {
-  font-weight: bold;
-  font-size: 16px;
-  color: white;
-}
-
 /* Content Area */
 .locker-content-area {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  background-color: #374151;
+  background-color: transparent;
   flex: 1;
   overflow: auto;
   padding: 1rem;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+
 }
 
 .locker-floor-display {
@@ -181,317 +332,77 @@ body {
   text-align: center;
 }
 
-.reservation-log-button {
-  background-color: transparent;
-  height: 40px;
-  margin: 10px 10px 2px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.349);
-  color: white;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.reservation-log-button:hover {
-  border-color: rgb(67, 180, 255);
-  color: rgb(67, 180, 255);
-}
-.reservation-log-button:active {
-  background-color: #2563eb;
-  color: white;
-}
-.reservation-log-button.inactive {
-  background-color: #475569;
-}
-.reservation-log-button.inactive:hover {
-  background-color: #6b7280;
-}
 
-.mobile-logout-btn {
-  margin-left: auto;
-  margin-right: 15px;
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-  color: white;
-  font-size: 15px;
-  transition: 0.2s;
-}
-.mobile-logout-btn:active {
-  color: #b91c1c;
-}
+/* ─── Responsiveness ──────────────────────────────────────── */
 
-.mobile-floor-menu {
-  margin-left: 5px;
-  margin-right: 20px;
-  cursor: pointer;
-}
-svg {
-  height: 30px;
-}
-
-.burger-menu-btn {
-  display: none;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-}
-
-.burger-icon {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 22px;
-}
-
-.burger-icon span {
-  display: block;
-  height: 2px;
-  background: #fff;
-  border-radius: 2px;
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
-  transform-origin: center;
-}
-
-.burger-icon.open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-.burger-icon.open span:nth-child(2) {
-  opacity: 0;
-}
-.burger-icon.open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-.sidebar-overlay {
-  display: none;
-}
-
-/* Responsive Design */
-
-/* Desktop */
-@media (min-width: 640px) {
-  .mobile-logout-btn {
-    display: none;
-  }
-
-  .mobile-floor-menu {
-    display: none;
-  }
-
-  .burger-menu-btn {
-    display: none;
-  }
-}
-
-/* Large Tablets and Small Laptops (1024px and below) */
+/* Tablet: collapse some links */
 @media (max-width: 1024px) {
-  .locker-sidebar {
-    width: 180px;
+  .locker-welcome-text {
+    font-size: 13px;
   }
-
   .locker-floor-button {
-    padding: 18px 0;
-    font-size: 14px;
+    padding: 6px 12px;
+    font-size: 13px;
   }
-
-  .locker-header-title {
-    font-size: 15px;
-  }
-
-  .locker-content-area {
-    padding: 0.75rem;
-  }
+ 
 }
 
-/* Tablets (768px and below) */
-@media (max-width: 768px) {
-  .locker-sidebar {
-    width: 80px;
+/* Mobile: show burger, hide desktop links */
+@media (max-width: 1024px) {
+  .burger-menu-btn {
+    display: flex;
   }
 
-  .locker-logo-text {
-    font-size: 12px;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-  }
-
-  .locker-search-input {
-    font-size: 10px;
-    padding: 8px 6px;
-  }
-
-  .locker-floor-button {
-    padding: 16px 0;
-    font-size: 12px;
+  .locker-navbar-links {
+    display: none;
   }
 
   .locker-logout-button {
-    font-size: 12px;
-    padding: 8px 0;
-  }
-
-  .locker-header {
-    padding: 0 16px;
-  }
-
-  .locker-header-title {
-    font-size: 14px;
-  }
-
-  .locker-floor-display {
-    font-size: 20px;
-  }
-
-  .locker-content-area {
-    padding: 0.5rem;
-  }
-}
-
-/* Mobile Landscape and Small Tablets (640px and below) */
-@media (max-width: 640px) {
-  .burger-menu-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-  }
-
-  .locker-dashboard {
-    flex-direction: row !important;
-  }
-
-  .locker-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 250px !important;
-    height: 100% !important;
-    flex-direction: column !important;
-    overflow-x: unset !important;
-    z-index: 1050;
-    transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .sidebar-overlay {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0, 5);
-    z-index: 1040;
-    backdrop-filter: blur(2px);
-  }
-
-  .locker-sidebar.sidebar-open {
-    transform: translateX(0);
-    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
-  }
-
-  .locker-sidebar-logo {
-    display: flex !important;
-  }
-
-  .locker-floor-nav {
-    flex-direction: column !important;
-    overflow-x: unset !important;
-  }
-
-  .locker-floor-button {
-    display: block !important;
-    min-width: unset !important;
-    padding: 16px 0 !important;
-    font-size: 16px !important;
+    display: none;
   }
 
   .reservation-log-button {
-    display: block !important;
+    display: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .burger-menu-btn {
+    display: flex;
+  }
+
+  .locker-navbar-links {
+    display: none;
+  }
+
+  
+}
+
+@media (max-width: 768px) {
+  .burger-menu-btn {
+    display: flex;
+  }
+
+  .locker-navbar-links {
+    display: none;
+  }
+
+  .locker-welcome-text {
+    display: none;
   }
 
   .locker-logout-button {
-    display: block !important;
-  }
-
-  .locker-logout-container {
-    padding: 12px !important;
-    display: block !important;
-    align-items: unset !important;
-  }
-
-  .locker-main-content {
-    margin-left: 0 !important;
-    width: 100% !important;
-    height: 100vh !important;
+    display: none;
   }
 
   .sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 1040;
-    backdrop-filter: blur(2px);
+    display: none;
   }
 }
 
-/* Mobile Portrait (480px and below) */
 @media (max-width: 480px) {
-  .locker-sidebar-logo {
-    min-width: 60px;
+  .locker-navbar-inner {
+    padding: 0 16px;
   }
 
-  .locker-logo-text {
-    font-size: 11px;
-  }
-
-  .locker-floor-button {
-    min-width: 70px;
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-
-  .locker-logout-button {
-    min-width: 70px;
-    font-size: 11px;
-  }
-
-  .locker-header-title {
-    font-size: 12px;
-  }
-
-  .locker-floor-display {
-    font-size: 16px;
-  }
-
-  .locker-content-area {
-    padding: 0.25rem;
-  }
-}
-
-/* Very Small Devices (360px and below) */
-@media (max-width: 360px) {
-  .locker-logo-text {
-    font-size: 10px;
-  }
-
-  .locker-floor-button {
-    min-width: 60px;
-    padding: 8px 10px;
-    font-size: 11px;
-  }
-
-  .locker-logout-button {
-    min-width: 60px;
-    font-size: 10px;
-  }
-
-  .locker-header-title {
-    font-size: 11px;
-  }
-
-  .locker-floor-display {
-    font-size: 14px;
-  }
 }
