@@ -388,15 +388,15 @@ body,
   box-sizing: border-box;
 }
 
-.floor-section-block {
+/* .floor-section-block {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1.5rem;
   backdrop-filter: blur(6px);
-}
+} */
 
 .floor-section-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: white;
   margin-bottom: 1rem;
@@ -408,13 +408,14 @@ body,
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
+  margin: 0 auto;
 }
 
 .wing-column {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 1rem 1.25rem;
@@ -423,7 +424,7 @@ body,
 .wing-column-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #93c5fd;
+  color: #3b82f6;
 }
 
 .wing-sets-list {
@@ -466,7 +467,7 @@ body,
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #74a6f7, #2376fb);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -497,9 +498,9 @@ body,
     grid-template-columns: 1fr;
   }
 
-  .floor-section-block {
+  /* .floor-section-block {
     padding: 1rem;
-  }
+  } */
 
   .wing-column {
     padding: 0.75rem 1rem;
@@ -595,10 +596,10 @@ body,
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 1);
+  border: 1px solid rgba(59, 130, 246, 1);
   border-radius: 6px;
-  color: #93c5fd;
+  color: #ffffff;
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.3rem 0.65rem;
@@ -612,16 +613,15 @@ body,
 }
 
 .wing-locate-btn:hover {
-  background: rgba(59, 130, 246, 0.28);
-  border-color: rgba(59, 130, 246, 0.7);
+  background: rgba(59, 130, 246, 1);
+  border-color: rgba(59, 130, 246, 1);
   color: #bfdbfe;
 }
 
 .wing-locate-icon {
   width: 14px;
   height: 14px;
-  filter: invert(67%) sepia(34%) saturate(663%) hue-rotate(183deg)
-    brightness(101%) contrast(97%);
+  color: #ffffff;
   flex-shrink: 0;
 }
 
