@@ -629,7 +629,7 @@ const StudentDashboard = () => {
       {selectedLocker && (
         <ReservationForm
           locker={selectedLocker}
-          floor={selectedFloor}
+          floor={activeGrid?.floor ?? selectedFloor}
           onConfirm={handleConfirmReservation}
           onCancel={handleCancelReservation}
           onShowRules={handleShowRules}
