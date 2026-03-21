@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import "../../assets/css/dashboard.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -48,7 +48,13 @@ const StudentDashboard = () => {
   const [locateBlobLoading, setLocateBlobLoading] = useState(false);
   const wings = ["Left Wing", "Right Wing"];
 
-  const floors = [6, 7, 9, 10];
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const floors = useMemo(() => {
+    const FLOOR_MAP = { SHS: [6, 7], College: [9, 10] };
+    return FLOOR_MAP[user?.studentType] ?? [6, 7, 9, 10];
+  }, [user?.studentType]);
 
   const floorBackgrounds = {
     6: floor6Bg,
@@ -56,9 +62,6 @@ const StudentDashboard = () => {
     9: floor9Bg,
     10: floor10Bg,
   };
-
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAllSets = async () => {
@@ -114,6 +117,12 @@ const StudentDashboard = () => {
       localStorage.removeItem("selectedFloor");
     }
   }, [selectedFloor]);
+
+  useEffect(() => {
+    if (selectedFloor !== null && !floors.includes(selectedFloor)) {
+      setSelectedFloor(null);
+    }
+  }, [floors, selectedFloor]);
 
   useEffect(() => {
     checkOperatingHours();
