@@ -13,6 +13,7 @@ const LockerGrid = ({
   onSelectLocker,
   onBack,
   hasActiveReservation = false,
+  hideBack  = false,
 }) => {
   const [lockers, setLockers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -129,9 +130,13 @@ const LockerGrid = ({
       <div className="locker-grid-container">
         <div className="grid-header">
           <div className="grid-title-section">
-            <button onClick={onBack} className="back-button">
-              <p> Back to Set Selection</p>
-            </button>
+
+            {!hideBack && (
+              <button onClick={onBack} className="back-button">
+                <p> Back to Set Selection</p>
+              </button>
+            )}
+
             <h2 className="grid-title">
               Floor {floor} - {wing} - Set {set}
             </h2>
