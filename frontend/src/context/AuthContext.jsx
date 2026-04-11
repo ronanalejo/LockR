@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import authService from "../services/authService";
+import api from "../services/api";
 
 export const AuthContext = createContext(null);
 
@@ -11,13 +12,30 @@ export const AuthProvider = ({ children }) => {
     const currentUser = authService.getCurrentUser();
     const token = authService.getToken();
 
-    console.log("AuthContext initialized:", {
-      user: currentUser,
-      hasToken: !!token,
-    });
+    if (!currentUser || !token) {
+      setUser(currentUser);
+      setLoading(false);
+      return;
+    }
 
     setUser(currentUser);
-    setLoading(false);
+
+    // Refresh user data from DB to catch any updates (e.g. student_type changes)
+    api
+      .get("/auth/me")
+      .then((res) => {
+        if (res.data?.success && res.data.user) {
+          const freshUser = res.data.user;
+          setUser(freshUser);
+          localStorage.setItem("user", JSON.stringify(freshUser));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to refresh user session:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const login = async (email, password) => {

@@ -39,7 +39,6 @@ const authController = {
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN },
       );
-      
 
       res.json({
         success: true,
@@ -123,7 +122,6 @@ const authController = {
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN },
       );
-      
 
       res.json({
         success: true,
@@ -254,7 +252,6 @@ const authController = {
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES_IN },
         );
-        
 
         return res.json({
           success: true,
@@ -311,7 +308,7 @@ const authController = {
           },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES_IN },
-        );        
+        );
 
         return res.json({
           success: true,
@@ -384,6 +381,79 @@ const authController = {
         success: false,
         message: "Failed to retrieve branches",
       });
+    }
+  },
+
+  getMe: async (req, res) => {
+    try {
+      const db = require("../config/database");
+      const userType = req.user.userType;
+
+      if (userType === "student") {
+        const [rows] = await db.query(
+          "SELECT studentID, studentEmail, firstName, lastName, student_type, branchID FROM student WHERE studentID = ?",
+          [req.user.id],
+        );
+
+        if (rows.length === 0) {
+          return res
+            .status(404)
+            .json({ success: false, message: "Student not found" });
+        }
+
+        const s = rows[0];
+        return res.json({
+          success: true,
+          user: {
+            studentID: s.studentID,
+            email: s.studentEmail,
+            firstName: s.firstName,
+            lastName: s.lastName,
+            userType: "student",
+            role: "Student",
+            studentType: s.student_type,
+            branchID: s.branchID,
+          },
+        });
+      }
+
+      if (userType === "admin") {
+        const [rows] = await db.query(
+          "SELECT employeeID, employeeEmail, firstName, lastName, department, branchID FROM admin WHERE employeeID = ?",
+          [req.user.id],
+        );
+
+        if (rows.length === 0) {
+          return res
+            .status(404)
+            .json({ success: false, message: "Admin not found" });
+        }
+
+        const a = rows[0];
+        const { mapAdminDepartmentToRole } = require("../services/authService");
+        return res.json({
+          success: true,
+          user: {
+            employeeID: a.employeeID,
+            email: a.employeeEmail,
+            firstName: a.firstName,
+            lastName: a.lastName,
+            userType: "admin",
+            role: mapAdminDepartmentToRole(a.department),
+            department: a.department,
+            branchID: a.branchID,
+          },
+        });
+      }
+
+      return res
+        .status(400)
+        .json({ success: false, message: "Unknown user type" });
+    } catch (error) {
+      console.error("getMe error:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch current user" });
     }
   },
 };

@@ -149,3 +149,4 @@ const authService = {
 };
 
 module.exports = authService;
+module.exports.mapAdminDepartmentToRole = mapAdminDepartmentToRole;
