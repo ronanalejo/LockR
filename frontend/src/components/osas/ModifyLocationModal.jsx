@@ -18,7 +18,16 @@ import {
 const WINGS = ["Left Wing", "Right Wing"];
 const STAGE_WIDTH = 800;
 const STAGE_HEIGHT = 500;
-const FLOOR_PLAN_URL = process.env.PUBLIC_URL + "/images/floor-map.png";
+const FLOOR_PLAN_TEMPLATES = {
+  6: process.env.PUBLIC_URL + "/images/floor-map-6.png",
+  7: process.env.PUBLIC_URL + "/images/floor-map-7.png",
+  9: process.env.PUBLIC_URL + "/images/floor-map-9.png",
+  10: process.env.PUBLIC_URL + "/images/floor-map-10.png",
+};
+
+const getFloorPlanUrl = (floor) => {
+  return FLOOR_PLAN_TEMPLATES[String(floor)] || null;
+};
 
 const TOOLS = {
   SELECT: "select",
@@ -53,13 +62,20 @@ const ModifyLocationModal = ({ locker, floors, onClose, onSaved }) => {
     };
   };
 
-  const loadFloorPlanImage = useCallback(() => {
+  const loadFloorPlanImage = useCallback((floor) => {
+    const url = getFloorPlanUrl(floor);
     setImageLoaded(false);
     setImageError(false);
     setBgImage(null);
+
+    if (!url) {
+      setImageError(true);
+      return;
+    }
+
     const img = new window.Image();
     img.crossOrigin = "anonymous";
-    img.src = FLOOR_PLAN_URL;
+    img.src = url;
     img.onload = () => {
       setBgImage(img);
       setImageLoaded(true);
@@ -70,8 +86,8 @@ const ModifyLocationModal = ({ locker, floors, onClose, onSaved }) => {
   }, []);
 
   useEffect(() => {
-    loadFloorPlanImage();
-  }, [loadFloorPlanImage]);
+    loadFloorPlanImage(selectedFloor);
+  }, [loadFloorPlanImage, selectedFloor]);
 
   const getRelativePointerPos = (stage) => {
     const pos = stage.getPointerPosition();
@@ -301,7 +317,10 @@ const ModifyLocationModal = ({ locker, floors, onClose, onSaved }) => {
             <label>Floor</label>
             <select
               value={selectedFloor}
-              onChange={(e) => setSelectedFloor(e.target.value)}
+              onChange={(e) => {
+                setSelectedFloor(e.target.value);
+                setAnnotations([]);
+              }}
             >
               {floors.map((f) => (
                 <option key={f} value={f}>
@@ -399,9 +418,9 @@ const ModifyLocationModal = ({ locker, floors, onClose, onSaved }) => {
         <div className="fpm-canvas-container">
           {imageError ? (
             <div className="fpm-canvas-error">
-              <p>floor-map.png not found.</p>
+              <p>floor-map-{selectedFloor}.png not found.</p>
               <p className="fpm-canvas-error-hint">
-                Place <code>floor-map.png</code> in{" "}
+                Place <code>floor-map-{selectedFloor}.png</code> in{" "}
                 <code>frontend/public/images/</code> and refresh.
               </p>
             </div>
